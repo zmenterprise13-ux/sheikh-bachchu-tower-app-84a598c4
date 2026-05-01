@@ -50,6 +50,66 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_settings_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          changed_fields: string[]
+          eid_due_day_1: number | null
+          eid_due_day_2: number | null
+          eid_month_1: string | null
+          eid_month_2: string | null
+          id: string
+          other_due_offset_days: number | null
+          prev_eid_due_day_1: number | null
+          prev_eid_due_day_2: number | null
+          prev_eid_month_1: string | null
+          prev_eid_month_2: string | null
+          prev_other_due_offset_days: number | null
+          prev_regular_due_day: number | null
+          regular_due_day: number | null
+          settings_id: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          eid_due_day_1?: number | null
+          eid_due_day_2?: number | null
+          eid_month_1?: string | null
+          eid_month_2?: string | null
+          id?: string
+          other_due_offset_days?: number | null
+          prev_eid_due_day_1?: number | null
+          prev_eid_due_day_2?: number | null
+          prev_eid_month_1?: string | null
+          prev_eid_month_2?: string | null
+          prev_other_due_offset_days?: number | null
+          prev_regular_due_day?: number | null
+          regular_due_day?: number | null
+          settings_id?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          eid_due_day_1?: number | null
+          eid_due_day_2?: number | null
+          eid_month_1?: string | null
+          eid_month_2?: string | null
+          id?: string
+          other_due_offset_days?: number | null
+          prev_eid_due_day_1?: number | null
+          prev_eid_due_day_2?: number | null
+          prev_eid_month_1?: string | null
+          prev_eid_month_2?: string | null
+          prev_other_due_offset_days?: number | null
+          prev_regular_due_day?: number | null
+          regular_due_day?: number | null
+          settings_id?: string | null
+        }
+        Relationships: []
+      }
       bills: {
         Row: {
           created_at: string

@@ -192,13 +192,20 @@ export default function AdminSettings() {
   return (
     <AppShell>
       <div className="space-y-6 max-w-2xl">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("billingSettings")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {lang === "bn"
-              ? "ঈদ বোনাসের মাস, ডিউ ডেট ও অন্যান্য আদায়ের ডিউ অফসেট কনফিগার করুন"
-              : "Configure Eid bonus months, due dates and other-charge due offset"}
-          </p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("billingSettings")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {lang === "bn"
+                ? "ঈদ বোনাসের মাস, ডিউ ডেট ও অন্যান্য আদায়ের ডিউ অফসেট কনফিগার করুন"
+                : "Configure Eid bonus months, due dates and other-charge due offset"}
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <a href="/admin/settings/history">
+              {lang === "bn" ? "পরিবর্তন ইতিহাস" : "Change History"}
+            </a>
+          </Button>
         </div>
 
         {loading ? (
