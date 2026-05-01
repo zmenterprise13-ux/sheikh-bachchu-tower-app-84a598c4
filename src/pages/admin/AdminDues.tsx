@@ -316,6 +316,18 @@ function BillEditDialog({
               onChange={(e) => set("other_note", e.target.value)}
               placeholder={lang === "bn" ? "যেমন: লিফট মেরামত" : "e.g. Lift repair"} />
           </div>
+          {Number(form.other_charge) > 0 && form.other_due_date && (
+            <div className="col-span-2 text-xs text-muted-foreground">
+              {lang === "bn" ? "অন্যান্য আদায়ের ডিউ" : "Other charge due"}: {form.other_due_date}
+            </div>
+          )}
+          {Number(form.other_charge) > 0 && !form.other_due_date && (
+            <div className="col-span-2 text-xs text-muted-foreground">
+              {lang === "bn"
+                ? "ডিউ ডেট সেটিংস অনুযায়ী সেভ করার সময় সেট হবে।"
+                : "Due date will be set on save based on Settings."}
+            </div>
+          )}
           <div className="col-span-2 text-right text-sm">
             {t("total")}: <span className="font-bold">{formatMoney(computedTotal, lang)}</span>
           </div>
