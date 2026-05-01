@@ -38,14 +38,6 @@ type Flat = {
   phone: string | null;
 };
 
-type Flat = {
-  id: string;
-  flat_no: string;
-  owner_name: string | null;
-  owner_name_bn: string | null;
-  phone: string | null;
-};
-
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function AdminDues() {
