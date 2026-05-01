@@ -205,6 +205,28 @@ export default function AdminSettings() {
           <Skeleton className="h-96 rounded-2xl" />
         ) : (
           <div className="space-y-6">
+            {errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{lang === "bn" ? "ত্রুটি" : "Errors"}</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc pl-4 space-y-0.5 text-xs">
+                    {errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            {warnings.length > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>{lang === "bn" ? "সতর্কতা" : "Warnings"}</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc pl-4 space-y-0.5 text-xs">
+                    {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
             {/* Eid 1 */}
             <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-4">
               <div className="font-semibold text-foreground">
