@@ -15,6 +15,8 @@ export const translations: T = {
   // Nav
   dashboard: { bn: "ড্যাশবোর্ড", en: "Dashboard" },
   flats: { bn: "ফ্ল্যাট সমূহ", en: "Flats" },
+  shops: { bn: "দোকান", en: "Shops" },
+  parkingNav: { bn: "পার্কিং", en: "Parking" },
   dues: { bn: "বকেয়া ও বিল", en: "Dues & Bills" },
   expenses: { bn: "খরচ", en: "Expenses" },
   reports: { bn: "মাসিক রিপোর্ট", en: "Monthly Reports" },
@@ -78,6 +80,25 @@ export const translations: T = {
   expense: { bn: "ব্যয়", en: "Expense" },
   balance: { bn: "ব্যালেন্স", en: "Balance" },
   monthlyReport: { bn: "মাসিক হিসাব", en: "Monthly Account" },
+
+  // Occupant / shops / parking
+  occupantType: { bn: "বর্তমান বাসিন্দা", en: "Current Occupant" },
+  ownerLabel: { bn: "মালিক", en: "Owner" },
+  tenantLabel: { bn: "ভাড়াটিয়া", en: "Tenant" },
+  occupantName: { bn: "বাসিন্দার নাম", en: "Occupant Name" },
+  ownerPhoto: { bn: "মালিকের ছবি", en: "Owner Photo" },
+  occupantPhoto: { bn: "বাসিন্দার ছবি", en: "Occupant Photo" },
+  uploadPhoto: { bn: "ছবি আপলোড", en: "Upload Photo" },
+  edit: { bn: "এডিট", en: "Edit" },
+  shopNo: { bn: "দোকান নং", en: "Shop No" },
+  side: { bn: "পাশ", en: "Side" },
+  east: { bn: "পূর্ব", en: "East" },
+  west: { bn: "পশ্চিম", en: "West" },
+  rent: { bn: "ভাড়া", en: "Rent" },
+  slotNo: { bn: "স্লট নং", en: "Slot No" },
+  assignedTo: { bn: "বরাদ্দ", en: "Assigned to" },
+  monthlyFee: { bn: "মাসিক ফি", en: "Monthly Fee" },
+  unassigned: { bn: "বরাদ্দ নেই", en: "Unassigned" },
 
   // Misc
   welcome: { bn: "স্বাগতম", en: "Welcome" },

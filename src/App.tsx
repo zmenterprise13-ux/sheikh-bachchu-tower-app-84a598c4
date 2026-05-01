@@ -11,6 +11,8 @@ import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFlats from "./pages/admin/AdminFlats";
+import AdminShops from "./pages/admin/AdminShops";
+import AdminParking from "./pages/admin/AdminParking";
 import AdminDues from "./pages/admin/AdminDues";
 import AdminExpenses from "./pages/admin/AdminExpenses";
 import AdminReports from "./pages/admin/AdminReports";
@@ -38,6 +40,8 @@ const App = () => (
               {/* Admin */}
               <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/flats" element={<ProtectedRoute requireRole="admin"><AdminFlats /></ProtectedRoute>} />
+              <Route path="/admin/shops" element={<ProtectedRoute requireRole="admin"><AdminShops /></ProtectedRoute>} />
+              <Route path="/admin/parking" element={<ProtectedRoute requireRole="admin"><AdminParking /></ProtectedRoute>} />
               <Route path="/admin/dues" element={<ProtectedRoute requireRole="admin"><AdminDues /></ProtectedRoute>} />
               <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
