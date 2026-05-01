@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
-import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Building2, ShieldCheck, User, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
+import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 
 export default function Index() {
   const { t, lang } = useLang();
-  const { setRole } = useRole();
+  const { user, role, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user && role) {
+      navigate(role === "admin" ? "/admin" : "/owner", { replace: true });
+    }
+  }, [user, role, loading, navigate]);
 
   const features = [
     { icon: Building2, key: "flats" as const, desc: { bn: "৬০টি ফ্ল্যাট, পার্কিং ও ওনারের তথ্য", en: "60 flats, parking & owner records" } },
