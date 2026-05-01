@@ -41,7 +41,7 @@ export default function OwnerDues() {
       setLoading(true);
       const { data, error } = await supabase
         .from("bills")
-        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status")
+        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
         .eq("flat_id", flat.id)
         .order("month", { ascending: false });
       if (error) toast.error(error.message);
