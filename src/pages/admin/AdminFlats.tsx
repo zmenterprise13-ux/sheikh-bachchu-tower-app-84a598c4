@@ -37,6 +37,7 @@ type Flat = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
   is_occupied: boolean;
   occupant_type: "owner" | "tenant";
   occupant_name: string | null;
