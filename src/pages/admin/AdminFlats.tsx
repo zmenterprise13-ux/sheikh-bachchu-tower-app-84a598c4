@@ -292,8 +292,41 @@ function BulkServiceChargeDialog({
     const d = new Date();
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
   });
+  const [monthBills, setMonthBills] = useState<
+    Record<string, { id: string; status: string; service_charge: number; gas_bill: number; eid_bonus: number; other_charge: number }>
+  >({});
+  const [billsLoading, setBillsLoading] = useState(false);
 
   const month = `${monthDate.getUTCFullYear()}-${String(monthDate.getUTCMonth() + 1).padStart(2, "0")}`;
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      setBillsLoading(true);
+      const { data } = await supabase
+        .from("bills")
+        .select("id, flat_id, status, service_charge, gas_bill, eid_bonus, other_charge")
+        .eq("month", month);
+      if (cancelled) return;
+      const map: typeof monthBills = {};
+      (data || []).forEach((b: any) => {
+        map[b.flat_id] = {
+          id: b.id,
+          status: b.status,
+          service_charge: Number(b.service_charge) || 0,
+          gas_bill: Number(b.gas_bill) || 0,
+          eid_bonus: Number(b.eid_bonus) || 0,
+          other_charge: Number(b.other_charge) || 0,
+        };
+      });
+      setMonthBills(map);
+      setBillsLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, month]);
 
   const setField = (key: ChargeKey, patch: Partial<ChargeEntry>) =>
     setCharges((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -480,10 +513,115 @@ function BulkServiceChargeDialog({
             );
           })}
 
-          {/* Preview */}
-          {enabledCharges.length > 0 && preview.some((p) => p.items.length > 0) && (
+          {/* Month-wise unpaid bills preview */}
+          {enabledCharges.length > 0 && updateBills && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-2 max-h-72 overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold">
+                  {lang === "bn" ? `${month} - বিল প্রিভিউ` : `${month} — Bill Preview`}
+                </div>
+                {billsLoading && (
+                  <span className="text-muted-foreground italic">
+                    {lang === "bn" ? "লোড হচ্ছে..." : "Loading..."}
+                  </span>
+                )}
+              </div>
+              {(() => {
+                const unpaidFlats = flats.filter(
+                  (f) => monthBills[f.id] && monthBills[f.id].status !== "paid"
+                );
+                const noBillFlats = flats.filter((f) => !monthBills[f.id]);
+                const paidFlats = flats.filter(
+                  (f) => monthBills[f.id] && monthBills[f.id].status === "paid"
+                );
+
+                if (billsLoading) return null;
+
+                return (
+                  <>
+                    <div className="flex flex-wrap gap-3 text-[11px] pb-1 border-b border-border">
+                      <span className="text-success font-medium">
+                        {lang === "bn" ? "আপডেট হবে: " : "Will update: "}
+                        {formatNumber(unpaidFlats.length, lang)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {lang === "bn" ? "পেইড (স্কিপ): " : "Paid (skip): "}
+                        {formatNumber(paidFlats.length, lang)}
+                      </span>
+                      <span className="text-warning">
+                        {lang === "bn" ? "বিল নেই: " : "No bill: "}
+                        {formatNumber(noBillFlats.length, lang)}
+                      </span>
+                    </div>
+
+                    {unpaidFlats.length === 0 ? (
+                      <div className="text-muted-foreground italic py-2">
+                        {lang === "bn"
+                          ? "এই মাসের কোনো আনপেইড বিল নেই।"
+                          : "No unpaid bills for this month."}
+                      </div>
+                    ) : (
+                      unpaidFlats.map((f) => {
+                        const bill = monthBills[f.id];
+                        return (
+                          <div key={f.id} className="border-b border-border/50 pb-1.5">
+                            <div className="font-medium text-foreground">
+                              {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+                            </div>
+                            {enabledCharges.map((c) => {
+                              const newVal = calcValue(charges[c.key], f);
+                              const oldVal = bill[c.key];
+                              const changed = newVal !== oldVal;
+                              return (
+                                <div
+                                  key={c.key}
+                                  className="flex justify-between pl-3 text-muted-foreground"
+                                >
+                                  <span>{lang === "bn" ? c.labelBn : c.labelEn}</span>
+                                  <span className="flex items-center gap-1.5">
+                                    {changed && (
+                                      <>
+                                        <span className="line-through opacity-60">
+                                          {formatMoney(oldVal, lang)}
+                                        </span>
+                                        <span>→</span>
+                                      </>
+                                    )}
+                                    <span
+                                      className={
+                                        changed ? "font-semibold text-primary" : "text-foreground"
+                                      }
+                                    >
+                                      {formatMoney(newVal, lang)}
+                                    </span>
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })
+                    )}
+
+                    {noBillFlats.length > 0 && (
+                      <div className="text-[11px] text-warning italic pt-1">
+                        {lang === "bn"
+                          ? `${formatNumber(noBillFlats.length, lang)} টি ফ্ল্যাটে এই মাসের বিল নেই — এদের বিল আপডেট স্কিপ হবে`
+                          : `${noBillFlats.length} flat(s) have no bill for this month — they'll be skipped`}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Charge values preview (master flat data) */}
+          {enabledCharges.length > 0 && !updateBills && preview.some((p) => p.items.length > 0) && (
             <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-2">
-              <div className="font-semibold">{lang === "bn" ? "প্রিভিউ:" : "Preview:"}</div>
+              <div className="font-semibold">
+                {lang === "bn" ? "ফ্ল্যাট মাস্টার ডেটা প্রিভিউ:" : "Flat master data preview:"}
+              </div>
               {preview.map((p) => (
                 <div key={p.flat_no}>
                   <div className="font-medium text-foreground">
