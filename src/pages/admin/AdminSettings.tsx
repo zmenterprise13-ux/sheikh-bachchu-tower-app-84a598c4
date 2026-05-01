@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CalendarIcon, Save, AlertTriangle, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+
+const monthRegex = /^\d{4}-\d{2}$/;
+const SettingsSchema = z.object({
+  eid_month_1: z.string().regex(monthRegex, "Invalid month format (YYYY-MM)").nullable(),
+  eid_month_2: z.string().regex(monthRegex, "Invalid month format (YYYY-MM)").nullable(),
+  eid_due_day_1: z.number().int().min(1).max(28),
+  eid_due_day_2: z.number().int().min(1).max(28),
+  regular_due_day: z.number().int().min(1).max(28),
+  other_due_offset_days: z.number().int().min(0).max(60),
+});
 
 type Settings = {
   id?: string;
@@ -58,7 +70,81 @@ export default function AdminSettings() {
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
+  // Validation: blocking errors + non-blocking warnings.
+  const { errors, warnings } = useMemo(() => {
+    const errs: string[] = [];
+    const warns: string[] = [];
+    const parsed = SettingsSchema.safeParse(form);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        errs.push(`${issue.path.join(".")}: ${issue.message}`);
+      }
+    }
+
+    // Overlap: same Eid month for both entries
+    if (form.eid_month_1 && form.eid_month_2 && form.eid_month_1 === form.eid_month_2) {
+      errs.push(
+        lang === "bn"
+          ? "দুটি ঈদ বোনাসের মাস একই হতে পারবে না।"
+          : "Both Eid bonus months cannot be the same.",
+      );
+    }
+
+    // Past month warnings
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    if (form.eid_month_1 && form.eid_month_1 < thisMonth) {
+      warns.push(
+        lang === "bn"
+          ? `ঈদ #1 মাস (${form.eid_month_1}) অতীত — পরবর্তী বিল জেনারেশনে যোগ হবে না।`
+          : `Eid #1 month (${form.eid_month_1}) is in the past — won't apply to upcoming bills.`,
+      );
+    }
+    if (form.eid_month_2 && form.eid_month_2 < thisMonth) {
+      warns.push(
+        lang === "bn"
+          ? `ঈদ #2 মাস (${form.eid_month_2}) অতীত — পরবর্তী বিল জেনারেশনে যোগ হবে না।`
+          : `Eid #2 month (${form.eid_month_2}) is in the past — won't apply to upcoming bills.`,
+      );
+    }
+
+    // Eid months not configured at all
+    if (!form.eid_month_1 && !form.eid_month_2) {
+      warns.push(
+        lang === "bn"
+          ? "কোনো ঈদ মাস কনফিগার করা নেই — সিস্টেম হিজরি ক্যালেন্ডার ব্যবহার করে অনুমান করবে।"
+          : "No Eid months configured — system will fall back to Hijri calendar detection.",
+      );
+    }
+
+    // Eid months out of order (warning only)
+    if (
+      form.eid_month_1 && form.eid_month_2 &&
+      form.eid_month_1 > form.eid_month_2
+    ) {
+      warns.push(
+        lang === "bn"
+          ? "ঈদ #1 (ফিতর) সাধারণত ঈদ #2 (আযহা) এর আগে হয়।"
+          : "Eid #1 (Fitr) usually comes before Eid #2 (Adha).",
+      );
+    }
+
+    // Other-charge offset = 0 → due immediately
+    if (form.other_due_offset_days === 0) {
+      warns.push(
+        lang === "bn"
+          ? "অন্যান্য আদায়ের অফসেট ০ — যোগ করার সাথে সাথেই ডিউ হয়ে যাবে।"
+          : "Other-charge offset is 0 — charges become due the same day.",
+      );
+    }
+
+    return { errors: errs, warnings: warns };
+  }, [form, lang]);
+
   const save = async () => {
+    if (errors.length > 0) {
+      toast.error(lang === "bn" ? "ত্রুটি ঠিক করুন" : "Please fix errors first");
+      return;
+    }
     setSaving(true);
     const payload = {
       eid_month_1: form.eid_month_1,
@@ -119,6 +205,28 @@ export default function AdminSettings() {
           <Skeleton className="h-96 rounded-2xl" />
         ) : (
           <div className="space-y-6">
+            {errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{lang === "bn" ? "ত্রুটি" : "Errors"}</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc pl-4 space-y-0.5 text-xs">
+                    {errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            {warnings.length > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>{lang === "bn" ? "সতর্কতা" : "Warnings"}</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc pl-4 space-y-0.5 text-xs">
+                    {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
             {/* Eid 1 */}
             <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-4">
               <div className="font-semibold text-foreground">
@@ -196,7 +304,7 @@ export default function AdminSettings() {
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={save} disabled={saving} className="gap-2 gradient-primary text-primary-foreground">
+              <Button onClick={save} disabled={saving || errors.length > 0} className="gap-2 gradient-primary text-primary-foreground">
                 <Save className="h-4 w-4" /> {t("save")}
               </Button>
             </div>
