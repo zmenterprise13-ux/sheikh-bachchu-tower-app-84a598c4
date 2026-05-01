@@ -25,6 +25,7 @@ type Bill = {
   eid_bonus: number;
   other_charge: number;
   other_note: string | null;
+  other_due_date: string | null;
   total: number;
   paid_amount: number;
   status: FlatStatus;
