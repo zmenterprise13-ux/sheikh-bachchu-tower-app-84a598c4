@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
 
     // Parse body (optional): { month?: "YYYY-MM" }
     let month = currentMonth();
@@ -36,16 +37,20 @@ Deno.serve(async (req) => {
       } catch (_) { /* no body is fine */ }
     }
 
-    // Authorization: allow either an admin user JWT, or the service-role key
-    // (used by pg_cron via pg_net with the service key as Bearer).
+    // Authorization:
+    //  - cron / server-to-server: header `x-cron-secret` matching CRON_SECRET, OR Bearer = service role key
+    //  - admin user: valid JWT belonging to a user with role 'admin'
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.startsWith("Bearer ")
       ? authHeader.slice("Bearer ".length)
       : "";
+    const providedCronSecret = req.headers.get("x-cron-secret") ?? "";
 
     let authorized = false;
-    if (token && token === serviceKey) {
-      authorized = true; // cron / server-to-server
+    if (cronSecret && providedCronSecret && providedCronSecret === cronSecret) {
+      authorized = true;
+    } else if (token && token === serviceKey) {
+      authorized = true;
     } else if (token) {
       const userClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: `Bearer ${token}` } },
