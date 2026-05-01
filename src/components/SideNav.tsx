@@ -13,6 +13,7 @@ import {
   Megaphone,
   CreditCard,
   History,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/expenses", key: "expenses", icon: Wallet },
   { to: "/admin/reports", key: "reports", icon: FileBarChart },
   { to: "/admin/notices", key: "notices", icon: Megaphone },
+  { to: "/admin/settings", key: "settings", icon: SettingsIcon },
 ];
 
 const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [

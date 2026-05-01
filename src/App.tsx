@@ -17,6 +17,7 @@ import AdminDues from "./pages/admin/AdminDues";
 import AdminExpenses from "./pages/admin/AdminExpenses";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
+import AdminSettings from "./pages/admin/AdminSettings";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
               <Route path="/admin/notices" element={<ProtectedRoute requireRole="admin"><AdminNotices /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
 
               {/* Owner */}
               <Route path="/owner" element={<ProtectedRoute requireRole="owner"><OwnerDashboard /></ProtectedRoute>} />

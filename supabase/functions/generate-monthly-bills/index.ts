@@ -101,15 +101,35 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Auto-detect Eid month (Eid-ul-Fitr / Eid-ul-Adha). Body { eid: true|false } overrides.
-    const includeEid = eidOverride ?? monthContainsEid(month);
+    // Load billing settings (single row).
+    const { data: settings } = await admin
+      .from("billing_settings")
+      .select("eid_month_1, eid_month_2, eid_due_day_1, eid_due_day_2, regular_due_day")
+      .maybeSingle();
+
+    // Determine Eid inclusion: explicit body override > configured Eid months > hijri auto-detect.
+    let includeEid: boolean;
+    let dueDay: number = settings?.regular_due_day ?? 10;
+    if (eidOverride !== undefined) {
+      includeEid = eidOverride;
+    } else if (settings?.eid_month_1 === month) {
+      includeEid = true;
+      dueDay = settings.eid_due_day_1 ?? dueDay;
+    } else if (settings?.eid_month_2 === month) {
+      includeEid = true;
+      dueDay = settings.eid_due_day_2 ?? dueDay;
+    } else {
+      includeEid = monthContainsEid(month);
+    }
+
+    const [yy, mm] = month.split("-").map(Number);
+    const dueDate = `${yy}-${String(mm).padStart(2, "0")}-${String(dueDay).padStart(2, "0")}`;
 
     const { data: flats, error: flatsErr } = await admin
       .from("flats")
       .select("id, service_charge, gas_bill, parking, eid_bonus");
     if (flatsErr) throw flatsErr;
 
-    // Skip flats that already have a bill for this month.
     const { data: existing, error: existingErr } = await admin
       .from("bills")
       .select("flat_id")
@@ -139,6 +159,7 @@ Deno.serve(async (req) => {
           paid_amount: 0,
           status: "unpaid" as const,
           generated_at: today,
+          due_date: dueDate,
         };
       });
 
