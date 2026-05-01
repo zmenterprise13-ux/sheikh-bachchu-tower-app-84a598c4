@@ -97,14 +97,25 @@ export default function AdminFlats() {
               {formatNumber(flats.length, lang)} {lang === "bn" ? "টি ফ্ল্যাট" : "flats total"}
             </p>
           </div>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={lang === "bn" ? "খুঁজুন..." : "Search..."}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBulkOpen(true)}
+              className="shrink-0"
+            >
+              <Wallet className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "বাল্ক সার্ভিস চার্জ" : "Bulk Service Charge"}
+            </Button>
+            <div className="relative flex-1 sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={lang === "bn" ? "খুঁজুন..." : "Search..."}
+                className="pl-9"
+              />
+            </div>
           </div>
         </div>
 
