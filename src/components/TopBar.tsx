@@ -1,6 +1,7 @@
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { LanguageToggle } from "./LanguageToggle";
+import { MobileSideNavTrigger } from "./SideNav";
 import { Button } from "@/components/ui/button";
 import { Building2, ShieldCheck, User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center gap-3">
+        {role && <MobileSideNavTrigger />}
         <Link to={role === "admin" ? "/admin" : "/owner"} className="flex items-center gap-2.5 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-glow group-hover:scale-105 transition-base">
             <Building2 className="h-5 w-5 text-primary-foreground" />

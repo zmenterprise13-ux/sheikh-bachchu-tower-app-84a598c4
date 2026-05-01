@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
@@ -15,8 +16,11 @@ import {
   History,
   Settings as SettingsIcon,
   BookOpen,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin", key: "dashboard", icon: LayoutDashboard },
@@ -97,5 +101,48 @@ export function MobileNav() {
         ))}
       </div>
     </nav>
+  );
+}
+
+export function MobileSideNavTrigger() {
+  const { t } = useLang();
+  const { role } = useAuth();
+  const [open, setOpen] = useState(false);
+  const items = role === "admin" ? adminNav : ownerNav;
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="icon" className="lg:hidden h-9 w-9" aria-label="Open menu">
+          <Menu className="h-4 w-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-72 p-0">
+        <SheetHeader className="px-4 pt-4 pb-2">
+          <SheetTitle>{t("appName")}</SheetTitle>
+        </SheetHeader>
+        <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
+          {items.map(({ to, key, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                  isActive
+                    ? "gradient-primary text-primary-foreground shadow-md"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )
+              }
+            >
+              <Icon className="h-4 w-4" />
+              <span>{t(key)}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }
