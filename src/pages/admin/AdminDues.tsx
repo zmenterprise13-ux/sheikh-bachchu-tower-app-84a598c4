@@ -4,8 +4,10 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney } from "@/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
-import { Search, CheckCircle2 } from "lucide-react";
+import { Search, CheckCircle2, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +22,9 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
+  other_note: string | null;
   total: number;
   paid_amount: number;
   status: FlatStatus;
@@ -42,6 +47,7 @@ export default function AdminDues() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [editing, setEditing] = useState<Bill | null>(null);
   const month = currentMonth();
 
   const load = async () => {
@@ -49,7 +55,7 @@ export default function AdminDues() {
     const [billsRes, flatsRes] = await Promise.all([
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status")
         .eq("month", month),
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
     ]);
@@ -137,7 +143,7 @@ export default function AdminDues() {
             <div className="col-span-1">{t("flatNo")}</div>
             <div className="col-span-3">{t("ownerName")}</div>
             <div className="col-span-2 text-right">{t("serviceCharge")}</div>
-            <div className="col-span-2 text-right">{t("gasBill")}+{t("parking")}</div>
+            <div className="col-span-2 text-right">{t("gasBill")}+{t("parking")}+{t("eidBonus")}+{t("otherCharge")}</div>
             <div className="col-span-2 text-right">{t("total")}</div>
             <div className="col-span-2 text-right">{t("action")}</div>
           </div>
@@ -159,13 +165,24 @@ export default function AdminDues() {
                     <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
                   </div>
                   <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
-                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.gas_bill) + Number(b.parking), lang)}</div>
+                  <div className="md:col-span-2 md:text-right text-sm">
+                    {formatMoney(Number(b.gas_bill) + Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge), lang)}
+                    {(Number(b.eid_bonus) > 0 || Number(b.other_charge) > 0) && (
+                      <div className="text-[10px] text-muted-foreground">
+                        {Number(b.eid_bonus) > 0 && <>ঈদ: {formatMoney(Number(b.eid_bonus), lang)} </>}
+                        {Number(b.other_charge) > 0 && <>+ {b.other_note || t("otherCharge")}: {formatMoney(Number(b.other_charge), lang)}</>}
+                      </div>
+                    )}
+                  </div>
                   <div className="md:col-span-2 md:text-right">
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                   </div>
                   <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
                     <StatusBadge status={b.status} />
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(b)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                     {b.status !== "paid" && (
                       <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b)}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
@@ -182,6 +199,109 @@ export default function AdminDues() {
           </div>
         </div>
       </div>
+      <BillEditDialog
+        bill={editing}
+        onClose={() => setEditing(null)}
+        onSaved={(updated) => {
+          setEditing(null);
+          setBills((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+        }}
+      />
     </AppShell>
+  );
+}
+
+function BillEditDialog({
+  bill,
+  onClose,
+  onSaved,
+}: {
+  bill: Bill | null;
+  onClose: () => void;
+  onSaved: (b: Bill) => void;
+}) {
+  const { t, lang } = useLang();
+  const [form, setForm] = useState<Bill | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setForm(bill); }, [bill]);
+  if (!form) return null;
+
+  const set = <K extends keyof Bill>(k: K, v: Bill[K]) =>
+    setForm((p) => (p ? { ...p, [k]: v } : p));
+
+  const computedTotal =
+    Number(form.service_charge) + Number(form.gas_bill) + Number(form.parking) +
+    Number(form.eid_bonus) + Number(form.other_charge);
+
+  const save = async () => {
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("bills")
+      .update({
+        service_charge: form.service_charge,
+        gas_bill: form.gas_bill,
+        parking: form.parking,
+        eid_bonus: form.eid_bonus,
+        other_charge: form.other_charge,
+        other_note: form.other_note,
+      })
+      .eq("id", form.id)
+      .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status")
+      .single();
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? "সংরক্ষিত" : "Saved");
+    onSaved(data as Bill);
+  };
+
+  return (
+    <Dialog open={!!bill} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("month")}: {form.month}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs">{t("serviceCharge")}</Label>
+            <Input type="number" value={form.service_charge}
+              onChange={(e) => set("service_charge", Number(e.target.value))} />
+          </div>
+          <div>
+            <Label className="text-xs">{t("gasBill")}</Label>
+            <Input type="number" value={form.gas_bill}
+              onChange={(e) => set("gas_bill", Number(e.target.value))} />
+          </div>
+          <div>
+            <Label className="text-xs">{t("parking")}</Label>
+            <Input type="number" value={form.parking}
+              onChange={(e) => set("parking", Number(e.target.value))} />
+          </div>
+          <div>
+            <Label className="text-xs">{t("eidBonus")}</Label>
+            <Input type="number" value={form.eid_bonus}
+              onChange={(e) => set("eid_bonus", Number(e.target.value))} />
+          </div>
+          <div className="col-span-2">
+            <Label className="text-xs">{t("otherCharge")}</Label>
+            <Input type="number" value={form.other_charge}
+              onChange={(e) => set("other_charge", Number(e.target.value))} />
+          </div>
+          <div className="col-span-2">
+            <Label className="text-xs">{t("otherNote")}</Label>
+            <Input value={form.other_note ?? ""}
+              onChange={(e) => set("other_note", e.target.value)}
+              placeholder={lang === "bn" ? "যেমন: লিফট মেরামত" : "e.g. Lift repair"} />
+          </div>
+          <div className="col-span-2 text-right text-sm">
+            {t("total")}: <span className="font-bold">{formatMoney(computedTotal, lang)}</span>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>{t("cancel")}</Button>
+          <Button onClick={save} disabled={saving}>{t("save")}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

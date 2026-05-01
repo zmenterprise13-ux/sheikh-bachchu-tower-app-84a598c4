@@ -37,6 +37,7 @@ type Flat = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
   is_occupied: boolean;
   occupant_type: "owner" | "tenant";
   occupant_name: string | null;
@@ -47,7 +48,7 @@ type Flat = {
 };
 
 const SELECT_COLS =
-  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url";
+  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url";
 
 export default function AdminFlats() {
   const { t, lang } = useLang();
@@ -261,6 +262,7 @@ function FlatEditDialog({
         service_charge: form.service_charge,
         gas_bill: form.gas_bill,
         parking: form.parking,
+        eid_bonus: form.eid_bonus,
         is_occupied: form.is_occupied,
         occupant_type: form.occupant_type,
         occupant_name: form.occupant_name,
@@ -408,6 +410,14 @@ function FlatEditDialog({
                 type="number"
                 value={form.parking}
                 onChange={(e) => set("parking", Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">{t("eidBonus")}</Label>
+              <Input
+                type="number"
+                value={form.eid_bonus}
+                onChange={(e) => set("eid_bonus", Number(e.target.value))}
               />
             </div>
           </div>

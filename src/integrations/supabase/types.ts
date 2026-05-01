@@ -17,11 +17,14 @@ export type Database = {
       bills: {
         Row: {
           created_at: string
+          eid_bonus: number
           flat_id: string
           gas_bill: number
           generated_at: string
           id: string
           month: string
+          other_charge: number
+          other_note: string | null
           paid_amount: number
           paid_at: string | null
           parking: number
@@ -32,11 +35,14 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          eid_bonus?: number
           flat_id: string
           gas_bill?: number
           generated_at?: string
           id?: string
           month: string
+          other_charge?: number
+          other_note?: string | null
           paid_amount?: number
           paid_at?: string | null
           parking?: number
@@ -47,11 +53,14 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          eid_bonus?: number
           flat_id?: string
           gas_bill?: number
           generated_at?: string
           id?: string
           month?: string
+          other_charge?: number
+          other_note?: string | null
           paid_amount?: number
           paid_at?: string | null
           parking?: number
@@ -106,6 +115,7 @@ export type Database = {
       flats: {
         Row: {
           created_at: string
+          eid_bonus: number
           flat_no: string
           floor: number
           gas_bill: number
@@ -128,6 +138,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          eid_bonus?: number
           flat_no: string
           floor: number
           gas_bill?: number
@@ -150,6 +161,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          eid_bonus?: number
           flat_no?: string
           floor?: number
           gas_bill?: number
