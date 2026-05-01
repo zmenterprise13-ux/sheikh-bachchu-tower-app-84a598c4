@@ -1,0 +1,1 @@
+ALTER TABLE public.bills ADD COLUMN IF NOT EXISTS other_due_date date;
