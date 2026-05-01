@@ -76,6 +76,7 @@ export default function AdminDashboard() {
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({
     title: "",
     titleBn: "",
@@ -186,6 +187,33 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground mt-1">{monthLabel}</p>
           </div>
 
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={generating}
+              onClick={async () => {
+                setGenerating(true);
+                const { data, error } = await supabase.functions.invoke("generate-monthly-bills", {
+                  body: { month },
+                });
+                setGenerating(false);
+                if (error) {
+                  toast.error(error.message);
+                  return;
+                }
+                const inserted = (data as any)?.inserted ?? 0;
+                toast.success(
+                  lang === "bn"
+                    ? `${inserted} টি ফ্ল্যাটের বিল জেনারেট হয়েছে`
+                    : `Generated bills for ${inserted} flat(s)`,
+                );
+                loadData();
+              }}
+            >
+              {generating ? "..." : t("generateBills")}
+            </Button>
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
@@ -259,6 +287,7 @@ export default function AdminDashboard() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
