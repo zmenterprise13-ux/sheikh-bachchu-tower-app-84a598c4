@@ -157,6 +157,7 @@ Deno.serve(async (req) => {
         month,
         flats_total: flats?.length ?? 0,
         already_billed: existingSet.size,
+        eid_included: includeEid,
         inserted,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
