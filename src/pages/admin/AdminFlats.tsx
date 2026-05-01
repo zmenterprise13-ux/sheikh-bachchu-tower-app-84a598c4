@@ -321,7 +321,7 @@ function BulkServiceChargeDialog({
           }
         }
         if (Object.keys(flatUpdate).length > 0) {
-          const { error } = await supabase.from("flats").update(flatUpdate).eq("id", f.id);
+          const { error } = await supabase.from("flats").update(flatUpdate as any).eq("id", f.id);
           if (error) throw error;
         }
       }
