@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
@@ -15,8 +16,11 @@ import {
   History,
   Settings as SettingsIcon,
   BookOpen,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin", key: "dashboard", icon: LayoutDashboard },
