@@ -237,7 +237,181 @@ export default function AdminFlats() {
           load();
         }}
       />
+
+      <BulkServiceChargeDialog
+        open={bulkOpen}
+        flats={flats}
+        onClose={() => setBulkOpen(false)}
+        onDone={() => {
+          setBulkOpen(false);
+          load();
+        }}
+      />
     </AppShell>
+  );
+}
+
+function BulkServiceChargeDialog({
+  open,
+  flats,
+  onClose,
+  onDone,
+}: {
+  open: boolean;
+  flats: Flat[];
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const { lang } = useLang();
+  const [mode, setMode] = useState<"flat" | "sqft">("flat");
+  const [amount, setAmount] = useState<string>("");
+  const [updateBills, setUpdateBills] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const amt = Number(amount) || 0;
+  const month = new Date().toISOString().slice(0, 7);
+
+  const preview = flats.slice(0, 3).map((f) => ({
+    flat_no: f.flat_no,
+    value: mode === "flat" ? amt : Math.round(amt * f.size),
+  }));
+
+  const apply = async () => {
+    if (amt <= 0) {
+      toast.error(lang === "bn" ? "অ্যামাউন্ট দিন" : "Enter an amount");
+      return;
+    }
+    setSaving(true);
+    try {
+      // Update each flat's master service_charge
+      const updates = flats.map((f) => {
+        const value = mode === "flat" ? amt : Math.round(amt * f.size);
+        return supabase.from("flats").update({ service_charge: value }).eq("id", f.id);
+      });
+      const results = await Promise.all(updates);
+      const failed = results.filter((r) => r.error);
+      if (failed.length) throw new Error(failed[0].error!.message);
+
+      // Update current month's unpaid bills
+      let billsUpdated = 0;
+      if (updateBills) {
+        for (const f of flats) {
+          const value = mode === "flat" ? amt : Math.round(amt * f.size);
+          const { data: rows, error: e1 } = await supabase
+            .from("bills")
+            .update({ service_charge: value })
+            .eq("flat_id", f.id)
+            .eq("month", month)
+            .neq("status", "paid")
+            .select("id");
+          if (e1) throw e1;
+          billsUpdated += rows?.length ?? 0;
+        }
+      }
+
+      toast.success(
+        lang === "bn"
+          ? `${flats.length} টি ফ্ল্যাট আপডেট হয়েছে · ${billsUpdated} টি বিল আপডেট হয়েছে`
+          : `${flats.length} flats updated · ${billsUpdated} bills updated`
+      );
+      onDone();
+    } catch (err: any) {
+      toast.error(err.message || "Failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {lang === "bn" ? "বাল্ক সার্ভিস চার্জ" : "Bulk Service Charge"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs">{lang === "bn" ? "মোড" : "Mode"}</Label>
+            <RadioGroup value={mode} onValueChange={(v) => setMode(v as any)}>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="flat" id="m-flat" />
+                <Label htmlFor="m-flat" className="text-sm font-normal cursor-pointer">
+                  {lang === "bn" ? "ফিক্সড অ্যামাউন্ট (সব ফ্ল্যাটে একই)" : "Fixed amount (same for all)"}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="sqft" id="m-sqft" />
+                <Label htmlFor="m-sqft" className="text-sm font-normal cursor-pointer">
+                  {lang === "bn" ? "প্রতি sqft রেট × সাইজ" : "Per sqft rate × size"}
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div>
+            <Label className="text-xs">
+              {mode === "flat"
+                ? lang === "bn" ? "অ্যামাউন্ট (৳)" : "Amount (৳)"
+                : lang === "bn" ? "প্রতি sqft রেট (৳)" : "Rate per sqft (৳)"}
+            </Label>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder={mode === "flat" ? "5000" : "5"}
+            />
+          </div>
+
+          {amt > 0 && preview.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-1">
+              <div className="font-semibold mb-1">
+                {lang === "bn" ? "প্রিভিউ:" : "Preview:"}
+              </div>
+              {preview.map((p) => (
+                <div key={p.flat_no} className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {p.flat_no}
+                  </span>
+                  <span className="font-medium">{formatMoney(p.value, lang)}</span>
+                </div>
+              ))}
+              {flats.length > 3 && (
+                <div className="text-muted-foreground italic">
+                  …{lang === "bn" ? "এবং আরো" : "and"} {flats.length - 3} {lang === "bn" ? "টি" : "more"}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <input
+              id="upd-bills"
+              type="checkbox"
+              checked={updateBills}
+              onChange={(e) => setUpdateBills(e.target.checked)}
+            />
+            <Label htmlFor="upd-bills" className="text-sm font-normal cursor-pointer">
+              {lang === "bn"
+                ? `চলতি মাসের (${month}) আনপেইড বিলও আপডেট করুন`
+                : `Also update this month's (${month}) unpaid bills`}
+            </Label>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            {lang === "bn" ? "বাতিল" : "Cancel"}
+          </Button>
+          <Button onClick={apply} disabled={saving || amt <= 0}>
+            {saving
+              ? lang === "bn" ? "প্রয়োগ হচ্ছে..." : "Applying..."
+              : lang === "bn" ? `${flats.length} টি ফ্ল্যাটে প্রয়োগ` : `Apply to ${flats.length} flats`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
