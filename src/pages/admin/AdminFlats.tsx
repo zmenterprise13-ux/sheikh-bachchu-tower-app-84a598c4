@@ -292,8 +292,41 @@ function BulkServiceChargeDialog({
     const d = new Date();
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
   });
+  const [monthBills, setMonthBills] = useState<
+    Record<string, { id: string; status: string; service_charge: number; gas_bill: number; eid_bonus: number; other_charge: number }>
+  >({});
+  const [billsLoading, setBillsLoading] = useState(false);
 
   const month = `${monthDate.getUTCFullYear()}-${String(monthDate.getUTCMonth() + 1).padStart(2, "0")}`;
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      setBillsLoading(true);
+      const { data } = await supabase
+        .from("bills")
+        .select("id, flat_id, status, service_charge, gas_bill, eid_bonus, other_charge")
+        .eq("month", month);
+      if (cancelled) return;
+      const map: typeof monthBills = {};
+      (data || []).forEach((b: any) => {
+        map[b.flat_id] = {
+          id: b.id,
+          status: b.status,
+          service_charge: Number(b.service_charge) || 0,
+          gas_bill: Number(b.gas_bill) || 0,
+          eid_bonus: Number(b.eid_bonus) || 0,
+          other_charge: Number(b.other_charge) || 0,
+        };
+      });
+      setMonthBills(map);
+      setBillsLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, month]);
 
   const setField = (key: ChargeKey, patch: Partial<ChargeEntry>) =>
     setCharges((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
