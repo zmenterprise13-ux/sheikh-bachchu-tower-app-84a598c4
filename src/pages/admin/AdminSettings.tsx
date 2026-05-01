@@ -304,7 +304,7 @@ export default function AdminSettings() {
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={save} disabled={saving} className="gap-2 gradient-primary text-primary-foreground">
+              <Button onClick={save} disabled={saving || errors.length > 0} className="gap-2 gradient-primary text-primary-foreground">
                 <Save className="h-4 w-4" /> {t("save")}
               </Button>
             </div>
