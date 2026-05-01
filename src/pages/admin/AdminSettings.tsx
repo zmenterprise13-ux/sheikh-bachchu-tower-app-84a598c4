@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CalendarIcon, Save, AlertTriangle, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+
+const monthRegex = /^\d{4}-\d{2}$/;
+const SettingsSchema = z.object({
+  eid_month_1: z.string().regex(monthRegex, "Invalid month format (YYYY-MM)").nullable(),
+  eid_month_2: z.string().regex(monthRegex, "Invalid month format (YYYY-MM)").nullable(),
+  eid_due_day_1: z.number().int().min(1).max(28),
+  eid_due_day_2: z.number().int().min(1).max(28),
+  regular_due_day: z.number().int().min(1).max(28),
+  other_due_offset_days: z.number().int().min(0).max(60),
+});
 
 type Settings = {
   id?: string;
