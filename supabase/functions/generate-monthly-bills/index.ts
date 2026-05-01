@@ -15,6 +15,27 @@ function currentMonth(): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+// Returns true if any day of the given Gregorian month (YYYY-MM) falls on
+// the 1st of Shawwal (Eid-ul-Fitr) or 10th of Dhul-Hijjah (Eid-ul-Adha).
+// Uses islamic-umalqura calendar via Intl.
+function monthContainsEid(monthStr: string): boolean {
+  const [y, m] = monthStr.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", {
+    day: "numeric", month: "numeric", timeZone: "UTC",
+  });
+  for (let day = 1; day <= daysInMonth; day++) {
+    const parts = fmt.formatToParts(new Date(Date.UTC(y, m - 1, day)));
+    const hDay = Number(parts.find((p) => p.type === "day")?.value);
+    const hMonth = Number(parts.find((p) => p.type === "month")?.value);
+    // Shawwal = 10 (Eid-ul-Fitr on 1st), Dhul-Hijjah = 12 (Eid-ul-Adha on 10th)
+    if ((hMonth === 10 && hDay === 1) || (hMonth === 12 && hDay === 10)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -26,14 +47,16 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
 
-    // Parse body (optional): { month?: "YYYY-MM" }
+    // Parse body once: { month?: "YYYY-MM", eid?: boolean }
     let month = currentMonth();
+    let eidOverride: boolean | undefined = undefined;
     if (req.method === "POST") {
       try {
         const body = await req.json();
         if (body?.month && /^\d{4}-\d{2}$/.test(body.month)) {
           month = body.month;
         }
+        if (typeof body?.eid === "boolean") eidOverride = body.eid;
       } catch (_) { /* no body is fine */ }
     }
 
