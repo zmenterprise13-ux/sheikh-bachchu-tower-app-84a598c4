@@ -33,7 +33,7 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
 
 export function SideNav() {
   const { t } = useLang();
-  const { role } = useRole();
+  const { role } = useAuth();
   const items = role === "admin" ? adminNav : ownerNav;
 
   return (
