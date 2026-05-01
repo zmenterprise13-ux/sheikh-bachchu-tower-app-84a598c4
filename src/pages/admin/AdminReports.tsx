@@ -41,7 +41,7 @@ export default function AdminReports() {
 
       const [billsRes, expRes, flatsRes] = await Promise.all([
         supabase.from("bills")
-          .select("service_charge, gas_bill, parking, total, paid_amount, status")
+          .select("service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, status")
           .eq("month", month),
         supabase.from("expenses")
           .select("category, amount")
