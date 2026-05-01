@@ -23,6 +23,8 @@ export const translations: T = {
   notices: { bn: "নোটিশ", en: "Notices" },
   myDues: { bn: "আমার বকেয়া", en: "My Dues" },
   myPayments: { bn: "পেমেন্ট হিস্ট্রি", en: "Payment History" },
+  ledger: { bn: "লেজার", en: "Ledger" },
+  myLedger: { bn: "আমার লেজার", en: "My Ledger" },
   logout: { bn: "লগআউট", en: "Logout" },
 
   // Dashboard stats
