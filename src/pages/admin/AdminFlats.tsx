@@ -330,7 +330,7 @@ function BulkServiceChargeDialog({
       let billsUpdated = 0;
       if (updateBills) {
         for (const f of flats) {
-          const billUpdate: Record<string, any> = {};
+          const billUpdate: Record<string, number | string> = {};
           for (const c of enabledCharges) {
             billUpdate[c.key] = calcValue(charges[c.key], f);
           }
@@ -340,7 +340,7 @@ function BulkServiceChargeDialog({
           }
           const { data: rows, error } = await supabase
             .from("bills")
-            .update(billUpdate)
+            .update(billUpdate as any)
             .eq("flat_id", f.id)
             .eq("month", month)
             .neq("status", "paid")
