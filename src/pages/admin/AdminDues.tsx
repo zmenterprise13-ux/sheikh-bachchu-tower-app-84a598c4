@@ -237,6 +237,27 @@ function BillEditDialog({
 
   const save = async () => {
     setSaving(true);
+
+    // Auto-compute other_due_date when other_charge is set:
+    //  - If other_charge > 0 and there is no existing other_due_date,
+    //    use today + other_due_offset_days from billing_settings.
+    //  - If other_charge becomes 0, clear it.
+    let otherDueDate: string | null = form.other_due_date;
+    if (Number(form.other_charge) > 0) {
+      if (!otherDueDate) {
+        const { data: settings } = await supabase
+          .from("billing_settings")
+          .select("other_due_offset_days")
+          .maybeSingle();
+        const offset = Number(settings?.other_due_offset_days ?? 15);
+        const d = new Date();
+        d.setUTCDate(d.getUTCDate() + offset);
+        otherDueDate = d.toISOString().slice(0, 10);
+      }
+    } else {
+      otherDueDate = null;
+    }
+
     const { data, error } = await supabase
       .from("bills")
       .update({
@@ -246,6 +267,7 @@ function BillEditDialog({
         eid_bonus: form.eid_bonus,
         other_charge: form.other_charge,
         other_note: form.other_note,
+        other_due_date: otherDueDate,
       })
       .eq("id", form.id)
       .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
