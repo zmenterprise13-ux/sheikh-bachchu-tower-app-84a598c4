@@ -76,6 +76,7 @@ export default function AdminDashboard() {
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({
     title: "",
     titleBn: "",
