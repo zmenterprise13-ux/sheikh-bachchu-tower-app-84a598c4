@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
-import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Building2, ShieldCheck, User, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
+import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 
 export default function Index() {
   const { t, lang } = useLang();
-  const { setRole } = useRole();
+  const { user, role, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user && role) {
+      navigate(role === "admin" ? "/admin" : "/owner", { replace: true });
+    }
+  }, [user, role, loading, navigate]);
 
   const features = [
     { icon: Building2, key: "flats" as const, desc: { bn: "৬০টি ফ্ল্যাট, পার্কিং ও ওনারের তথ্য", en: "60 flats, parking & owner records" } },
@@ -62,17 +71,11 @@ export default function Index() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/admin" onClick={() => setRole("admin")}>
+              <Link to="/auth">
                 <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  {t("loginAs")} {t("admin")}
+                  <LogIn className="h-4 w-4" />
+                  {lang === "bn" ? "লগইন / সাইন আপ" : "Log in / Sign up"}
                   <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/owner" onClick={() => setRole("owner")}>
-                <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20 hover:text-white gap-2 backdrop-blur">
-                  <User className="h-4 w-4" />
-                  {t("loginAs")} {t("owner")}
                 </Button>
               </Link>
             </div>

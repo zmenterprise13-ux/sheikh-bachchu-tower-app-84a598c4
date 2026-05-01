@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
-import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { TKey } from "@/i18n/translations";
 import {
   LayoutDashboard,
@@ -33,7 +33,7 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
 
 export function SideNav() {
   const { t } = useLang();
-  const { role } = useRole();
+  const { role } = useAuth();
   const items = role === "admin" ? adminNav : ownerNav;
 
   return (
@@ -64,7 +64,7 @@ export function SideNav() {
 
 export function MobileNav() {
   const { t } = useLang();
-  const { role } = useRole();
+  const { role } = useAuth();
   const items = (role === "admin" ? adminNav : ownerNav).slice(0, 5);
 
   return (
