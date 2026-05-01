@@ -251,6 +251,19 @@ export default function AdminFlats() {
   );
 }
 
+type ChargeKey = "service_charge" | "gas_bill" | "eid_bonus" | "other_charge";
+type ChargeEntry = { enabled: boolean; mode: "flat" | "sqft"; value: string; note: string };
+type ChargeState = Record<ChargeKey, ChargeEntry>;
+
+const CHARGE_META: { key: ChargeKey; labelBn: string; labelEn: string; onFlat: boolean }[] = [
+  { key: "service_charge", labelBn: "সার্ভিস চার্জ", labelEn: "Service Charge", onFlat: true },
+  { key: "gas_bill", labelBn: "গ্যাস বিল", labelEn: "Gas Bill", onFlat: true },
+  { key: "eid_bonus", labelBn: "ঈদ বোনাস", labelEn: "Eid Bonus", onFlat: true },
+  { key: "other_charge", labelBn: "অন্যান্য আদায়", labelEn: "Other Charge", onFlat: false },
+];
+
+const defaultEntry = (): ChargeEntry => ({ enabled: false, mode: "flat", value: "", note: "" });
+
 function BulkServiceChargeDialog({
   open,
   flats,
@@ -262,56 +275,84 @@ function BulkServiceChargeDialog({
   onClose: () => void;
   onDone: () => void;
 }) {
-  const { lang } = useLang();
-  const [mode, setMode] = useState<"flat" | "sqft">("flat");
-  const [amount, setAmount] = useState<string>("");
+  const { t, lang } = useLang();
+  const [charges, setCharges] = useState<ChargeState>({
+    service_charge: defaultEntry(),
+    gas_bill: defaultEntry(),
+    eid_bonus: defaultEntry(),
+    other_charge: defaultEntry(),
+  });
   const [updateBills, setUpdateBills] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const amt = Number(amount) || 0;
   const month = new Date().toISOString().slice(0, 7);
 
-  const preview = flats.slice(0, 3).map((f) => ({
-    flat_no: f.flat_no,
-    value: mode === "flat" ? amt : Math.round(amt * f.size),
-  }));
+  const setField = (key: ChargeKey, patch: Partial<ChargeEntry>) =>
+    setCharges((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
+
+  const calcValue = (entry: ChargeEntry, flat: Flat) => {
+    const v = Number(entry.value) || 0;
+    return entry.mode === "sqft" ? Math.round(v * flat.size) : v;
+  };
+
+  const enabledCharges = CHARGE_META.filter((c) => charges[c.key].enabled && Number(charges[c.key].value) > 0);
+
+  const preview = flats.slice(0, 3).map((f) => {
+    const items: { label: string; value: number }[] = enabledCharges.map((c) => ({
+      label: lang === "bn" ? c.labelBn : c.labelEn,
+      value: calcValue(charges[c.key], f),
+    }));
+    return { flat_no: f.flat_no, items };
+  });
 
   const apply = async () => {
-    if (amt <= 0) {
-      toast.error(lang === "bn" ? "অ্যামাউন্ট দিন" : "Enter an amount");
+    if (enabledCharges.length === 0) {
+      toast.error(lang === "bn" ? "অন্তত একটি চার্জ সিলেক্ট করুন" : "Enable at least one charge");
       return;
     }
     setSaving(true);
     try {
-      // Update each flat's master service_charge
-      const updates = flats.map((f) => {
-        const value = mode === "flat" ? amt : Math.round(amt * f.size);
-        return supabase.from("flats").update({ service_charge: value }).eq("id", f.id);
-      });
-      const results = await Promise.all(updates);
-      const failed = results.filter((r) => r.error);
-      if (failed.length) throw new Error(failed[0].error!.message);
+      // Update flat master data (only for charges that exist on flats table)
+      for (const f of flats) {
+        const flatUpdate: Record<string, number> = {};
+        for (const c of enabledCharges) {
+          if (c.onFlat) {
+            flatUpdate[c.key] = calcValue(charges[c.key], f);
+          }
+        }
+        if (Object.keys(flatUpdate).length > 0) {
+          const { error } = await supabase.from("flats").update(flatUpdate).eq("id", f.id);
+          if (error) throw error;
+        }
+      }
 
       // Update current month's unpaid bills
       let billsUpdated = 0;
       if (updateBills) {
         for (const f of flats) {
-          const value = mode === "flat" ? amt : Math.round(amt * f.size);
-          const { data: rows, error: e1 } = await supabase
+          const billUpdate: Record<string, any> = {};
+          for (const c of enabledCharges) {
+            billUpdate[c.key] = calcValue(charges[c.key], f);
+          }
+          // Add other_note if other_charge is set
+          if (charges.other_charge.enabled && charges.other_charge.note) {
+            billUpdate.other_note = charges.other_charge.note;
+          }
+          const { data: rows, error } = await supabase
             .from("bills")
-            .update({ service_charge: value })
+            .update(billUpdate)
             .eq("flat_id", f.id)
             .eq("month", month)
             .neq("status", "paid")
             .select("id");
-          if (e1) throw e1;
+          if (error) throw error;
           billsUpdated += rows?.length ?? 0;
         }
       }
 
       toast.success(
         lang === "bn"
-          ? `${flats.length} টি ফ্ল্যাট আপডেট হয়েছে · ${billsUpdated} টি বিল আপডেট হয়েছে`
+          ? `${flats.length} টি ফ্ল্যাট আপডেট · ${billsUpdated} টি বিল আপডেট`
           : `${flats.length} flats updated · ${billsUpdated} bills updated`
       );
       onDone();
@@ -324,57 +365,92 @@ function BulkServiceChargeDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {lang === "bn" ? "বাল্ক সার্ভিস চার্জ" : "Bulk Service Charge"}
+            {lang === "bn" ? "বাল্ক চার্জ আপডেট" : "Bulk Charge Update"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs">{lang === "bn" ? "মোড" : "Mode"}</Label>
-            <RadioGroup value={mode} onValueChange={(v) => setMode(v as any)}>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="flat" id="m-flat" />
-                <Label htmlFor="m-flat" className="text-sm font-normal cursor-pointer">
-                  {lang === "bn" ? "ফিক্সড অ্যামাউন্ট (সব ফ্ল্যাটে একই)" : "Fixed amount (same for all)"}
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="sqft" id="m-sqft" />
-                <Label htmlFor="m-sqft" className="text-sm font-normal cursor-pointer">
-                  {lang === "bn" ? "প্রতি sqft রেট × সাইজ" : "Per sqft rate × size"}
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          {CHARGE_META.map((c) => {
+            const entry = charges[c.key];
+            return (
+              <div
+                key={c.key}
+                className={
+                  "rounded-lg border p-3 space-y-2 transition-colors " +
+                  (entry.enabled ? "border-primary/50 bg-primary/5" : "border-border")
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`chk-${c.key}`}
+                    checked={entry.enabled}
+                    onChange={(e) => setField(c.key, { enabled: e.target.checked })}
+                  />
+                  <Label htmlFor={`chk-${c.key}`} className="text-sm font-semibold cursor-pointer">
+                    {lang === "bn" ? c.labelBn : c.labelEn}
+                  </Label>
+                </div>
 
-          <div>
-            <Label className="text-xs">
-              {mode === "flat"
-                ? lang === "bn" ? "অ্যামাউন্ট (৳)" : "Amount (৳)"
-                : lang === "bn" ? "প্রতি sqft রেট (৳)" : "Rate per sqft (৳)"}
-            </Label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={mode === "flat" ? "5000" : "5"}
-            />
-          </div>
-
-          {amt > 0 && preview.length > 0 && (
-            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-1">
-              <div className="font-semibold mb-1">
-                {lang === "bn" ? "প্রিভিউ:" : "Preview:"}
+                {entry.enabled && (
+                  <div className="space-y-2 pl-6">
+                    <RadioGroup
+                      value={entry.mode}
+                      onValueChange={(v) => setField(c.key, { mode: v as any })}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center gap-1">
+                        <RadioGroupItem value="flat" id={`${c.key}-flat`} />
+                        <Label htmlFor={`${c.key}-flat`} className="text-xs font-normal cursor-pointer">
+                          {lang === "bn" ? "ফিক্সড" : "Fixed"}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <RadioGroupItem value="sqft" id={`${c.key}-sqft`} />
+                        <Label htmlFor={`${c.key}-sqft`} className="text-xs font-normal cursor-pointer">
+                          {lang === "bn" ? "প্রতি sqft" : "Per sqft"}
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                    <Input
+                      type="number"
+                      value={entry.value}
+                      onChange={(e) => setField(c.key, { value: e.target.value })}
+                      placeholder={entry.mode === "flat" ? "5000" : "5"}
+                      className="h-8 text-sm"
+                    />
+                    {c.key === "other_charge" && (
+                      <Input
+                        value={entry.note}
+                        onChange={(e) => setField(c.key, { note: e.target.value })}
+                        placeholder={lang === "bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
+                        className="h-8 text-sm"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
+            );
+          })}
+
+          {/* Preview */}
+          {enabledCharges.length > 0 && preview.some((p) => p.items.length > 0) && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-2">
+              <div className="font-semibold">{lang === "bn" ? "প্রিভিউ:" : "Preview:"}</div>
               {preview.map((p) => (
-                <div key={p.flat_no} className="flex justify-between">
-                  <span className="text-muted-foreground">
+                <div key={p.flat_no}>
+                  <div className="font-medium text-foreground">
                     {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {p.flat_no}
-                  </span>
-                  <span className="font-medium">{formatMoney(p.value, lang)}</span>
+                  </div>
+                  {p.items.map((item) => (
+                    <div key={item.label} className="flex justify-between pl-3 text-muted-foreground">
+                      <span>{item.label}</span>
+                      <span className="font-medium text-foreground">{formatMoney(item.value, lang)}</span>
+                    </div>
+                  ))}
                 </div>
               ))}
               {flats.length > 3 && (
@@ -404,7 +480,7 @@ function BulkServiceChargeDialog({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {lang === "bn" ? "বাতিল" : "Cancel"}
           </Button>
-          <Button onClick={apply} disabled={saving || amt <= 0}>
+          <Button onClick={apply} disabled={saving || enabledCharges.length === 0}>
             {saving
               ? lang === "bn" ? "প্রয়োগ হচ্ছে..." : "Applying..."
               : lang === "bn" ? `${flats.length} টি ফ্ল্যাটে প্রয়োগ` : `Apply to ${flats.length} flats`}
