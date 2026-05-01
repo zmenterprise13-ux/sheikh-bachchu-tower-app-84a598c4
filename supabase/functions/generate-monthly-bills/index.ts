@@ -101,15 +101,8 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Optional flags from body: { eid?: boolean }
-    // If eid=true, include each flat's configured eid_bonus this month.
-    let includeEid = false;
-    if (req.method === "POST") {
-      try {
-        const body = await req.clone().json();
-        if (body?.eid === true) includeEid = true;
-      } catch (_) { /* ignore */ }
-    }
+    // Auto-detect Eid month (Eid-ul-Fitr / Eid-ul-Adha). Body { eid: true|false } overrides.
+    const includeEid = eidOverride ?? monthContainsEid(month);
 
     const { data: flats, error: flatsErr } = await admin
       .from("flats")
