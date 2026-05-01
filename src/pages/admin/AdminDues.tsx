@@ -1,36 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
-import { BILLS, FLATS, FlatStatus } from "@/data/mockData";
 import { formatMoney } from "@/i18n/translations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
 import { Search, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Filter = "all" | FlatStatus;
 
+type Bill = {
+  id: string;
+  flat_id: string;
+  month: string;
+  service_charge: number;
+  gas_bill: number;
+  parking: number;
+  total: number;
+  paid_amount: number;
+  status: FlatStatus;
+};
+
+type Flat = {
+  id: string;
+  flat_no: string;
+  owner_name: string | null;
+  owner_name_bn: string | null;
+  phone: string | null;
+};
+
+const currentMonth = () => new Date().toISOString().slice(0, 7);
+
 export default function AdminDues() {
   const { t, lang } = useLang();
-  const [bills, setBills] = useState(BILLS);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [flats, setFlats] = useState<Flat[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const month = currentMonth();
 
-  const visible = bills.filter(b => {
-    const flat = FLATS.find(f => f.id === b.flatId)!;
+  const load = async () => {
+    setLoading(true);
+    const [billsRes, flatsRes] = await Promise.all([
+      supabase
+        .from("bills")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .eq("month", month),
+      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
+    ]);
+    if (billsRes.error) toast.error(billsRes.error.message);
+    if (flatsRes.error) toast.error(flatsRes.error.message);
+    setBills((billsRes.data ?? []) as Bill[]);
+    setFlats((flatsRes.data ?? []) as Flat[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const visible = bills.filter((b) => {
+    const flat = flats.find((f) => f.id === b.flat_id);
+    if (!flat) return false;
     if (filter !== "all" && b.status !== filter) return false;
     if (!q) return true;
     const s = q.toLowerCase();
-    return flat.flatNo.toLowerCase().includes(s)
-      || flat.ownerName.toLowerCase().includes(s)
-      || flat.ownerNameBn.includes(q);
+    return flat.flat_no.toLowerCase().includes(s)
+      || (flat.owner_name ?? "").toLowerCase().includes(s)
+      || (flat.owner_name_bn ?? "").includes(q);
   });
 
-  const markPaid = (id: string) => {
-    setBills(prev => prev.map(b => b.id === id ? { ...b, status: "paid", paidAmount: b.total, paidAt: new Date().toISOString().slice(0,10) } : b));
+  const markPaid = async (b: Bill) => {
+    const { error } = await supabase
+      .from("bills")
+      .update({
+        status: "paid",
+        paid_amount: Number(b.total),
+        paid_at: new Date().toISOString().slice(0, 10),
+      })
+      .eq("id", b.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(lang === "bn" ? "Paid মার্ক করা হয়েছে" : "Marked as paid");
+    setBills((prev) => prev.map((x) => x.id === b.id
+      ? { ...x, status: "paid", paid_amount: Number(b.total) }
+      : x));
   };
 
   const filterChips: { key: Filter; label: string }[] = [
@@ -52,7 +111,7 @@ export default function AdminDues() {
 
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex flex-wrap gap-1.5">
-            {filterChips.map(c => (
+            {filterChips.map((c) => (
               <button
                 key={c.key}
                 onClick={() => setFilter(c.key)}
@@ -69,12 +128,11 @@ export default function AdminDues() {
           </div>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={e => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
           </div>
         </div>
 
         <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
-          {/* Header (desktop) */}
           <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
             <div className="col-span-1">{t("flatNo")}</div>
             <div className="col-span-3">{t("ownerName")}</div>
@@ -85,26 +143,31 @@ export default function AdminDues() {
           </div>
 
           <div className="divide-y divide-border">
-            {visible.map(b => {
-              const flat = FLATS.find(f => f.id === b.flatId)!;
-              const due = b.total - b.paidAmount;
+            {loading && (
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
+              </div>
+            )}
+            {!loading && visible.map((b) => {
+              const flat = flats.find((f) => f.id === b.flat_id)!;
+              const due = Number(b.total) - Number(b.paid_amount);
               return (
                 <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center hover:bg-secondary/40 transition-base">
-                  <div className="md:col-span-1 font-bold text-primary">{flat.flatNo}</div>
+                  <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
                   <div className="md:col-span-3 min-w-0">
-                    <div className="font-medium text-foreground truncate">{lang === "bn" ? flat.ownerNameBn : flat.ownerName}</div>
-                    <div className="text-xs text-muted-foreground">{flat.phone}</div>
+                    <div className="font-medium text-foreground truncate">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
                   </div>
-                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(b.serviceCharge, lang)}</div>
-                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(b.gasBill + b.parking, lang)}</div>
+                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
+                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.gas_bill) + Number(b.parking), lang)}</div>
                   <div className="md:col-span-2 md:text-right">
-                    <div className="font-bold text-foreground">{formatMoney(b.total, lang)}</div>
+                    <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                   </div>
                   <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
                     <StatusBadge status={b.status} />
                     {b.status !== "paid" && (
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b.id)}>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b)}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">{t("markPaid")}</span>
                       </Button>
@@ -113,7 +176,7 @@ export default function AdminDues() {
                 </div>
               );
             })}
-            {visible.length === 0 && (
+            {!loading && visible.length === 0 && (
               <div className="p-12 text-center text-muted-foreground">{t("noData")}</div>
             )}
           </div>

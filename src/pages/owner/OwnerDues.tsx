@@ -1,38 +1,80 @@
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
-import { BILLS, FLATS, DEMO_OWNER_FLAT_ID } from "@/data/mockData";
 import { formatMoney } from "@/i18n/translations";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useOwnerFlat } from "@/hooks/useOwnerFlat";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type Bill = {
+  id: string;
+  month: string;
+  service_charge: number;
+  gas_bill: number;
+  parking: number;
+  total: number;
+  paid_amount: number;
+  status: FlatStatus;
+};
 
 export default function OwnerDues() {
   const { t, lang } = useLang();
-  const flat = FLATS.find(f => f.id === DEMO_OWNER_FLAT_ID)!;
-  const myBills = BILLS.filter(b => b.flatId === flat.id);
+  const { flat, loading: flatLoading } = useOwnerFlat();
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!flat) {
+      setBills([]);
+      setLoading(flatLoading);
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("bills")
+        .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .eq("flat_id", flat.id)
+        .order("month", { ascending: false });
+      if (error) toast.error(error.message);
+      setBills((data ?? []) as Bill[]);
+      setLoading(false);
+    })();
+  }, [flat, flatLoading]);
 
   return (
     <AppShell>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("myDues")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("flatNo")}: {flat.flatNo}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("flatNo")}: {flat?.flat_no ?? "—"}</p>
         </div>
         <div className="rounded-2xl bg-card border border-border shadow-soft divide-y divide-border">
-          {myBills.map(b => {
-            const due = b.total - b.paidAmount;
+          {loading && (
+            <div className="p-5 space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
+            </div>
+          )}
+          {!loading && bills.length === 0 && (
+            <div className="p-12 text-center text-muted-foreground">{t("noData")}</div>
+          )}
+          {!loading && bills.map((b) => {
+            const due = Number(b.total) - Number(b.paid_amount);
             return (
               <div key={b.id} className="p-5 flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-foreground">{b.month}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {t("serviceCharge")}: {formatMoney(b.serviceCharge, lang)} · {t("gasBill")}: {formatMoney(b.gasBill, lang)}
-                    {b.parking > 0 && ` · ${t("parking")}: ${formatMoney(b.parking, lang)}`}
+                    {t("serviceCharge")}: {formatMoney(Number(b.service_charge), lang)} · {t("gasBill")}: {formatMoney(Number(b.gas_bill), lang)}
+                    {Number(b.parking) > 0 && ` · ${t("parking")}: ${formatMoney(Number(b.parking), lang)}`}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-foreground">{formatMoney(b.total, lang)}</div>
+                  <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                   {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                 </div>
                 <StatusBadge status={b.status} />
