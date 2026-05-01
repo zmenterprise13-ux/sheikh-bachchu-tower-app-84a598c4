@@ -47,6 +47,7 @@ export default function AdminDues() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [editing, setEditing] = useState<Bill | null>(null);
   const month = currentMonth();
 
   const load = async () => {
