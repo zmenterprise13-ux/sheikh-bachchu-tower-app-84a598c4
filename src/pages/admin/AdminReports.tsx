@@ -103,16 +103,28 @@ export default function AdminReports() {
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
             <h2 className="font-semibold text-foreground mb-4">{t("income")}</h2>
             <div className="space-y-3">
-              {[
-                { label: t("serviceCharge"), value: bills.reduce((s, b) => s + (b.status === "paid" ? Number(b.service_charge) : b.status === "partial" && Number(b.total) ? Number(b.paid_amount) * Number(b.service_charge) / Number(b.total) : 0), 0) },
-                { label: t("gasBill"),       value: bills.reduce((s, b) => s + (b.status === "paid" ? Number(b.gas_bill) : 0), 0) },
-                { label: t("parking"),       value: bills.reduce((s, b) => s + (b.status === "paid" ? Number(b.parking) : 0), 0) },
-              ].map((row) => (
-                <div key={row.label} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                  <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <span className="font-semibold text-foreground">{formatMoney(row.value, lang)}</span>
-                </div>
-              ))}
+              {(() => {
+                // Collected per component = sum over bills of (paid_amount × component / total)
+                const collected = (key: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
+                  bills.reduce((s, b) => {
+                    const tot = Number(b.total);
+                    if (tot <= 0) return s;
+                    return s + (Number(b.paid_amount) * Number(b[key]) / tot);
+                  }, 0);
+                const rows = [
+                  { label: t("serviceCharge"), value: collected("service_charge") },
+                  { label: t("gasBill"),       value: collected("gas_bill") },
+                  { label: t("parking"),       value: collected("parking") },
+                  { label: t("eidBonus"),      value: collected("eid_bonus") },
+                  { label: t("otherCharge"),   value: collected("other_charge") },
+                ];
+                return rows.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
+                    <span className="text-sm text-muted-foreground">{row.label}</span>
+                    <span className="font-semibold text-foreground">{formatMoney(row.value, lang)}</span>
+                  </div>
+                ));
+              })()}
               <div className="flex items-center justify-between pt-2 border-t-2 border-foreground/20">
                 <span className="font-semibold">{t("total")}</span>
                 <span className="font-bold text-success text-lg">{formatMoney(totalIncome, lang)}</span>
