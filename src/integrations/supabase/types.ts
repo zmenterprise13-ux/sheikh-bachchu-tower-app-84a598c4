@@ -14,9 +14,46 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_settings: {
+        Row: {
+          created_at: string
+          eid_due_day_1: number
+          eid_due_day_2: number
+          eid_month_1: string | null
+          eid_month_2: string | null
+          id: string
+          other_due_offset_days: number
+          regular_due_day: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          eid_due_day_1?: number
+          eid_due_day_2?: number
+          eid_month_1?: string | null
+          eid_month_2?: string | null
+          id?: string
+          other_due_offset_days?: number
+          regular_due_day?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          eid_due_day_1?: number
+          eid_due_day_2?: number
+          eid_month_1?: string | null
+          eid_month_2?: string | null
+          id?: string
+          other_due_offset_days?: number
+          regular_due_day?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bills: {
         Row: {
           created_at: string
+          due_date: string | null
           eid_bonus: number
           flat_id: string
           gas_bill: number
@@ -35,6 +72,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          due_date?: string | null
           eid_bonus?: number
           flat_id: string
           gas_bill?: number
@@ -53,6 +91,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          due_date?: string | null
           eid_bonus?: number
           flat_id?: string
           gas_bill?: number
