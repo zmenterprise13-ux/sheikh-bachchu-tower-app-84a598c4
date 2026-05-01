@@ -111,8 +111,14 @@ export type Database = {
           gas_bill: number
           id: string
           is_occupied: boolean
+          occupant_name: string | null
+          occupant_name_bn: string | null
+          occupant_phone: string | null
+          occupant_photo_url: string | null
+          occupant_type: string
           owner_name: string | null
           owner_name_bn: string | null
+          owner_photo_url: string | null
           owner_user_id: string | null
           parking: number
           phone: string | null
@@ -127,8 +133,14 @@ export type Database = {
           gas_bill?: number
           id?: string
           is_occupied?: boolean
+          occupant_name?: string | null
+          occupant_name_bn?: string | null
+          occupant_phone?: string | null
+          occupant_photo_url?: string | null
+          occupant_type?: string
           owner_name?: string | null
           owner_name_bn?: string | null
+          owner_photo_url?: string | null
           owner_user_id?: string | null
           parking?: number
           phone?: string | null
@@ -143,8 +155,14 @@ export type Database = {
           gas_bill?: number
           id?: string
           is_occupied?: boolean
+          occupant_name?: string | null
+          occupant_name_bn?: string | null
+          occupant_phone?: string | null
+          occupant_photo_url?: string | null
+          occupant_type?: string
           owner_name?: string | null
           owner_name_bn?: string | null
+          owner_photo_url?: string | null
           owner_user_id?: string | null
           parking?: number
           phone?: string | null
@@ -193,6 +211,54 @@ export type Database = {
         }
         Relationships: []
       }
+      parking_slots: {
+        Row: {
+          created_at: string
+          flat_id: string | null
+          id: string
+          monthly_fee: number
+          notes: string | null
+          shop_id: string | null
+          slot_no: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          flat_id?: string | null
+          id?: string
+          monthly_fee?: number
+          notes?: string | null
+          shop_id?: string | null
+          slot_no: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          flat_id?: string | null
+          id?: string
+          monthly_fee?: number
+          notes?: string | null
+          shop_id?: string | null
+          slot_no?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parking_slots_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parking_slots_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -217,6 +283,72 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      shops: {
+        Row: {
+          created_at: string
+          id: string
+          is_occupied: boolean
+          occupant_name: string | null
+          occupant_name_bn: string | null
+          occupant_phone: string | null
+          occupant_photo_url: string | null
+          occupant_type: string
+          owner_name: string | null
+          owner_name_bn: string | null
+          owner_phone: string | null
+          owner_photo_url: string | null
+          owner_user_id: string | null
+          rent: number
+          service_charge: number
+          shop_no: string
+          side: string | null
+          size: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_occupied?: boolean
+          occupant_name?: string | null
+          occupant_name_bn?: string | null
+          occupant_phone?: string | null
+          occupant_photo_url?: string | null
+          occupant_type?: string
+          owner_name?: string | null
+          owner_name_bn?: string | null
+          owner_phone?: string | null
+          owner_photo_url?: string | null
+          owner_user_id?: string | null
+          rent?: number
+          service_charge?: number
+          shop_no: string
+          side?: string | null
+          size?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_occupied?: boolean
+          occupant_name?: string | null
+          occupant_name_bn?: string | null
+          occupant_phone?: string | null
+          occupant_photo_url?: string | null
+          occupant_type?: string
+          owner_name?: string | null
+          owner_name_bn?: string | null
+          owner_phone?: string | null
+          owner_photo_url?: string | null
+          owner_user_id?: string | null
+          rent?: number
+          service_charge?: number
+          shop_no?: string
+          side?: string | null
+          size?: number
+          updated_at?: string
         }
         Relationships: []
       }
