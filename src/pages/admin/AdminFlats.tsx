@@ -262,6 +262,7 @@ function FlatEditDialog({
         service_charge: form.service_charge,
         gas_bill: form.gas_bill,
         parking: form.parking,
+        eid_bonus: form.eid_bonus,
         is_occupied: form.is_occupied,
         occupant_type: form.occupant_type,
         occupant_name: form.occupant_name,
