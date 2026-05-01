@@ -4,8 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LangProvider } from "@/i18n/LangContext";
-import { RoleProvider } from "@/context/RoleContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
+import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFlats from "./pages/admin/AdminFlats";
@@ -24,29 +26,35 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LangProvider>
-      <RoleProvider>
+      <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/flats" element={<AdminFlats />} />
-              <Route path="/admin/dues" element={<AdminDues />} />
-              <Route path="/admin/expenses" element={<AdminExpenses />} />
-              <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/notices" element={<AdminNotices />} />
-              <Route path="/owner" element={<OwnerDashboard />} />
-              <Route path="/owner/dues" element={<OwnerDues />} />
-              <Route path="/owner/payments" element={<OwnerPayments />} />
-              <Route path="/owner/notices" element={<OwnerNotices />} />
-              <Route path="/owner/reports" element={<OwnerReports />} />
+              <Route path="/auth" element={<Auth />} />
+
+              {/* Admin */}
+              <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/flats" element={<ProtectedRoute requireRole="admin"><AdminFlats /></ProtectedRoute>} />
+              <Route path="/admin/dues" element={<ProtectedRoute requireRole="admin"><AdminDues /></ProtectedRoute>} />
+              <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
+              <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
+              <Route path="/admin/notices" element={<ProtectedRoute requireRole="admin"><AdminNotices /></ProtectedRoute>} />
+
+              {/* Owner */}
+              <Route path="/owner" element={<ProtectedRoute requireRole="owner"><OwnerDashboard /></ProtectedRoute>} />
+              <Route path="/owner/dues" element={<ProtectedRoute requireRole="owner"><OwnerDues /></ProtectedRoute>} />
+              <Route path="/owner/payments" element={<ProtectedRoute requireRole="owner"><OwnerPayments /></ProtectedRoute>} />
+              <Route path="/owner/notices" element={<ProtectedRoute requireRole="owner"><OwnerNotices /></ProtectedRoute>} />
+              <Route path="/owner/reports" element={<ProtectedRoute requireRole="owner"><OwnerReports /></ProtectedRoute>} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </RoleProvider>
+      </AuthProvider>
     </LangProvider>
   </QueryClientProvider>
 );
