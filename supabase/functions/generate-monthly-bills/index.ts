@@ -78,10 +78,19 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Load all flats with their charge configuration.
+    // Optional flags from body: { eid?: boolean }
+    // If eid=true, include each flat's configured eid_bonus this month.
+    let includeEid = false;
+    if (req.method === "POST") {
+      try {
+        const body = await req.clone().json();
+        if (body?.eid === true) includeEid = true;
+      } catch (_) { /* ignore */ }
+    }
+
     const { data: flats, error: flatsErr } = await admin
       .from("flats")
-      .select("id, service_charge, gas_bill, parking");
+      .select("id, service_charge, gas_bill, parking, eid_bonus");
     if (flatsErr) throw flatsErr;
 
     // Skip flats that already have a bill for this month.
@@ -100,13 +109,16 @@ Deno.serve(async (req) => {
         const service = Number(f.service_charge ?? 0);
         const gas = Number(f.gas_bill ?? 0);
         const parking = Number(f.parking ?? 0);
-        const total = service + gas + parking;
+        const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
+        const total = service + gas + parking + eid;
         return {
           flat_id: f.id,
           month,
           service_charge: service,
           gas_bill: gas,
           parking,
+          eid_bonus: eid,
+          other_charge: 0,
           total,
           paid_amount: 0,
           status: "unpaid" as const,
