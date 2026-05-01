@@ -263,6 +263,11 @@ export default function AdminFlats() {
           load();
         }}
       />
+
+      <FlatLedgerDialog
+        flat={ledgerFlat}
+        onClose={() => setLedgerFlat(null)}
+      />
     </AppShell>
   );
 }
