@@ -19,11 +19,13 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
+import AdminLedger from "./pages/admin/AdminLedger";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
+import OwnerLedger from "./pages/owner/OwnerLedger";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,7 @@ const App = () => (
               <Route path="/admin/shops" element={<ProtectedRoute requireRole="admin"><AdminShops /></ProtectedRoute>} />
               <Route path="/admin/parking" element={<ProtectedRoute requireRole="admin"><AdminParking /></ProtectedRoute>} />
               <Route path="/admin/dues" element={<ProtectedRoute requireRole="admin"><AdminDues /></ProtectedRoute>} />
+              <Route path="/admin/ledger" element={<ProtectedRoute requireRole="admin"><AdminLedger /></ProtectedRoute>} />
               <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
               <Route path="/admin/notices" element={<ProtectedRoute requireRole="admin"><AdminNotices /></ProtectedRoute>} />
@@ -55,6 +58,7 @@ const App = () => (
               <Route path="/owner" element={<ProtectedRoute requireRole="owner"><OwnerDashboard /></ProtectedRoute>} />
               <Route path="/owner/dues" element={<ProtectedRoute requireRole="owner"><OwnerDues /></ProtectedRoute>} />
               <Route path="/owner/payments" element={<ProtectedRoute requireRole="owner"><OwnerPayments /></ProtectedRoute>} />
+              <Route path="/owner/ledger" element={<ProtectedRoute requireRole="owner"><OwnerLedger /></ProtectedRoute>} />
               <Route path="/owner/notices" element={<ProtectedRoute requireRole="owner"><OwnerNotices /></ProtectedRoute>} />
               <Route path="/owner/reports" element={<ProtectedRoute requireRole="owner"><OwnerReports /></ProtectedRoute>} />
 

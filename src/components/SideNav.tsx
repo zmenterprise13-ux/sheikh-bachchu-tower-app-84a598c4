@@ -14,6 +14,7 @@ import {
   CreditCard,
   History,
   Settings as SettingsIcon,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/shops", key: "shops", icon: Store },
   { to: "/admin/parking", key: "parkingNav", icon: Car },
   { to: "/admin/dues", key: "dues", icon: Receipt },
+  { to: "/admin/ledger", key: "ledger", icon: BookOpen },
   { to: "/admin/expenses", key: "expenses", icon: Wallet },
   { to: "/admin/reports", key: "reports", icon: FileBarChart },
   { to: "/admin/notices", key: "notices", icon: Megaphone },
@@ -33,6 +35,7 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/owner", key: "dashboard", icon: LayoutDashboard },
   { to: "/owner/dues", key: "myDues", icon: CreditCard },
   { to: "/owner/payments", key: "myPayments", icon: History },
+  { to: "/owner/ledger", key: "myLedger", icon: BookOpen },
   { to: "/owner/notices", key: "notices", icon: Megaphone },
   { to: "/owner/reports", key: "reports", icon: FileBarChart },
 ];
