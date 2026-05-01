@@ -61,6 +61,7 @@ export default function AdminFlats() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Flat | null>(null);
+  const [ledgerFlat, setLedgerFlat] = useState<Flat | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
 
   const load = async () => {
