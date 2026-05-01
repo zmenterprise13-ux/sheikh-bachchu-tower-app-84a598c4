@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 import { useLang } from "@/i18n/LangContext";
-import { FlatStatus } from "@/data/mockData";
 import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 
-const map: Record<FlatStatus, { cls: string; icon: typeof CheckCircle2; key: "paid"|"unpaid"|"partial" }> = {
+export type FlatStatus = "paid" | "unpaid" | "partial";
+
+const map: Record<FlatStatus, { cls: string; icon: typeof CheckCircle2; key: "paid" | "unpaid" | "partial" }> = {
   paid:    { cls: "bg-success/15 text-success border-success/30",       icon: CheckCircle2, key: "paid" },
   unpaid:  { cls: "bg-destructive/15 text-destructive border-destructive/30", icon: AlertCircle,  key: "unpaid" },
   partial: { cls: "bg-warning/15 text-warning-foreground border-warning/40",  icon: Clock,        key: "partial" },

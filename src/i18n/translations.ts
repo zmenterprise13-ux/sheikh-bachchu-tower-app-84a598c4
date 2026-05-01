@@ -86,13 +86,6 @@ export const translations: T = {
   recentActivity: { bn: "সাম্প্রতিক কার্যক্রম", en: "Recent Activity" },
   collectionRate: { bn: "আদায়ের হার", en: "Collection Rate" },
   taka: { bn: "৳", en: "৳" },
-
-  // Demo banner
-  demoMode: { bn: "ডেমো মোড", en: "Demo Mode" },
-  demoMessage: {
-    bn: "এটি একটি ডেমো। ডাটা সংরক্ষণ ও লগইন চালু করতে Lovable Cloud Enable করুন।",
-    en: "This is a demo. Enable Lovable Cloud to save data and add login.",
-  },
 };
 
 export type TKey = keyof typeof translations;
