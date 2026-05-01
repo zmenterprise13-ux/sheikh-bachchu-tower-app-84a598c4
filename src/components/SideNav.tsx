@@ -64,7 +64,7 @@ export function SideNav() {
 
 export function MobileNav() {
   const { t } = useLang();
-  const { role } = useRole();
+  const { role } = useAuth();
   const items = (role === "admin" ? adminNav : ownerNav).slice(0, 5);
 
   return (
