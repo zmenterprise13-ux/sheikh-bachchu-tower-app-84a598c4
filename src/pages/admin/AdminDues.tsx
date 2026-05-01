@@ -22,9 +22,20 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
+  other_note: string | null;
   total: number;
   paid_amount: number;
   status: FlatStatus;
+};
+
+type Flat = {
+  id: string;
+  flat_no: string;
+  owner_name: string | null;
+  owner_name_bn: string | null;
+  phone: string | null;
 };
 
 type Flat = {
