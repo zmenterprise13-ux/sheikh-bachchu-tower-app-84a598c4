@@ -88,6 +88,7 @@ export default function OwnerDues() {
                       {other > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/30 text-foreground text-[11px] font-semibold px-2 py-0.5">
                           {b.other_note || t("otherCharge")}: {formatMoney(other, lang)}
+                          {b.other_due_date && ` · ${lang === "bn" ? "ডিউ" : "due"} ${b.other_due_date}`}
                         </span>
                       )}
                     </div>
