@@ -61,6 +61,7 @@ export type Database = {
           id: string
           month: string
           other_charge: number
+          other_due_date: string | null
           other_note: string | null
           paid_amount: number
           paid_at: string | null
@@ -80,6 +81,7 @@ export type Database = {
           id?: string
           month: string
           other_charge?: number
+          other_due_date?: string | null
           other_note?: string | null
           paid_amount?: number
           paid_at?: string | null
@@ -99,6 +101,7 @@ export type Database = {
           id?: string
           month?: string
           other_charge?: number
+          other_due_date?: string | null
           other_note?: string | null
           paid_amount?: number
           paid_at?: string | null

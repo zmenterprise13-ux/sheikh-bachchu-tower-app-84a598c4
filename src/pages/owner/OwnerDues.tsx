@@ -19,6 +19,7 @@ type Bill = {
   eid_bonus: number;
   other_charge: number;
   other_note: string | null;
+  other_due_date: string | null;
   total: number;
   paid_amount: number;
   status: FlatStatus;
@@ -40,7 +41,7 @@ export default function OwnerDues() {
       setLoading(true);
       const { data, error } = await supabase
         .from("bills")
-        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status")
+        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
         .eq("flat_id", flat.id)
         .order("month", { ascending: false });
       if (error) toast.error(error.message);
@@ -87,6 +88,7 @@ export default function OwnerDues() {
                       {other > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/30 text-foreground text-[11px] font-semibold px-2 py-0.5">
                           {b.other_note || t("otherCharge")}: {formatMoney(other, lang)}
+                          {b.other_due_date && ` · ${lang === "bn" ? "ডিউ" : "due"} ${b.other_due_date}`}
                         </span>
                       )}
                     </div>
