@@ -167,14 +167,25 @@ export default function AdminFlats() {
                         {f.occupant_phone || f.phone || "—"}
                       </div>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setEditing(f)}
-                      className="h-8 w-8"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setLedgerFlat(f)}
+                        className="h-8 w-8"
+                        title={lang === "bn" ? "লেজার" : "Ledger"}
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditing(f)}
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-3 flex items-center gap-2">
