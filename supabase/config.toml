@@ -1,1 +1,4 @@
 project_id = "ogurhyuwaurxxivwgqnx"
+
+[functions.generate-monthly-bills]
+verify_jwt = false
