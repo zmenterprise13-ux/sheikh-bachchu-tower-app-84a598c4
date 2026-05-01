@@ -67,6 +67,8 @@ export default function OwnerDues() {
           )}
           {!loading && bills.map((b) => {
             const due = Number(b.total) - Number(b.paid_amount);
+            const eid = Number(b.eid_bonus);
+            const other = Number(b.other_charge);
             return (
               <div key={b.id} className="p-5 flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
@@ -75,6 +77,20 @@ export default function OwnerDues() {
                     {t("serviceCharge")}: {formatMoney(Number(b.service_charge), lang)} · {t("gasBill")}: {formatMoney(Number(b.gas_bill), lang)}
                     {Number(b.parking) > 0 && ` · ${t("parking")}: ${formatMoney(Number(b.parking), lang)}`}
                   </div>
+                  {(eid > 0 || other > 0) && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {eid > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning text-[11px] font-semibold px-2 py-0.5">
+                          🎉 {t("eidBonus")}: {formatMoney(eid, lang)}
+                        </span>
+                      )}
+                      {other > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/30 text-foreground text-[11px] font-semibold px-2 py-0.5">
+                          {b.other_note || t("otherCharge")}: {formatMoney(other, lang)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
