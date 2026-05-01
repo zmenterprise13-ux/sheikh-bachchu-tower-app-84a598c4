@@ -412,6 +412,14 @@ function FlatEditDialog({
                 onChange={(e) => set("parking", Number(e.target.value))}
               />
             </div>
+            <div>
+              <Label className="text-xs">{t("eidBonus")}</Label>
+              <Input
+                type="number"
+                value={form.eid_bonus}
+                onChange={(e) => set("eid_bonus", Number(e.target.value))}
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
