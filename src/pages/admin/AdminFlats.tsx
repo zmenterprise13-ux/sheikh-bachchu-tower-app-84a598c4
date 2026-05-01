@@ -5,7 +5,7 @@ import { formatMoney, formatNumber } from "@/i18n/translations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Phone, Home, Pencil, Wallet, CalendarIcon } from "lucide-react";
+import { Search, Phone, Home, Pencil, Wallet, CalendarIcon, BookOpen, Printer } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -61,6 +61,7 @@ export default function AdminFlats() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Flat | null>(null);
+  const [ledgerFlat, setLedgerFlat] = useState<Flat | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
 
   const load = async () => {
@@ -166,14 +167,25 @@ export default function AdminFlats() {
                         {f.occupant_phone || f.phone || "—"}
                       </div>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setEditing(f)}
-                      className="h-8 w-8"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setLedgerFlat(f)}
+                        className="h-8 w-8"
+                        title={lang === "bn" ? "লেজার" : "Ledger"}
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditing(f)}
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-3 flex items-center gap-2">
@@ -250,6 +262,11 @@ export default function AdminFlats() {
           setBulkOpen(false);
           load();
         }}
+      />
+
+      <FlatLedgerDialog
+        flat={ledgerFlat}
+        onClose={() => setLedgerFlat(null)}
       />
     </AppShell>
   );
@@ -888,6 +905,194 @@ function FlatEditDialog({
             {t("save")}
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type LedgerBill = {
+  id: string;
+  month: string;
+  service_charge: number;
+  gas_bill: number;
+  parking: number;
+  eid_bonus: number;
+  other_charge: number;
+  other_note: string | null;
+  total: number;
+  paid_amount: number;
+  status: string;
+  due_date: string | null;
+  paid_at: string | null;
+};
+
+function FlatLedgerDialog({ flat, onClose }: { flat: Flat | null; onClose: () => void }) {
+  const { lang } = useLang();
+  const [bills, setBills] = useState<LedgerBill[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!flat) { setBills([]); return; }
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("bills")
+        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status, due_date, paid_at")
+        .eq("flat_id", flat.id)
+        .order("month", { ascending: false });
+      if (error) toast.error(error.message);
+      setBills((data ?? []) as LedgerBill[]);
+      setLoading(false);
+    })();
+  }, [flat]);
+
+  if (!flat) return null;
+
+  const totalBilled = bills.reduce((s, b) => s + Number(b.total || 0), 0);
+  const totalPaid = bills.reduce((s, b) => s + Number(b.paid_amount || 0), 0);
+  const balance = totalBilled - totalPaid;
+
+  const occName = lang === "bn" ? flat.occupant_name_bn : flat.occupant_name;
+  const ownName = lang === "bn" ? flat.owner_name_bn : flat.owner_name;
+  const generatedAt = new Date().toLocaleString();
+
+  return (
+    <Dialog open={!!flat} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="print-hide">
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <span>
+              {lang === "bn" ? "ফ্ল্যাট লেজার" : "Flat Ledger"} — {flat.flat_no}
+            </span>
+            <Button size="sm" variant="outline" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "প্রিন্ট / PDF" : "Print / PDF"}
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="print-area space-y-4">
+          {/* Header */}
+          <div className="border-b border-border pb-3">
+            <div className="text-lg font-bold">
+              {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {lang === "bn" ? "ফ্ল্যাট লেজার" : "Flat Ledger Statement"}
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">{lang === "bn" ? "ফ্ল্যাট: " : "Flat: "}</span>
+                <span className="font-semibold">{flat.flat_no} ({lang === "bn" ? "ফ্লোর" : "Floor"} {flat.floor})</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{lang === "bn" ? "সাইজ: " : "Size: "}</span>
+                <span className="font-semibold">{formatNumber(flat.size, lang)} sqft</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{lang === "bn" ? "ওনার: " : "Owner: "}</span>
+                <span className="font-semibold">{ownName || "—"}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{lang === "bn" ? "অকুপ্যান্ট: " : "Occupant: "}</span>
+                <span className="font-semibold">{occName || ownName || "—"}</span>
+              </div>
+              <div className="col-span-2 text-xs text-muted-foreground">
+                {lang === "bn" ? "জেনারেট: " : "Generated: "} {generatedAt}
+              </div>
+            </div>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground">{lang === "bn" ? "মোট বিল" : "Total Billed"}</div>
+              <div className="text-lg font-bold">{formatMoney(totalBilled, lang)}</div>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground">{lang === "bn" ? "মোট পেইড" : "Total Paid"}</div>
+              <div className="text-lg font-bold text-success">{formatMoney(totalPaid, lang)}</div>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground">{lang === "bn" ? "ব্যালেন্স" : "Balance Due"}</div>
+              <div className={"text-lg font-bold " + (balance > 0 ? "text-destructive" : "text-success")}>
+                {formatMoney(balance, lang)}
+              </div>
+            </div>
+          </div>
+
+          {/* Detail table */}
+          {loading ? (
+            <Skeleton className="h-48 w-full" />
+          ) : bills.length === 0 ? (
+            <div className="rounded-lg border border-border p-8 text-center text-muted-foreground text-sm">
+              {lang === "bn" ? "কোনো বিল নেই।" : "No bills found."}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left p-2 font-medium">{lang === "bn" ? "মাস" : "Month"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "সার্ভিস" : "Service"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "গ্যাস" : "Gas"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "পার্কিং" : "Parking"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "ঈদ" : "Eid"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "অন্যান্য" : "Other"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "মোট" : "Total"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "পেইড" : "Paid"}</th>
+                    <th className="text-right p-2 font-medium">{lang === "bn" ? "বকেয়া" : "Due"}</th>
+                    <th className="text-left p-2 font-medium">{lang === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bills.map((b) => {
+                    const due = Number(b.total) - Number(b.paid_amount);
+                    return (
+                      <tr key={b.id} className="border-t border-border">
+                        <td className="p-2 font-medium">{b.month}</td>
+                        <td className="p-2 text-right">{formatMoney(b.service_charge, lang)}</td>
+                        <td className="p-2 text-right">{formatMoney(b.gas_bill, lang)}</td>
+                        <td className="p-2 text-right">{formatMoney(b.parking, lang)}</td>
+                        <td className="p-2 text-right">{Number(b.eid_bonus) > 0 ? formatMoney(b.eid_bonus, lang) : "—"}</td>
+                        <td className="p-2 text-right">{Number(b.other_charge) > 0 ? formatMoney(b.other_charge, lang) : "—"}</td>
+                        <td className="p-2 text-right font-semibold">{formatMoney(b.total, lang)}</td>
+                        <td className="p-2 text-right text-success">{formatMoney(b.paid_amount, lang)}</td>
+                        <td className={"p-2 text-right font-semibold " + (due > 0 ? "text-destructive" : "")}>
+                          {formatMoney(due, lang)}
+                        </td>
+                        <td className="p-2">
+                          <span className={
+                            "inline-block px-2 py-0.5 rounded text-[10px] font-bold " +
+                            (b.status === "paid"
+                              ? "bg-success/15 text-success"
+                              : b.status === "partial"
+                              ? "bg-warning/15 text-warning"
+                              : "bg-destructive/15 text-destructive")
+                          }>
+                            {b.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-muted/30 font-semibold">
+                  <tr>
+                    <td className="p-2">{lang === "bn" ? "মোট" : "Total"}</td>
+                    <td colSpan={5}></td>
+                    <td className="p-2 text-right">{formatMoney(totalBilled, lang)}</td>
+                    <td className="p-2 text-right text-success">{formatMoney(totalPaid, lang)}</td>
+                    <td className={"p-2 text-right " + (balance > 0 ? "text-destructive" : "")}>
+                      {formatMoney(balance, lang)}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
