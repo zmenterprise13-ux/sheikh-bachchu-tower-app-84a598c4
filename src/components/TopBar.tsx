@@ -1,6 +1,7 @@
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { LanguageToggle } from "./LanguageToggle";
+import { MobileSideNavTrigger } from "./SideNav";
 import { Button } from "@/components/ui/button";
 import { Building2, ShieldCheck, User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
