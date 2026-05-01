@@ -143,7 +143,7 @@ export default function AdminDues() {
             <div className="col-span-1">{t("flatNo")}</div>
             <div className="col-span-3">{t("ownerName")}</div>
             <div className="col-span-2 text-right">{t("serviceCharge")}</div>
-            <div className="col-span-2 text-right">{t("gasBill")}+{t("parking")}</div>
+            <div className="col-span-2 text-right">{t("gasBill")}+{t("parking")}+{t("eidBonus")}+{t("otherCharge")}</div>
             <div className="col-span-2 text-right">{t("total")}</div>
             <div className="col-span-2 text-right">{t("action")}</div>
           </div>
