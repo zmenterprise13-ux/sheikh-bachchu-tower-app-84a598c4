@@ -194,21 +194,25 @@ export default function AdminDashboard() {
               disabled={generating}
               onClick={async () => {
                 setGenerating(true);
-                const { data, error } = await supabase.functions.invoke("generate-monthly-bills", {
-                  body: { month },
-                });
-                setGenerating(false);
-                if (error) {
-                  toast.error(error.message);
-                  return;
+                try {
+                  const { data, error } = await supabase.functions.invoke(
+                    "generate-monthly-bills",
+                    { body: { month } },
+                  );
+                  if (error) throw error;
+                  const inserted = Number((data as any)?.inserted ?? 0);
+                  const skipped = Number((data as any)?.skipped ?? 0);
+                  toast.success(
+                    lang === "bn"
+                      ? `${inserted} টি ফ্ল্যাটের বিল তৈরি হয়েছে${skipped ? ` · ${skipped} টি আগে থেকেই ছিল` : ""}`
+                      : `Created bills for ${inserted} flat(s)${skipped ? ` · ${skipped} already existed` : ""}`,
+                  );
+                  await loadData();
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Failed to generate bills");
+                } finally {
+                  setGenerating(false);
                 }
-                const inserted = (data as any)?.inserted ?? 0;
-                toast.success(
-                  lang === "bn"
-                    ? `${inserted} টি ফ্ল্যাটের বিল জেনারেট হয়েছে`
-                    : `Generated bills for ${inserted} flat(s)`,
-                );
-                loadData();
               }}
             >
               {generating ? "..." : t("generateBills")}
