@@ -13,6 +13,8 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
   total: number;
   paid_amount: number;
   status: "paid" | "partial" | "unpaid";
