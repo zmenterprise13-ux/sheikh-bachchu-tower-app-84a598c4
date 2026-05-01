@@ -5,6 +5,8 @@ import { TKey } from "@/i18n/translations";
 import {
   LayoutDashboard,
   Building,
+  Store,
+  Car,
   Receipt,
   Wallet,
   FileBarChart,
@@ -17,6 +19,8 @@ import { cn } from "@/lib/utils";
 const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin", key: "dashboard", icon: LayoutDashboard },
   { to: "/admin/flats", key: "flats", icon: Building },
+  { to: "/admin/shops", key: "shops", icon: Store },
+  { to: "/admin/parking", key: "parkingNav", icon: Car },
   { to: "/admin/dues", key: "dues", icon: Receipt },
   { to: "/admin/expenses", key: "expenses", icon: Wallet },
   { to: "/admin/reports", key: "reports", icon: FileBarChart },
