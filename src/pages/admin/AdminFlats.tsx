@@ -288,8 +288,12 @@ function BulkServiceChargeDialog({
   });
   const [updateBills, setUpdateBills] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [monthDate, setMonthDate] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  });
 
-  const month = new Date().toISOString().slice(0, 7);
+  const month = `${monthDate.getUTCFullYear()}-${String(monthDate.getUTCMonth() + 1).padStart(2, "0")}`;
 
   const setField = (key: ChargeKey, patch: Partial<ChargeEntry>) =>
     setCharges((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
