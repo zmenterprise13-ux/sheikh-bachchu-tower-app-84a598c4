@@ -19,11 +19,13 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
+import AdminLedger from "./pages/admin/AdminLedger";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
+import OwnerLedger from "./pages/owner/OwnerLedger";
 
 const queryClient = new QueryClient();
 
