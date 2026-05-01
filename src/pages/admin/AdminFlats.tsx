@@ -381,6 +381,42 @@ function BulkServiceChargeDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Target month picker */}
+          <div className="rounded-lg border border-border p-3 space-y-2">
+            <Label className="text-xs font-semibold">
+              {lang === "bn" ? "টার্গেট মাস" : "Target Month"}
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn("w-full justify-start text-left font-normal h-9")}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(monthDate, "MMMM yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={monthDate}
+                  onSelect={(d) => {
+                    if (d) {
+                      setMonthDate(new Date(Date.UTC(d.getFullYear(), d.getMonth(), 1)));
+                    }
+                  }}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-[11px] text-muted-foreground">
+              {lang === "bn"
+                ? `নির্বাচিত মাস: ${month}`
+                : `Selected: ${month}`}
+            </p>
+          </div>
+
           {CHARGE_META.map((c) => {
             const entry = charges[c.key];
             return (
