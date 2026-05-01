@@ -16,6 +16,9 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
+  other_note: string | null;
   total: number;
   paid_amount: number;
   status: FlatStatus;
