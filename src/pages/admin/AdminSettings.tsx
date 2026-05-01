@@ -70,7 +70,81 @@ export default function AdminSettings() {
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
+  // Validation: blocking errors + non-blocking warnings.
+  const { errors, warnings } = useMemo(() => {
+    const errs: string[] = [];
+    const warns: string[] = [];
+    const parsed = SettingsSchema.safeParse(form);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        errs.push(`${issue.path.join(".")}: ${issue.message}`);
+      }
+    }
+
+    // Overlap: same Eid month for both entries
+    if (form.eid_month_1 && form.eid_month_2 && form.eid_month_1 === form.eid_month_2) {
+      errs.push(
+        lang === "bn"
+          ? "দুটি ঈদ বোনাসের মাস একই হতে পারবে না।"
+          : "Both Eid bonus months cannot be the same.",
+      );
+    }
+
+    // Past month warnings
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    if (form.eid_month_1 && form.eid_month_1 < thisMonth) {
+      warns.push(
+        lang === "bn"
+          ? `ঈদ #1 মাস (${form.eid_month_1}) অতীত — পরবর্তী বিল জেনারেশনে যোগ হবে না।`
+          : `Eid #1 month (${form.eid_month_1}) is in the past — won't apply to upcoming bills.`,
+      );
+    }
+    if (form.eid_month_2 && form.eid_month_2 < thisMonth) {
+      warns.push(
+        lang === "bn"
+          ? `ঈদ #2 মাস (${form.eid_month_2}) অতীত — পরবর্তী বিল জেনারেশনে যোগ হবে না।`
+          : `Eid #2 month (${form.eid_month_2}) is in the past — won't apply to upcoming bills.`,
+      );
+    }
+
+    // Eid months not configured at all
+    if (!form.eid_month_1 && !form.eid_month_2) {
+      warns.push(
+        lang === "bn"
+          ? "কোনো ঈদ মাস কনফিগার করা নেই — সিস্টেম হিজরি ক্যালেন্ডার ব্যবহার করে অনুমান করবে।"
+          : "No Eid months configured — system will fall back to Hijri calendar detection.",
+      );
+    }
+
+    // Eid months out of order (warning only)
+    if (
+      form.eid_month_1 && form.eid_month_2 &&
+      form.eid_month_1 > form.eid_month_2
+    ) {
+      warns.push(
+        lang === "bn"
+          ? "ঈদ #1 (ফিতর) সাধারণত ঈদ #2 (আযহা) এর আগে হয়।"
+          : "Eid #1 (Fitr) usually comes before Eid #2 (Adha).",
+      );
+    }
+
+    // Other-charge offset = 0 → due immediately
+    if (form.other_due_offset_days === 0) {
+      warns.push(
+        lang === "bn"
+          ? "অন্যান্য আদায়ের অফসেট ০ — যোগ করার সাথে সাথেই ডিউ হয়ে যাবে।"
+          : "Other-charge offset is 0 — charges become due the same day.",
+      );
+    }
+
+    return { errors: errs, warnings: warns };
+  }, [form, lang]);
+
   const save = async () => {
+    if (errors.length > 0) {
+      toast.error(lang === "bn" ? "ত্রুটি ঠিক করুন" : "Please fix errors first");
+      return;
+    }
     setSaving(true);
     const payload = {
       eid_month_1: form.eid_month_1,
