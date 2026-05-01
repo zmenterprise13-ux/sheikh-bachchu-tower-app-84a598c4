@@ -165,13 +165,24 @@ export default function AdminDues() {
                     <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
                   </div>
                   <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
-                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.gas_bill) + Number(b.parking), lang)}</div>
+                  <div className="md:col-span-2 md:text-right text-sm">
+                    {formatMoney(Number(b.gas_bill) + Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge), lang)}
+                    {(Number(b.eid_bonus) > 0 || Number(b.other_charge) > 0) && (
+                      <div className="text-[10px] text-muted-foreground">
+                        {Number(b.eid_bonus) > 0 && <>ঈদ: {formatMoney(Number(b.eid_bonus), lang)} </>}
+                        {Number(b.other_charge) > 0 && <>+ {b.other_note || t("otherCharge")}: {formatMoney(Number(b.other_charge), lang)}</>}
+                      </div>
+                    )}
+                  </div>
                   <div className="md:col-span-2 md:text-right">
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                   </div>
                   <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
                     <StatusBadge status={b.status} />
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(b)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                     {b.status !== "paid" && (
                       <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b)}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
