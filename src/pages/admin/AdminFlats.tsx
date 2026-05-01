@@ -5,8 +5,12 @@ import { formatMoney, formatNumber } from "@/i18n/translations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Phone, Home, Pencil, Wallet } from "lucide-react";
+import { Search, Phone, Home, Pencil, Wallet, CalendarIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -284,8 +288,12 @@ function BulkServiceChargeDialog({
   });
   const [updateBills, setUpdateBills] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [monthDate, setMonthDate] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  });
 
-  const month = new Date().toISOString().slice(0, 7);
+  const month = `${monthDate.getUTCFullYear()}-${String(monthDate.getUTCMonth() + 1).padStart(2, "0")}`;
 
   const setField = (key: ChargeKey, patch: Partial<ChargeEntry>) =>
     setCharges((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -373,6 +381,42 @@ function BulkServiceChargeDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Target month picker */}
+          <div className="rounded-lg border border-border p-3 space-y-2">
+            <Label className="text-xs font-semibold">
+              {lang === "bn" ? "টার্গেট মাস" : "Target Month"}
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn("w-full justify-start text-left font-normal h-9")}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(monthDate, "MMMM yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={monthDate}
+                  onSelect={(d) => {
+                    if (d) {
+                      setMonthDate(new Date(Date.UTC(d.getFullYear(), d.getMonth(), 1)));
+                    }
+                  }}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-[11px] text-muted-foreground">
+              {lang === "bn"
+                ? `নির্বাচিত মাস: ${month}`
+                : `Selected: ${month}`}
+            </p>
+          </div>
+
           {CHARGE_META.map((c) => {
             const entry = charges[c.key];
             return (
