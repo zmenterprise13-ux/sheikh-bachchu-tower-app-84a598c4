@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
-import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { TKey } from "@/i18n/translations";
 import {
   LayoutDashboard,
