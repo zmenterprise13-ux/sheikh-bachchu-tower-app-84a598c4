@@ -55,7 +55,7 @@ export default function AdminDues() {
     const [billsRes, flatsRes] = await Promise.all([
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, total, paid_amount, status")
         .eq("month", month),
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
     ]);
