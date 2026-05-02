@@ -523,33 +523,72 @@ export default function AdminReports() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
-            <h2 className="font-semibold text-foreground mb-4">{t("income")}</h2>
-            <div className="space-y-3">
+            <h2 className="font-semibold text-foreground mb-1">{t("income")}</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              {lang === "bn"
+                ? "রেট × সংখ্যা ভিত্তিক বিশ্লেষণ (বিল করা পরিমাণ অনুযায়ী)"
+                : "Rate × count breakdown (based on billed amounts)"}
+            </p>
+            <div className="space-y-5">
               {(() => {
-                const collected = (key: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
-                  bills.reduce((s, b) => {
-                    const tot = Number(b.total);
-                    if (tot <= 0) return s;
-                    return s + (Number(b.paid_amount) * Number(b[key]) / tot);
-                  }, 0);
-                const rows = [
-                  { label: t("serviceCharge"), value: collected("service_charge") },
-                  { label: t("gasBill"),       value: collected("gas_bill") },
-                  { label: t("parking"),       value: collected("parking") },
-                  { label: t("eidBonus"),      value: collected("eid_bonus") },
-                  { label: t("otherCharge"),   value: collected("other_charge") },
+                type Key = "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge";
+                const sections: { key: Key; label: string }[] = [
+                  { key: "service_charge", label: t("serviceCharge") },
+                  { key: "gas_bill",       label: t("gasBill") },
+                  { key: "parking",        label: t("parking") },
+                  { key: "eid_bonus",      label: t("eidBonus") },
+                  { key: "other_charge",   label: t("otherCharge") },
                 ];
-                return rows.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                    <span className="text-sm text-muted-foreground">{row.label}</span>
-                    <span className="font-semibold text-foreground">{formatMoney(row.value, lang)}</span>
-                  </div>
-                ));
+                // Group bills by rate per category: rate -> count of bills, sum
+                const grouped = sections.map((sec) => {
+                  const buckets = new Map<number, number>(); // rate -> count
+                  for (const b of bills) {
+                    const rate = Number(b[sec.key]);
+                    if (!rate || rate <= 0) continue;
+                    buckets.set(rate, (buckets.get(rate) || 0) + 1);
+                  }
+                  const rows = Array.from(buckets.entries())
+                    .sort((a, b) => b[0] - a[0])
+                    .map(([rate, count]) => ({ rate, count, amount: rate * count }));
+                  const subtotal = rows.reduce((s, r) => s + r.amount, 0);
+                  return { ...sec, rows, subtotal };
+                });
+                const grandBilled = grouped.reduce((s, g) => s + g.subtotal, 0);
+                return (
+                  <>
+                    {grouped.map((sec) => (
+                      <div key={sec.key}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-foreground">{sec.label}</span>
+                          <span className="text-sm font-bold text-foreground">{formatMoney(sec.subtotal, lang)}</span>
+                        </div>
+                        {sec.rows.length === 0 ? (
+                          <div className="text-xs text-muted-foreground pl-2">—</div>
+                        ) : (
+                          <div className="space-y-1 pl-2 border-l-2 border-border">
+                            {sec.rows.map((r) => (
+                              <div key={r.rate} className="flex items-center justify-between text-xs pl-3">
+                                <span className="text-muted-foreground font-mono">
+                                  {formatMoney(r.rate, lang)} × {formatNumber(r.count, lang)}
+                                </span>
+                                <span className="text-foreground tabular-nums">{formatMoney(r.amount, lang)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
+                      <span className="font-semibold">{lang === "bn" ? "মোট বিল (আয়)" : "Total Billed (Income)"}</span>
+                      <span className="font-bold text-success text-lg">{formatMoney(grandBilled, lang)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{lang === "bn" ? "প্রকৃত আদায়" : "Actual collected"}</span>
+                      <span className="font-semibold">{formatMoney(totalIncome, lang)}</span>
+                    </div>
+                  </>
+                );
               })()}
-              <div className="flex items-center justify-between pt-2 border-t-2 border-foreground/20">
-                <span className="font-semibold">{t("total")}</span>
-                <span className="font-bold text-success text-lg">{formatMoney(totalIncome, lang)}</span>
-              </div>
             </div>
           </div>
 
