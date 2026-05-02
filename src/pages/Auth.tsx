@@ -165,10 +165,12 @@ export default function Auth() {
           </p>
 
           <Tabs value={tab} onValueChange={v => setTab(v as "phone" | "login" | "signup")} className="mt-6">
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className={`grid w-full ${signupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
               <TabsTrigger value="phone">{lang === "bn" ? "ওনার (মোবাইল)" : "Owner (Phone)"}</TabsTrigger>
               <TabsTrigger value="login">{lang === "bn" ? "ইমেইল" : "Email"}</TabsTrigger>
-              <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
+              {signupEnabled && (
+                <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="phone">
