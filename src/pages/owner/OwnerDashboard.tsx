@@ -21,6 +21,7 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: FlatStatus;
+  generation_status: GenerationStatus;
 };
 type Notice = {
   id: string;
