@@ -51,6 +51,7 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: "paid" | "partial" | "unpaid";
+  generation_status: "generated" | "failed";
 };
 
 type Notice = {
