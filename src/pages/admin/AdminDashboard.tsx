@@ -74,6 +74,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
+  const [prevBills, setPrevBills] = useState<Bill[]>([]);
+  const [prevMonth, setPrevMonth] = useState<string>("");
   const [notices, setNotices] = useState<Notice[]>([]);
   const [month, setMonth] = useState<string>(currentMonth());
 
