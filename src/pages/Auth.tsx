@@ -107,6 +107,10 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বর্তমানে বন্ধ আছে" : "Sign up is currently disabled");
+      return;
+    }
     try {
       nameSchema.parse(name);
       emailSchema.parse(email);
