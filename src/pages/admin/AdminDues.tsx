@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
-import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -68,6 +68,13 @@ export default function AdminDues() {
   const [payAmount, setPayAmount] = useState<string>("");
   const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkType, setBulkType] = useState<"eid_bonus" | "other_charge">("eid_bonus");
+  const [bulkAmount, setBulkAmount] = useState<string>("");
+  const [bulkNote, setBulkNote] = useState<string>("");
+  const [bulkMode, setBulkMode] = useState<"add" | "set">("add");
+  const [bulkScope, setBulkScope] = useState<"all" | "filtered">("all");
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
@@ -133,6 +140,80 @@ export default function AdminDues() {
       ? { ...x, status, paid_amount: newPaid }
       : x));
     setPaying(null);
+  };
+
+  const applyBulk = async () => {
+    const amount = Number(bulkAmount);
+    if (!Number.isFinite(amount) || amount < 0) {
+      toast.error(lang === "bn" ? "সঠিক টাকার পরিমাণ দিন" : "Enter a valid amount");
+      return;
+    }
+    const targets = bulkScope === "filtered" ? visible : bills;
+    if (targets.length === 0) {
+      toast.error(lang === "bn" ? "কোনো বিল নেই" : "No bills to update");
+      return;
+    }
+    setBulkSaving(true);
+
+    // For other_charge: pre-compute due date once (today + offset) if any target needs it
+    let otherDueDate: string | null = null;
+    if (bulkType === "other_charge" && amount > 0) {
+      const { data: settings } = await supabase
+        .from("billing_settings")
+        .select("other_due_offset_days")
+        .maybeSingle();
+      const offset = Number(settings?.other_due_offset_days ?? 15);
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() + offset);
+      otherDueDate = d.toISOString().slice(0, 10);
+    }
+
+    const updated: Bill[] = [];
+    let failed = 0;
+    for (const b of targets) {
+      const currentVal = Number(b[bulkType] ?? 0);
+      const newVal = bulkMode === "add" ? currentVal + amount : amount;
+      const patch: {
+        eid_bonus?: number;
+        other_charge?: number;
+        other_note?: string | null;
+        other_due_date?: string | null;
+      } = { [bulkType]: newVal };
+      if (bulkType === "other_charge") {
+        if (newVal > 0) {
+          patch.other_note = bulkNote || b.other_note || null;
+          patch.other_due_date = b.other_due_date ?? otherDueDate;
+        } else {
+          patch.other_due_date = null;
+          patch.other_note = null;
+        }
+      }
+      const { data, error } = await supabase
+        .from("bills")
+        .update(patch)
+        .eq("id", b.id)
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
+        .single();
+      if (error || !data) { failed++; continue; }
+      updated.push(data as Bill);
+    }
+    setBulkSaving(false);
+
+    if (updated.length > 0) {
+      setBills((prev) => prev.map((x) => updated.find((u) => u.id === x.id) ?? x));
+    }
+    if (failed === 0) {
+      toast.success(lang === "bn"
+        ? `${updated.length} টি বিল আপডেট হয়েছে`
+        : `${updated.length} bills updated`);
+      setBulkOpen(false);
+      setBulkAmount("");
+      setBulkNote("");
+    } else {
+      toast.error(lang === "bn"
+        ? `${updated.length} সফল, ${failed} ব্যর্থ`
+        : `${updated.length} succeeded, ${failed} failed`);
+    }
   };
 
   const filterChips: { key: Filter; label: string }[] = [
@@ -212,6 +293,16 @@ export default function AdminDues() {
               </button>
             ))}
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setBulkOpen(true)}
+            disabled={loading || bills.length === 0}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"}
+          </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
@@ -320,6 +411,138 @@ export default function AdminDues() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={bulkOpen} onOpenChange={(o) => !bulkSaving && setBulkOpen(o)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"} — {formatMonthLabel(month, lang)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "চার্জ টাইপ" : "Charge type"}
+              </Label>
+              <div className="flex gap-2">
+                {([
+                  { k: "eid_bonus" as const, label: t("eidBonus") },
+                  { k: "other_charge" as const, label: t("otherCharge") },
+                ]).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setBulkType(o.k)}
+                    className={cn(
+                      "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-base",
+                      bulkType === o.k
+                        ? "gradient-primary text-primary-foreground border-transparent shadow-soft"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "মোড" : "Mode"}
+              </Label>
+              <div className="flex gap-2">
+                {([
+                  { k: "add" as const, label: lang === "bn" ? "বিদ্যমান এর সাথে যোগ" : "Add to existing" },
+                  { k: "set" as const, label: lang === "bn" ? "নির্দিষ্ট মান সেট" : "Set fixed value" },
+                ]).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setBulkMode(o.k)}
+                    className={cn(
+                      "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                      bulkMode === o.k
+                        ? "border-primary text-primary bg-primary/5"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">
+                {lang === "bn" ? "প্রতি ফ্ল্যাটে টাকার পরিমাণ" : "Amount per flat"}
+              </Label>
+              <Input
+                type="number"
+                value={bulkAmount}
+                onChange={(e) => setBulkAmount(e.target.value)}
+                placeholder="0"
+                autoFocus
+              />
+            </div>
+
+            {bulkType === "other_charge" && (
+              <div>
+                <Label className="text-xs">{t("otherNote")}</Label>
+                <Input
+                  value={bulkNote}
+                  onChange={(e) => setBulkNote(e.target.value)}
+                  placeholder={lang === "bn" ? "যেমন: লিফট মেরামত" : "e.g. Lift repair"}
+                />
+              </div>
+            )}
+
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "প্রযোজ্য" : "Apply to"}
+              </Label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkScope("all")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkScope === "all"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn" ? `সব ফ্ল্যাট (${bills.length})` : `All flats (${bills.length})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkScope("filtered")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkScope === "filtered"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn" ? `ফিল্টারকৃত (${visible.length})` : `Filtered (${visible.length})`}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-secondary/40 border border-border px-3 py-2 text-xs text-muted-foreground">
+              {lang === "bn"
+                ? `${bulkScope === "all" ? bills.length : visible.length} টি বিল-এ ${bulkMode === "add" ? "যোগ" : "সেট"} হবে।`
+                : `Will ${bulkMode === "add" ? "add to" : "set on"} ${bulkScope === "all" ? bills.length : visible.length} bills.`}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkOpen(false)} disabled={bulkSaving}>{t("cancel")}</Button>
+            <Button onClick={applyBulk} disabled={bulkSaving}>
+              {bulkSaving ? (lang === "bn" ? "চলছে..." : "Applying...") : (lang === "bn" ? "প্রয়োগ করো" : "Apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </AppShell>
   );
 }
