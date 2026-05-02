@@ -113,79 +113,95 @@ Deno.serve(async (req) => {
       .select("eid_month_1, eid_month_2, eid_due_day_1, eid_due_day_2, regular_due_day")
       .maybeSingle();
 
-    // Determine Eid inclusion: explicit body override > configured Eid months > hijri auto-detect.
-    let includeEid: boolean;
-    let dueDay: number = settings?.regular_due_day ?? 10;
-    if (eidOverride !== undefined) {
-      includeEid = eidOverride;
-    } else if (settings?.eid_month_1 === month) {
-      includeEid = true;
-      dueDay = settings.eid_due_day_1 ?? dueDay;
-    } else if (settings?.eid_month_2 === month) {
-      includeEid = true;
-      dueDay = settings.eid_due_day_2 ?? dueDay;
-    } else {
-      includeEid = monthContainsEid(month);
+    // Build the list of months to process: target month + backfill previous months.
+    function prevMonth(m: string, n: number): string {
+      const [y, mm] = m.split("-").map(Number);
+      const d = new Date(Date.UTC(y, mm - 1 - n, 1));
+      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
     }
-
-    const [yy, mm] = month.split("-").map(Number);
-    const dueDate = `${yy}-${String(mm).padStart(2, "0")}-${String(dueDay).padStart(2, "0")}`;
+    const months: string[] = [];
+    for (let i = 0; i <= backfill; i++) months.push(prevMonth(month, i));
 
     const { data: flats, error: flatsErr } = await admin
       .from("flats")
       .select("id, service_charge, gas_bill, parking, eid_bonus");
     if (flatsErr) throw flatsErr;
 
-    const { data: existing, error: existingErr } = await admin
-      .from("bills")
-      .select("flat_id")
-      .eq("month", month);
-    if (existingErr) throw existingErr;
-
-    const existingSet = new Set((existing ?? []).map((b) => b.flat_id));
     const today = new Date().toISOString().slice(0, 10);
+    const perMonth: Array<{ month: string; eid_included: boolean; inserted: number; already_billed: number }> = [];
+    let totalInserted = 0;
 
-    const rows = (flats ?? [])
-      .filter((f) => !existingSet.has(f.id))
-      .map((f) => {
-        const service = Number(f.service_charge ?? 0);
-        const gas = Number(f.gas_bill ?? 0);
-        const parking = Number(f.parking ?? 0);
-        const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
-        const total = service + gas + parking + eid;
-        return {
-          flat_id: f.id,
-          month,
-          service_charge: service,
-          gas_bill: gas,
-          parking,
-          eid_bonus: eid,
-          other_charge: 0,
-          total,
-          paid_amount: 0,
-          status: "unpaid" as const,
-          generated_at: today,
-          due_date: dueDate,
-        };
-      });
+    for (const m of months) {
+      // Determine Eid inclusion + due day per month.
+      let includeEid: boolean;
+      let dueDay: number = settings?.regular_due_day ?? 10;
+      if (eidOverride !== undefined && m === month) {
+        includeEid = eidOverride;
+      } else if (settings?.eid_month_1 === m) {
+        includeEid = true;
+        dueDay = settings.eid_due_day_1 ?? dueDay;
+      } else if (settings?.eid_month_2 === m) {
+        includeEid = true;
+        dueDay = settings.eid_due_day_2 ?? dueDay;
+      } else {
+        includeEid = monthContainsEid(m);
+      }
 
-    let inserted = 0;
-    if (rows.length > 0) {
-      const { error: insertErr, count } = await admin
+      const [yy, mm] = m.split("-").map(Number);
+      const dueDate = `${yy}-${String(mm).padStart(2, "0")}-${String(dueDay).padStart(2, "0")}`;
+
+      const { data: existing, error: existingErr } = await admin
         .from("bills")
-        .insert(rows, { count: "exact" });
-      if (insertErr) throw insertErr;
-      inserted = count ?? rows.length;
+        .select("flat_id")
+        .eq("month", m);
+      if (existingErr) throw existingErr;
+
+      const existingSet = new Set((existing ?? []).map((b) => b.flat_id));
+
+      const rows = (flats ?? [])
+        .filter((f) => !existingSet.has(f.id))
+        .map((f) => {
+          const service = Number(f.service_charge ?? 0);
+          const gas = Number(f.gas_bill ?? 0);
+          const parking = Number(f.parking ?? 0);
+          const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
+          const total = service + gas + parking + eid;
+          return {
+            flat_id: f.id,
+            month: m,
+            service_charge: service,
+            gas_bill: gas,
+            parking,
+            eid_bonus: eid,
+            other_charge: 0,
+            total,
+            paid_amount: 0,
+            status: "unpaid" as const,
+            generated_at: today,
+            due_date: dueDate,
+          };
+        });
+
+      let inserted = 0;
+      if (rows.length > 0) {
+        const { error: insertErr, count } = await admin
+          .from("bills")
+          .insert(rows, { count: "exact" });
+        if (insertErr) throw insertErr;
+        inserted = count ?? rows.length;
+      }
+      totalInserted += inserted;
+      perMonth.push({ month: m, eid_included: includeEid, inserted, already_billed: existingSet.size });
     }
 
     return new Response(
       JSON.stringify({
         ok: true,
         month,
+        backfill,
         flats_total: flats?.length ?? 0,
-        already_billed: existingSet.size,
-        eid_included: includeEid,
-        inserted,
+        inserted: totalInserted,
+        months: perMonth,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
