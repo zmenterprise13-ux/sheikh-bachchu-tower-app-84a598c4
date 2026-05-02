@@ -10,6 +10,32 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge, type FlatStatus } from "@/components/StatusBadge";
+import { cn } from "@/lib/utils";
+import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from "lucide-react";
+
+function paymentStatusOf(billed: number, collected: number): FlatStatus {
+  if (billed <= 0) return "unpaid";
+  if (collected >= billed) return "paid";
+  if (collected <= 0) return "unpaid";
+  return "partial";
+}
+
+function BalanceBadge({ value, lang }: { value: number; lang: "bn" | "en" }) {
+  const variant = value > 0 ? "surplus" : value < 0 ? "deficit" : "even";
+  const cfg = {
+    surplus: { cls: "bg-success/15 text-success border-success/30", icon: TrendUpIcon, label: lang === "bn" ? "লাভ" : "Surplus" },
+    deficit: { cls: "bg-destructive/15 text-destructive border-destructive/30", icon: TrendDownIcon, label: lang === "bn" ? "ঘাটতি" : "Deficit" },
+    even:    { cls: "bg-muted text-muted-foreground border-border", icon: Minus, label: lang === "bn" ? "সমান" : "Even" },
+  }[variant];
+  const Icon = cfg.icon;
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", cfg.cls)}>
+      <Icon className="h-3 w-3" />
+      {cfg.label}
+    </span>
+  );
+}
 
 type Bill = {
   flat_id: string;
@@ -336,6 +362,8 @@ export default function AdminReports() {
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right">{t("balance")}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "ব্যালেন্স স্ট্যাটাস" : "Balance"}</th>
               </tr>
             </thead>
             <tbody>
@@ -348,10 +376,12 @@ export default function AdminReports() {
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
+                  <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(r.billed, r.collected)} /></td>
+                  <td className="py-2 pr-3"><BalanceBadge value={r.balance} lang={lang} /></td>
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -363,6 +393,8 @@ export default function AdminReports() {
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
+                <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(totalBilled, totalIncome)} /></td>
+                <td className="py-2 pr-3"><BalanceBadge value={balance} lang={lang} /></td>
               </tr>
             </tfoot>
           </table>
@@ -385,6 +417,7 @@ export default function AdminReports() {
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "মোট বিল" : "Billed"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "পরিশোধ" : "Paid"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "বাকি" : "Due"}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "স্ট্যাটাস" : "Status"}</th>
               </tr>
             </thead>
             <tbody>
@@ -400,10 +433,11 @@ export default function AdminReports() {
                   <td className={`py-2 pr-3 text-right font-semibold ${r.due > 0 ? "text-destructive" : "text-foreground"}`}>
                     {formatMoney(r.due, lang)}
                   </td>
+                  <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(r.billed, r.paid)} /></td>
                 </tr>
               ))}
               {perFlat.length === 0 && (
-                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -417,6 +451,7 @@ export default function AdminReports() {
                 <td className={`py-2 pr-3 text-right ${totalDue > 0 ? "text-destructive" : "text-foreground"}`}>
                   {formatMoney(totalDue, lang)}
                 </td>
+                <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(totalBilled, totalIncome)} /></td>
               </tr>
             </tfoot>
           </table>
