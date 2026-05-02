@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Bill = {
+  flat_id: string;
   month: string;
   service_charge: number;
   gas_bill: number;
@@ -22,6 +23,7 @@ type Bill = {
   paid_amount: number;
 };
 type Expense = { date: string; category: string; amount: number };
+type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const monthsAgo = (n: number) => {
@@ -49,6 +51,7 @@ export default function AdminReports() {
   const [to, setTo] = useState(currentMonth());
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -66,18 +69,22 @@ export default function AdminReports() {
 
       const [billsRes, expRes, flatsRes] = await Promise.all([
         supabase.from("bills")
-          .select("month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
+          .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
         supabase.from("expenses")
           .select("date, category, amount")
           .gte("date", monthStart).lt("date", monthEnd),
-        supabase.from("flats").select("id", { count: "exact", head: true }),
+        supabase.from("flats")
+          .select("id, flat_no, owner_name, owner_name_bn")
+          .order("flat_no", { ascending: true }),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
+      if (flatsRes.error) toast.error(flatsRes.error.message);
       setBills((billsRes.data ?? []) as Bill[]);
       setExpenses((expRes.data ?? []) as Expense[]);
-      setFlatCount(flatsRes.count ?? 0);
+      setFlats((flatsRes.data ?? []) as Flat[]);
+      setFlatCount((flatsRes.data ?? []).length);
       setLoading(false);
     })();
   }, [from, to, validRange]);
@@ -107,6 +114,40 @@ export default function AdminReports() {
     return acc;
   }, {});
   const maxCat = Math.max(1, ...Object.values(byCategory));
+
+  // Per-flat statement aggregation (across selected month range)
+  const perFlat = useMemo(() => {
+    const map = new Map<string, {
+      flat_id: string;
+      service: number; gas: number; parking: number; eid: number; other: number;
+      billed: number; paid: number; due: number;
+    }>();
+    for (const f of flats) {
+      map.set(f.id, { flat_id: f.id, service: 0, gas: 0, parking: 0, eid: 0, other: 0, billed: 0, paid: 0, due: 0 });
+    }
+    for (const b of bills) {
+      const row = map.get(b.flat_id);
+      if (!row) continue;
+      row.service += Number(b.service_charge);
+      row.gas += Number(b.gas_bill);
+      row.parking += Number(b.parking);
+      row.eid += Number(b.eid_bonus);
+      row.other += Number(b.other_charge);
+      row.billed += Number(b.total);
+      row.paid += Number(b.paid_amount);
+    }
+    for (const r of map.values()) r.due = r.billed - r.paid;
+    return flats.map((f) => {
+      const r = map.get(f.id)!;
+      return {
+        ...r,
+        flat_no: f.flat_no,
+        owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
+      };
+    }).filter((r) => r.billed > 0 || r.paid > 0);
+  }, [flats, bills, lang]);
+
+  const totalDue = perFlat.reduce((s, r) => s + r.due, 0);
 
   const fmtMonthLabel = (m: string) =>
     new Date(m + "-01").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "short" });
@@ -139,9 +180,31 @@ export default function AdminReports() {
       lines.push([t(cat as TKey) || cat, amt].map(esc).join(","));
     });
     lines.push("");
+    lines.push(`# ${lang === "bn" ? "ফ্ল্যাট-ওয়াইজ স্টেটমেন্ট" : "Flat-wise Statement"}`);
+    lines.push([
+      lang === "bn" ? "ফ্ল্যাট" : "Flat",
+      lang === "bn" ? "মালিক/বাসিন্দা" : "Owner/Occupant",
+      t("serviceCharge"), t("gasBill"), t("parking"), t("eidBonus"), t("otherCharge"),
+      lang === "bn" ? "মোট বিল" : "Billed",
+      lang === "bn" ? "পরিশোধ" : "Paid",
+      lang === "bn" ? "বাকি" : "Due",
+    ].map(esc).join(","));
+    perFlat.forEach((r) => {
+      lines.push([r.flat_no, r.owner, r.service, r.gas, r.parking, r.eid, r.other, r.billed, r.paid, r.due].map(esc).join(","));
+    });
+    lines.push([t("total"), "",
+      perFlat.reduce((s, r) => s + r.service, 0),
+      perFlat.reduce((s, r) => s + r.gas, 0),
+      perFlat.reduce((s, r) => s + r.parking, 0),
+      perFlat.reduce((s, r) => s + r.eid, 0),
+      perFlat.reduce((s, r) => s + r.other, 0),
+      totalBilled, totalIncome, totalDue,
+    ].map(esc).join(","));
+    lines.push("");
     lines.push(`# ${lang === "bn" ? "সারসংক্ষেপ" : "Summary"}`);
     lines.push([lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats", flatCount].map(esc).join(","));
     lines.push([t("collectionRate"), `${collectionRate}%`].map(esc).join(","));
+    lines.push([lang === "bn" ? "মোট বাকি" : "Total due", totalDue].map(esc).join(","));
     lines.push([t("netBalance"), balance].map(esc).join(","));
 
     const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
@@ -299,6 +362,60 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        {/* Flat-wise statement */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-soft overflow-x-auto">
+          <h2 className="font-semibold text-foreground mb-4">
+            {lang === "bn" ? "ফ্ল্যাট-ওয়াইজ স্টেটমেন্ট" : "Flat-wise Statement"}
+            <span className="ml-2 text-xs text-muted-foreground font-normal">({rangeLabel})</span>
+          </h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-muted-foreground">
+                <th className="py-2 pr-3">{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "মালিক/বাসিন্দা" : "Owner/Occupant"}</th>
+                <th className="py-2 pr-3 text-right">{t("serviceCharge")}</th>
+                <th className="py-2 pr-3 text-right">{t("gasBill")}</th>
+                <th className="py-2 pr-3 text-right">{t("parking")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মোট বিল" : "Billed"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "পরিশোধ" : "Paid"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "বাকি" : "Due"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {perFlat.map((r) => (
+                <tr key={r.flat_id} className="border-b border-border/60">
+                  <td className="py-2 pr-3 font-medium">{r.flat_no}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{r.owner || "—"}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.service, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.gas, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.parking, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-success">{formatMoney(r.paid, lang)}</td>
+                  <td className={`py-2 pr-3 text-right font-semibold ${r.due > 0 ? "text-destructive" : "text-foreground"}`}>
+                    {formatMoney(r.due, lang)}
+                  </td>
+                </tr>
+              ))}
+              {perFlat.length === 0 && (
+                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-foreground/20 font-bold">
+                <td className="py-2 pr-3" colSpan={2}>{t("total")}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.service, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.gas, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.parking, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
+                <td className={`py-2 pr-3 text-right ${totalDue > 0 ? "text-destructive" : "text-foreground"}`}>
+                  {formatMoney(totalDue, lang)}
                 </td>
               </tr>
             </tfoot>
