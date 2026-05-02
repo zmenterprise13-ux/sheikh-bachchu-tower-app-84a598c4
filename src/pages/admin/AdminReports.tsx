@@ -363,17 +363,43 @@ export default function AdminReports() {
           {!validRange && (
             <p className="text-sm text-destructive mt-2">{lang === "bn" ? "শুরু মাস শেষ মাসের আগে হতে হবে" : "From must be ≤ To"}</p>
           )}
+
+          {/* Opening cash override */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end border-t border-border pt-4">
+            <div>
+              <Label className="text-xs">
+                {lang === "bn" ? "আগের ক্যাশ (opening balance)" : "Opening cash (previous balance)"}
+              </Label>
+              <Input
+                type="number"
+                placeholder={`${lang === "bn" ? "অটো" : "Auto"}: ${formatMoney(autoOpening, lang)}`}
+                value={openingOverride}
+                onChange={(e) => setOpeningOverride(e.target.value)}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {lang === "bn"
+                  ? `${from} এর আগের সব আয় − ব্যয় = ${formatMoney(autoOpening, lang)} (চাইলে নিজে বসাতে পারেন)`
+                  : `Auto-calculated from all income − expenses before ${from} = ${formatMoney(autoOpening, lang)}. Override if needed.`}
+              </p>
+            </div>
+            {openingOverride.trim() !== "" && (
+              <Button size="sm" variant="outline" onClick={() => setOpeningOverride("")}>
+                {lang === "bn" ? "অটোতে রিসেট" : "Reset to auto"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+          <div className="grid gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
             <StatCard label={t("income")} value={formatMoney(totalIncome, lang)} hint={`${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
             <StatCard label={t("expense")} value={formatMoney(totalExpense, lang)} hint={`${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
-            <StatCard label={t("balance")} value={formatMoney(balance, lang)} hint={balance >= 0 ? (lang === "bn" ? "লাভ" : "Surplus") : (lang === "bn" ? "ঘাটতি" : "Deficit")} icon={Scale} variant={balance >= 0 ? "primary" : "destructive"} />
+            <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
         )}
 
