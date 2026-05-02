@@ -421,7 +421,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-destructive">{formatMoney(due, lang)}</div>
-                      <div className="mt-1"><StatusBadge status={bill.status} /></div>
+                      <div className="mt-1"><CombinedBillStatus generation={bill.generation_status} payment={bill.status} /></div>
                     </div>
                   </div>
                 );
