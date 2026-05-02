@@ -14,8 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRef, useState as useReactState } from "react";
-import { Camera, Loader2 } from "lucide-react";
+import { useRef } from "react";
+import { Camera } from "lucide-react";
 
 type Bill = {
   id: string;
