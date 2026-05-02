@@ -124,7 +124,7 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const isFirstRun = React.useRef(true);
+  const isFirstRun = useRef(true);
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
