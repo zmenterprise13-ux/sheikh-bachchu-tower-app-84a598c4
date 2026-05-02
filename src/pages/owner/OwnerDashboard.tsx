@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Bill = {
   id: string;
@@ -87,9 +88,14 @@ export default function OwnerDashboard() {
       <div className="space-y-6">
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur shrink-0">
-              <Home className="h-7 w-7" />
-            </div>
+            <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg shrink-0">
+              {flat.owner_photo_url ? (
+                <AvatarImage src={flat.owner_photo_url} alt={flat.owner_name ?? "Owner"} />
+              ) : null}
+              <AvatarFallback className="bg-white/20 text-primary-foreground">
+                <Home className="h-7 w-7" />
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
