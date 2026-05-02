@@ -64,6 +64,8 @@ export const translations: T = {
   paid: { bn: "পরিশোধিত", en: "Paid" },
   unpaid: { bn: "অপরিশোধিত", en: "Unpaid" },
   partial: { bn: "আংশিক", en: "Partial" },
+  generated: { bn: "তৈরি হয়েছে", en: "Generated" },
+  failed: { bn: "ব্যর্থ", en: "Failed" },
   amount: { bn: "টাকা", en: "Amount" },
   total: { bn: "মোট", en: "Total" },
   due: { bn: "বকেয়া", en: "Due" },
