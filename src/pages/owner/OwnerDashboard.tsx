@@ -46,37 +46,58 @@ type Notice = {
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
+const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
-  const { flat, loading: flatLoading } = useOwnerFlat();
+  const { flats, loading: flatsLoading } = useOwnerFlats();
   const month = currentMonth();
-  const [currentBill, setCurrentBill] = useState<Bill | null>(null);
+  const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(SELECTED_FLAT_KEY);
+  });
+  const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const flat: OwnerFlat | null = useMemo(() => {
+    if (flats.length === 0) return null;
+    const found = flats.find(f => f.id === selectedFlatId);
+    return found ?? flats[0];
+  }, [flats, selectedFlatId]);
+
   useEffect(() => {
-    if (!flat) {
-      setLoading(flatLoading);
+    if (flat) window.localStorage.setItem(SELECTED_FLAT_KEY, flat.id);
+  }, [flat]);
+
+  useEffect(() => {
+    if (flats.length === 0) {
+      setLoading(flatsLoading);
       return;
     }
     (async () => {
       setLoading(true);
-      const [billRes, noticesRes] = await Promise.all([
+      const flatIds = flats.map(f => f.id);
+      const [billsRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
-          .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
+          .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+          .in("flat_id", flatIds).eq("month", month),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
           .order("date", { ascending: false }).limit(3),
       ]);
-      setCurrentBill((billRes.data as Bill) ?? null);
+      const map: Record<string, Bill | null> = {};
+      flatIds.forEach(id => { map[id] = null; });
+      ((billsRes.data ?? []) as (Bill & { flat_id: string })[]).forEach(b => {
+        map[b.flat_id] = b;
+      });
+      setAllBills(map);
       setNotices((noticesRes.data ?? []) as Notice[]);
       setLoading(false);
     })();
-  }, [flat, flatLoading, month]);
+  }, [flats, flatsLoading, month]);
 
-  if (flatLoading) {
+  if (flatsLoading) {
     return <AppShell><Skeleton className="h-40 rounded-2xl" /></AppShell>;
   }
 
@@ -90,7 +111,14 @@ export default function OwnerDashboard() {
     );
   }
 
+  const currentBill = allBills[flat.id] ?? null;
   const due = currentBill ? Number(currentBill.total) - Number(currentBill.paid_amount) : 0;
+  const totalDueAcrossFlats = flats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    if (!b) return sum;
+    return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+  }, 0);
+  const hasMultipleFlats = flats.length > 1;
 
   return (
     <AppShell>
