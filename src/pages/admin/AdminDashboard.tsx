@@ -5,6 +5,8 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Building,
   Wallet,
@@ -74,6 +76,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
+  const [prevBills, setPrevBills] = useState<Bill[]>([]);
+  const [prevMonth, setPrevMonth] = useState<string>("");
   const [notices, setNotices] = useState<Notice[]>([]);
   const [month, setMonth] = useState<string>(currentMonth());
 
@@ -102,12 +106,22 @@ export default function AdminDashboard() {
       setMonth(targetMonth);
     }
 
-    const [flatsRes, billsRes, noticesRes] = await Promise.all([
+    // Compute previous month YYYY-MM
+    const [py, pm] = targetMonth.split("-").map(Number);
+    const prev = new Date(Date.UTC(py, pm - 2, 1));
+    const prevTarget = `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}`;
+    setPrevMonth(prevTarget);
+
+    const [flatsRes, billsRes, prevBillsRes, noticesRes] = await Promise.all([
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
         .eq("month", targetMonth),
+      supabase
+        .from("bills")
+        .select("service_charge, gas_bill")
+        .eq("month", prevTarget),
       supabase
         .from("notices")
         .select("id, title, title_bn, body, body_bn, important, date")
@@ -121,6 +135,7 @@ export default function AdminDashboard() {
 
     setFlats((flatsRes.data ?? []) as Flat[]);
     setBills((billsRes.data ?? []) as Bill[]);
+    setPrevBills((prevBillsRes.data ?? []) as Bill[]);
     setNotices((noticesRes.data ?? []) as Notice[]);
     setLoading(false);
   };
@@ -552,7 +567,82 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Building-wide billing status summary */}
+        {/* Comparison: this month vs previous month — service & gas */}
+        {!loading && (() => {
+          const prevService = prevBills.reduce((s, b) => s + Number(b.service_charge || 0), 0);
+          const prevGas = prevBills.reduce((s, b) => s + Number(b.gas_bill || 0), 0);
+          const fmtMonth = (m: string) =>
+            m ? new Date(m + "-01").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { month: "short", year: "2-digit" }) : "—";
+          const data = [
+            {
+              metric: lang === "bn" ? "সার্ভিস চার্জ" : "Service",
+              prev: prevService,
+              curr: stats.totalService,
+            },
+            {
+              metric: lang === "bn" ? "গ্যাস বিল" : "Gas",
+              prev: prevGas,
+              curr: stats.totalGas,
+            },
+          ];
+          const diff = (curr: number, prev: number) => {
+            if (prev === 0) return curr === 0 ? 0 : 100;
+            return Math.round(((curr - prev) / prev) * 100);
+          };
+          const svcDiff = diff(stats.totalService, prevService);
+          const gasDiff = diff(stats.totalGas, prevGas);
+          const chartConfig = {
+            prev: { label: fmtMonth(prevMonth), color: "hsl(var(--muted-foreground))" },
+            curr: { label: fmtMonth(month), color: "hsl(var(--primary))" },
+          } as const;
+          return (
+            <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
+              <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+                <div>
+                  <h2 className="font-semibold text-foreground">
+                    {lang === "bn" ? "তুলনামূলক চার্ট" : "Month-over-Month Comparison"}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {lang === "bn"
+                      ? `${fmtMonth(prevMonth)} বনাম ${fmtMonth(month)} — সার্ভিস চার্জ ও গ্যাস বিল`
+                      : `${fmtMonth(prevMonth)} vs ${fmtMonth(month)} — Service charge & gas bill`}
+                  </p>
+                </div>
+                <div className="flex gap-3 text-xs">
+                  <div className="text-right">
+                    <div className="text-muted-foreground">{lang === "bn" ? "সার্ভিস" : "Service"}</div>
+                    <div className={`font-bold ${svcDiff >= 0 ? "text-success" : "text-destructive"}`}>
+                      {svcDiff >= 0 ? "+" : ""}{formatNumber(svcDiff, lang)}%
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-muted-foreground">{lang === "bn" ? "গ্যাস" : "Gas"}</div>
+                    <div className={`font-bold ${gasDiff >= 0 ? "text-success" : "text-destructive"}`}>
+                      {gasDiff >= 0 ? "+" : ""}{formatNumber(gasDiff, lang)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ChartContainer config={chartConfig} className="h-[260px] w-full">
+                <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="metric" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={56} tickFormatter={(v) => formatMoney(Number(v), lang).replace(" ৳", "")} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => [formatMoney(Number(value), lang), name as string]}
+                      />
+                    }
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="prev" fill="var(--color-prev)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="curr" fill="var(--color-curr)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          );
+        })()}
         <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
