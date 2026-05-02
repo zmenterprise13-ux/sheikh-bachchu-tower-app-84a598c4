@@ -838,7 +838,7 @@ function FlatEditDialog({
               variant="outline"
               size="sm"
               onClick={createLogin}
-              disabled={creatingLogin}
+              disabled={creatingLogin || !signupEnabled}
               className="w-full"
             >
               {creatingLogin ? (
@@ -846,9 +846,11 @@ function FlatEditDialog({
               ) : (
                 <KeyRound className="h-4 w-4 mr-2" />
               )}
-              {lang === "bn"
-                ? "ওনার লগইন তৈরি করুন (পাসওয়ার্ড: 12345678)"
-                : "Create owner login (password: 12345678)"}
+              {!signupEnabled
+                ? (lang === "bn" ? "সাইন আপ বন্ধ আছে" : "Sign up is disabled")
+                : (lang === "bn"
+                    ? "ওনার লগইন তৈরি করুন (পাসওয়ার্ড: 12345678)"
+                    : "Create owner login (password: 12345678)")}
             </Button>
           </div>
 
