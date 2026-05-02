@@ -79,7 +79,12 @@ export default function AdminDashboard() {
   const [prevBills, setPrevBills] = useState<Bill[]>([]);
   const [prevMonth, setPrevMonth] = useState<string>("");
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [month, setMonth] = useState<string>(currentMonth());
+  const MONTH_STORAGE_KEY = "admin_dashboard_month";
+  const [month, setMonth] = useState<string>(() => {
+    if (typeof window === "undefined") return currentMonth();
+    const saved = window.localStorage.getItem(MONTH_STORAGE_KEY);
+    return saved && /^\d{4}-\d{2}$/.test(saved) ? saved : currentMonth();
+  });
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -96,13 +101,20 @@ export default function AdminDashboard() {
     setLoading(true);
     let targetMonth = override;
     if (!targetMonth) {
-      // Find the latest month that has any generated bills
-      const latestRes = await supabase
-        .from("bills")
-        .select("month")
-        .order("month", { ascending: false })
-        .limit(1);
-      targetMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+      const saved = typeof window !== "undefined"
+        ? window.localStorage.getItem(MONTH_STORAGE_KEY)
+        : null;
+      if (saved && /^\d{4}-\d{2}$/.test(saved)) {
+        targetMonth = saved;
+      } else {
+        // Find the latest month that has any generated bills
+        const latestRes = await supabase
+          .from("bills")
+          .select("month")
+          .order("month", { ascending: false })
+          .limit(1);
+        targetMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+      }
       setMonth(targetMonth);
     }
 
@@ -151,6 +163,12 @@ export default function AdminDashboard() {
     if (isFirstRun.current) { isFirstRun.current = false; return; }
     loadData(month);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
+
+  // Persist selected month so refresh keeps the same selection
+  useEffect(() => {
+    if (typeof window === "undefined" || !month) return;
+    window.localStorage.setItem(MONTH_STORAGE_KEY, month);
   }, [month]);
 
   const stats = useMemo(() => {
