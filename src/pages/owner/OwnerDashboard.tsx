@@ -118,7 +118,7 @@ export default function OwnerDashboard() {
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
-              {currentBill && <StatusBadge status={currentBill.status} />}
+              {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
             </div>
             {loading ? (
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div>
