@@ -100,23 +100,39 @@ export default function AdminDues() {
       || (flat.owner_name_bn ?? "").includes(q);
   });
 
-  const markPaid = async (b: Bill) => {
-    const { error } = await supabase
-      .from("bills")
-      .update({
-        status: "paid",
-        paid_amount: Number(b.total),
-        paid_at: new Date().toISOString().slice(0, 10),
-      })
-      .eq("id", b.id);
-    if (error) {
-      toast.error(error.message);
+  const openPay = (b: Bill) => {
+    setPaying(b);
+    const due = Number(b.total) - Number(b.paid_amount);
+    setPayAmount(String(due > 0 ? due : Number(b.total)));
+    setPayDate(new Date().toISOString().slice(0, 10));
+  };
+
+  const confirmPay = async () => {
+    if (!paying) return;
+    const amount = Number(payAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error(lang === "bn" ? "সঠিক টাকার পরিমাণ দিন" : "Enter a valid amount");
       return;
     }
-    toast.success(lang === "bn" ? "Paid মার্ক করা হয়েছে" : "Marked as paid");
-    setBills((prev) => prev.map((x) => x.id === b.id
-      ? { ...x, status: "paid", paid_amount: Number(b.total) }
+    if (!payDate) {
+      toast.error(lang === "bn" ? "পেমেন্ট তারিখ দিন" : "Pick a payment date");
+      return;
+    }
+    setPaySaving(true);
+    const newPaid = Number(paying.paid_amount) + amount;
+    const total = Number(paying.total);
+    const status: FlatStatus = newPaid >= total ? "paid" : newPaid > 0 ? "partial" : "unpaid";
+    const { error } = await supabase
+      .from("bills")
+      .update({ status, paid_amount: newPaid, paid_at: payDate })
+      .eq("id", paying.id);
+    setPaySaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? "পেমেন্ট রেকর্ড হয়েছে" : "Payment recorded");
+    setBills((prev) => prev.map((x) => x.id === paying.id
+      ? { ...x, status, paid_amount: newPaid }
       : x));
+    setPaying(null);
   };
 
   const filterChips: { key: Filter; label: string }[] = [
