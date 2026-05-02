@@ -505,6 +505,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_my_owner_photo: {
+        Args: { _photo_url: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "owner"
