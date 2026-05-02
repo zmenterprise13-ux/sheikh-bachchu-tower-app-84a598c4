@@ -128,11 +128,54 @@ export default function AdminDues() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("dues")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {lang === "bn" ? "এ মাসের ফ্ল্যাট ভিত্তিক বিল" : "This month's flat-wise bills"}
+            {lang === "bn" ? "নির্বাচিত মাসের ফ্ল্যাট ভিত্তিক বিল" : "Flat-wise bills for selected month"}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-1 rounded-xl bg-card border border-border p-1 shadow-soft">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setMonth((m) => shiftMonth(m, -1))}
+              aria-label={lang === "bn" ? "আগের মাস" : "Previous month"}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Input
+              type="month"
+              value={month}
+              max={currentMonth()}
+              onChange={(e) => e.target.value && setMonth(e.target.value)}
+              className="h-8 w-[150px] border-0 shadow-none focus-visible:ring-0 px-2"
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setMonth((m) => shiftMonth(m, 1))}
+              disabled={isCurrent}
+              aria-label={lang === "bn" ? "পরের মাস" : "Next month"}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {!isCurrent && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 px-2 text-xs"
+                onClick={() => setMonth(currentMonth())}
+              >
+                {lang === "bn" ? "এ মাস" : "This month"}
+              </Button>
+            )}
+          </div>
+
+          <div className="text-xs text-muted-foreground hidden sm:block">
+            {formatMonthLabel(month, lang)}
+          </div>
+
           <div className="flex flex-wrap gap-1.5">
             {filterChips.map((c) => (
               <button
