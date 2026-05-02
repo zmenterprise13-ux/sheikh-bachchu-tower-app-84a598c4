@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { BillGenerationTester } from "@/components/BillGenerationTester";
+import { Switch } from "@/components/ui/switch";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
