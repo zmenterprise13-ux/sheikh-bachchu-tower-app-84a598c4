@@ -287,6 +287,39 @@ export default function AdminDues() {
           setBills((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
         }}
       />
+      <Dialog open={!!paying} onOpenChange={(o) => !o && setPaying(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "bn" ? "পেমেন্ট রেকর্ড" : "Record payment"} — {paying?.month}
+            </DialogTitle>
+          </DialogHeader>
+          {paying && (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground">
+                {t("total")}: <b>{formatMoney(Number(paying.total), lang)}</b>
+                {" · "}
+                {lang === "bn" ? "পরিশোধিত" : "Paid"}: <b>{formatMoney(Number(paying.paid_amount), lang)}</b>
+                {" · "}
+                {t("due")}: <b className="text-destructive">{formatMoney(Number(paying.total) - Number(paying.paid_amount), lang)}</b>
+              </div>
+              <div>
+                <Label className="text-xs">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</Label>
+                <Input type="date" value={payDate} max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setPayDate(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">{lang === "bn" ? "টাকার পরিমাণ" : "Amount"}</Label>
+                <Input type="number" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaying(null)} disabled={paySaving}>{t("cancel")}</Button>
+            <Button onClick={confirmPay} disabled={paySaving}>{t("save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
