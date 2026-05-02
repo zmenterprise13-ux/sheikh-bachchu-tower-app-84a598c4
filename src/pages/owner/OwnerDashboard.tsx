@@ -274,3 +274,74 @@ function ChangePasswordCard() {
     </div>
   );
 }
+
+function OwnerAvatarUpload({
+  photoUrl,
+  ownerName,
+  flatId,
+}: {
+  photoUrl: string | null;
+  ownerName: string | null;
+  flatId: string;
+}) {
+  const { lang } = useLang();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(lang === "bn" ? "ফাইল অনেক বড় (সর্বোচ্চ ৫MB)" : "File too large (max 5MB)");
+      return;
+    }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `owner/${flatId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("occupant-photos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("occupant-photos").getPublicUrl(path);
+      const newUrl = pub.publicUrl;
+      const { error: rpcErr } = await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
+      if (rpcErr) throw rpcErr;
+      setLocalUrl(newUrl);
+      toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="relative shrink-0">
+      <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg">
+        {localUrl ? <AvatarImage src={localUrl} alt={ownerName ?? "Owner"} /> : null}
+        <AvatarFallback className="bg-white/20 text-primary-foreground">
+          <Home className="h-7 w-7" />
+        </AvatarFallback>
+      </Avatar>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        aria-label={lang === "bn" ? "ছবি পরিবর্তন" : "Change photo"}
+        className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-accent text-accent-foreground shadow-md flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </div>
+  );
+}
