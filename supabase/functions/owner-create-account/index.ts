@@ -43,20 +43,20 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!roleRow) return json({ error: "Admin only" }, 403);
 
-    // 2. Validate input
+    // 2. Validate input — flat_id is now OPTIONAL.
+    //    If provided, that specific flat is linked.
+    //    All flats whose `phone` matches this number are also auto-linked.
     const body = await req.json().catch(() => ({}));
     const phone = String(body.phone ?? "").trim();
     const flatId = String(body.flat_id ?? "").trim();
     if (!PHONE_RE.test(phone)) {
       return json({ error: "Phone must be exactly 11 digits" }, 400);
     }
-    if (!flatId) return json({ error: "flat_id required" }, 400);
 
     const email = `${phone}@${EMAIL_DOMAIN}`;
 
     // 3. Find or create the auth user
     let userId: string | null = null;
-    // Try to find existing user
     const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
     const found = existing?.users?.find(
       (u) => (u.email ?? "").toLowerCase() === email.toLowerCase(),
@@ -77,18 +77,45 @@ Deno.serve(async (req) => {
       userId = created.user.id;
     }
 
-    // 4. Ensure 'owner' role exists (handle_new_user trigger usually does this,
-    //    but be safe in case the user already existed without a role).
+    // 4. Ensure 'owner' role exists.
     await admin
       .from("user_roles")
       .upsert({ user_id: userId, role: "owner" }, { onConflict: "user_id,role" });
 
-    // 5. Link the auth user to the flat & set phone
-    const { error: flatErr } = await admin
+    // 5. Auto-link ALL flats matching this phone number (regardless of which
+    //    one admin clicked from). Also link the explicitly passed flat_id
+    //    even if its phone column is empty/different.
+    const linkedFlatIds = new Set<string>();
+
+    // 5a. Link the explicitly requested flat (if any) — and stamp its phone.
+    if (flatId) {
+      const { error: e1 } = await admin
+        .from("flats")
+        .update({ owner_user_id: userId, phone })
+        .eq("id", flatId);
+      if (e1) return json({ error: e1.message }, 400);
+      linkedFlatIds.add(flatId);
+    }
+
+    // 5b. Link every other flat that already has this phone.
+    const { data: phoneFlats, error: e2 } = await admin
       .from("flats")
-      .update({ owner_user_id: userId, phone })
-      .eq("id", flatId);
-    if (flatErr) return json({ error: flatErr.message }, 400);
+      .select("id")
+      .eq("phone", phone);
+    if (e2) return json({ error: e2.message }, 400);
+
+    const otherIds = (phoneFlats ?? [])
+      .map((f) => f.id as string)
+      .filter((id) => !linkedFlatIds.has(id));
+
+    if (otherIds.length > 0) {
+      const { error: e3 } = await admin
+        .from("flats")
+        .update({ owner_user_id: userId })
+        .in("id", otherIds);
+      if (e3) return json({ error: e3.message }, 400);
+      otherIds.forEach((id) => linkedFlatIds.add(id));
+    }
 
     return json({
       ok: true,
@@ -97,6 +124,8 @@ Deno.serve(async (req) => {
       phone,
       default_password: DEFAULT_PASSWORD,
       created: !found,
+      linked_flat_count: linkedFlatIds.size,
+      linked_flat_ids: Array.from(linkedFlatIds),
     });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
