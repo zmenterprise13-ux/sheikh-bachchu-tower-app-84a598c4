@@ -74,6 +74,7 @@ export default function AdminDashboard() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [month, setMonth] = useState<string>(currentMonth());
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -86,16 +87,23 @@ export default function AdminDashboard() {
     important: false,
   });
 
-  const month = currentMonth();
-
   const loadData = async () => {
     setLoading(true);
+    // Find the latest month that has any generated bills
+    const latestRes = await supabase
+      .from("bills")
+      .select("month")
+      .order("month", { ascending: false })
+      .limit(1);
+    const latestMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+    setMonth(latestMonth);
+
     const [flatsRes, billsRes, noticesRes] = await Promise.all([
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
-        .eq("month", month),
+        .eq("month", latestMonth),
       supabase
         .from("notices")
         .select("id, title, title_bn, body, body_bn, important, date")
