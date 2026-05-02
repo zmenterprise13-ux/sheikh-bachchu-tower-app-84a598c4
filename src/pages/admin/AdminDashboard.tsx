@@ -165,6 +165,12 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
+  // Persist selected month so refresh keeps the same selection
+  useEffect(() => {
+    if (typeof window === "undefined" || !month) return;
+    window.localStorage.setItem(MONTH_STORAGE_KEY, month);
+  }, [month]);
+
   const stats = useMemo(() => {
     const totalService = bills.reduce((s, b) => s + Number(b.service_charge || 0), 0);
     const totalGas = bills.reduce((s, b) => s + Number(b.gas_bill || 0), 0);
