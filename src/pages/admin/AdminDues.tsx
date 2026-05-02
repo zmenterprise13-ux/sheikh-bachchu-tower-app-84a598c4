@@ -264,7 +264,7 @@ export default function AdminDues() {
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     {b.status !== "paid" && (
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b)}>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openPay(b)}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">{t("markPaid")}</span>
                       </Button>
