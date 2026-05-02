@@ -81,6 +81,11 @@ export default function AdminReports() {
   const [flatCount, setFlatCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Opening cash (carry-forward from before `from`)
+  const [autoOpening, setAutoOpening] = useState(0);
+  const [openingOverride, setOpeningOverride] = useState<string>("");
+  const openingCash = openingOverride.trim() === "" ? autoOpening : Number(openingOverride) || 0;
+
   // validate range
   const validRange = from <= to;
 
@@ -93,7 +98,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -103,6 +108,13 @@ export default function AdminReports() {
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn")
           .order("flat_no", { ascending: true }),
+        // Prior carry-forward: everything before `from`
+        supabase.from("bills")
+          .select("paid_amount")
+          .lt("month", from),
+        supabase.from("expenses")
+          .select("amount")
+          .lt("date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -111,6 +123,11 @@ export default function AdminReports() {
       setExpenses((expRes.data ?? []) as Expense[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
+
+      const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
+      const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
+      setAutoOpening(prevIncome - prevExpense);
+
       setLoading(false);
     })();
   }, [from, to, validRange]);
@@ -129,10 +146,21 @@ export default function AdminReports() {
     });
   }, [months, bills, expenses]);
 
+  // Running closing balance per month (starts from openingCash)
+  const perMonthRolling = useMemo(() => {
+    let running = openingCash;
+    return perMonth.map((r) => {
+      const opening = running;
+      running = opening + r.balance;
+      return { ...r, opening, closing: running };
+    });
+  }, [perMonth, openingCash]);
+
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
   const balance = totalIncome - totalExpense;
+  const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
   const byCategory = expenses.reduce<Record<string, number>>((acc, e) => {
@@ -194,11 +222,13 @@ export default function AdminReports() {
     const lines: string[] = [];
     lines.push(`# ${lang === "bn" ? "মাসিক রিপোর্ট" : "Monthly Report"} — ${rangeLabel}`);
     lines.push("");
-    lines.push([t("month"), lang === "bn" ? "বিল" : "Billed", t("income"), t("expense"), t("balance")].map(esc).join(","));
-    perMonth.forEach((r) => {
-      lines.push([fmtMonthLabel(r.month), r.billed, r.collected, r.expense, r.balance].map(esc).join(","));
+    lines.push([lang === "bn" ? "আগের ক্যাশ" : "Opening cash", openingCash, openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")].map(esc).join(","));
+    lines.push("");
+    lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
+    perMonthRolling.forEach((r) => {
+      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, r.expense, r.balance, r.closing].map(esc).join(","));
     });
-    lines.push([t("total"), totalBilled, totalIncome, totalExpense, balance].map(esc).join(","));
+    lines.push([t("total"), openingCash, totalBilled, totalIncome, totalExpense, balance, closingBalance].map(esc).join(","));
     lines.push("");
     lines.push(`# ${t("expense")} — ${lang === "bn" ? "ক্যাটেগরি অনুযায়ী" : "By category"}`);
     lines.push([lang === "bn" ? "ক্যাটেগরি" : "Category", lang === "bn" ? "টাকা" : "Amount"].map(esc).join(","));
@@ -232,6 +262,7 @@ export default function AdminReports() {
     lines.push([t("collectionRate"), `${collectionRate}%`].map(esc).join(","));
     lines.push([lang === "bn" ? "মোট বাকি" : "Total due", totalDue].map(esc).join(","));
     lines.push([t("netBalance"), balance].map(esc).join(","));
+    lines.push([lang === "bn" ? "শেষ ব্যালেন্স" : "Closing balance", closingBalance].map(esc).join(","));
 
     const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -335,17 +366,43 @@ export default function AdminReports() {
           {!validRange && (
             <p className="text-sm text-destructive mt-2">{lang === "bn" ? "শুরু মাস শেষ মাসের আগে হতে হবে" : "From must be ≤ To"}</p>
           )}
+
+          {/* Opening cash override */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end border-t border-border pt-4">
+            <div>
+              <Label className="text-xs">
+                {lang === "bn" ? "আগের ক্যাশ (opening balance)" : "Opening cash (previous balance)"}
+              </Label>
+              <Input
+                type="number"
+                placeholder={`${lang === "bn" ? "অটো" : "Auto"}: ${formatMoney(autoOpening, lang)}`}
+                value={openingOverride}
+                onChange={(e) => setOpeningOverride(e.target.value)}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {lang === "bn"
+                  ? `${from} এর আগের সব আয় − ব্যয় = ${formatMoney(autoOpening, lang)} (চাইলে নিজে বসাতে পারেন)`
+                  : `Auto-calculated from all income − expenses before ${from} = ${formatMoney(autoOpening, lang)}. Override if needed.`}
+              </p>
+            </div>
+            {openingOverride.trim() !== "" && (
+              <Button size="sm" variant="outline" onClick={() => setOpeningOverride("")}>
+                {lang === "bn" ? "অটোতে রিসেট" : "Reset to auto"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+          <div className="grid gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
             <StatCard label={t("income")} value={formatMoney(totalIncome, lang)} hint={`${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
             <StatCard label={t("expense")} value={formatMoney(totalExpense, lang)} hint={`${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
-            <StatCard label={t("balance")} value={formatMoney(balance, lang)} hint={balance >= 0 ? (lang === "bn" ? "লাভ" : "Surplus") : (lang === "bn" ? "ঘাটতি" : "Deficit")} icon={Scale} variant={balance >= 0 ? "primary" : "destructive"} />
+            <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
         )}
 
@@ -358,43 +415,50 @@ export default function AdminReports() {
             <thead>
               <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="py-2 pr-3">{t("month")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "বিল" : "Billed"}</th>
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
-                <th className="py-2 pr-3 text-right">{t("balance")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
                 <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
-                <th className="py-2 pr-3">{lang === "bn" ? "ব্যালেন্স স্ট্যাটাস" : "Balance"}</th>
               </tr>
             </thead>
             <tbody>
-              {perMonth.map((r) => (
+              {perMonthRolling.map((r) => (
                 <tr key={r.month} className="border-b border-border/60">
                   <td className="py-2 pr-3 font-medium">{fmtMonthLabel(r.month)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(r.opening, lang)}</td>
                   <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
+                  <td className={`py-2 pr-3 text-right font-bold ${r.closing >= 0 ? "text-primary" : "text-destructive"}`}>
+                    {formatMoney(r.closing, lang)}
+                  </td>
                   <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(r.billed, r.collected)} /></td>
-                  <td className="py-2 pr-3"><BalanceBadge value={r.balance} lang={lang} /></td>
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-foreground/20 font-bold">
                 <td className="py-2 pr-3">{t("total")}</td>
+                <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(openingCash, lang)}</td>
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
+                <td className={`py-2 pr-3 text-right ${closingBalance >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {formatMoney(closingBalance, lang)}
+                </td>
                 <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(totalBilled, totalIncome)} /></td>
-                <td className="py-2 pr-3"><BalanceBadge value={balance} lang={lang} /></td>
               </tr>
             </tfoot>
           </table>
@@ -515,19 +579,31 @@ export default function AdminReports() {
         </div>
 
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated print:bg-secondary print:text-foreground">
-          <div className="grid gap-4 sm:grid-cols-3 text-center sm:text-left">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 text-center sm:text-left">
             <div>
-              <div className="text-xs uppercase opacity-80">{t("totalFlats")}</div>
-              <div className="text-2xl font-bold mt-1">{formatNumber(flatCount, lang)}</div>
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</div>
+              <div className="text-xl font-bold mt-1">{formatMoney(openingCash, lang)}</div>
             </div>
             <div>
-              <div className="text-xs uppercase opacity-80">{t("collectionRate")}</div>
-              <div className="text-2xl font-bold mt-1">{formatNumber(collectionRate, lang)}%</div>
+              <div className="text-xs uppercase opacity-80">{t("income")}</div>
+              <div className="text-xl font-bold mt-1">+{formatMoney(totalIncome, lang)}</div>
             </div>
             <div>
-              <div className="text-xs uppercase opacity-80">{t("netBalance")}</div>
-              <div className="text-2xl font-bold mt-1">{formatMoney(balance, lang)}</div>
+              <div className="text-xs uppercase opacity-80">{t("expense")}</div>
+              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpense, lang)}</div>
             </div>
+            <div>
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "নিট" : "Net"}</div>
+              <div className={`text-xl font-bold mt-1 ${balance < 0 ? "text-destructive-foreground" : ""}`}>{formatMoney(balance, lang)}</div>
+            </div>
+            <div className="border-t lg:border-t-0 lg:border-l border-primary-foreground/30 pt-3 lg:pt-0 lg:pl-4">
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</div>
+              <div className="text-2xl font-bold mt-1">{formatMoney(closingBalance, lang)}</div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-primary-foreground/30 grid gap-2 sm:grid-cols-2 text-xs opacity-90">
+            <div>{lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats"}: <span className="font-bold">{formatNumber(flatCount, lang)}</span></div>
+            <div>{t("collectionRate")}: <span className="font-bold">{formatNumber(collectionRate, lang)}%</span></div>
           </div>
         </div>
       </div>
