@@ -368,6 +368,60 @@ export default function AdminReports() {
           </table>
         </div>
 
+        {/* Flat-wise statement */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-soft overflow-x-auto">
+          <h2 className="font-semibold text-foreground mb-4">
+            {lang === "bn" ? "ফ্ল্যাট-ওয়াইজ স্টেটমেন্ট" : "Flat-wise Statement"}
+            <span className="ml-2 text-xs text-muted-foreground font-normal">({rangeLabel})</span>
+          </h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-muted-foreground">
+                <th className="py-2 pr-3">{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "মালিক/বাসিন্দা" : "Owner/Occupant"}</th>
+                <th className="py-2 pr-3 text-right">{t("serviceCharge")}</th>
+                <th className="py-2 pr-3 text-right">{t("gasBill")}</th>
+                <th className="py-2 pr-3 text-right">{t("parking")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মোট বিল" : "Billed"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "পরিশোধ" : "Paid"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "বাকি" : "Due"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {perFlat.map((r) => (
+                <tr key={r.flat_id} className="border-b border-border/60">
+                  <td className="py-2 pr-3 font-medium">{r.flat_no}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{r.owner || "—"}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.service, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.gas, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.parking, lang)}</td>
+                  <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-success">{formatMoney(r.paid, lang)}</td>
+                  <td className={`py-2 pr-3 text-right font-semibold ${r.due > 0 ? "text-destructive" : "text-foreground"}`}>
+                    {formatMoney(r.due, lang)}
+                  </td>
+                </tr>
+              ))}
+              {perFlat.length === 0 && (
+                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-foreground/20 font-bold">
+                <td className="py-2 pr-3" colSpan={2}>{t("total")}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.service, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.gas, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(perFlat.reduce((s, r) => s + r.parking, 0), lang)}</td>
+                <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
+                <td className={`py-2 pr-3 text-right ${totalDue > 0 ? "text-destructive" : "text-foreground"}`}>
+                  {formatMoney(totalDue, lang)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
             <h2 className="font-semibold text-foreground mb-4">{t("income")}</h2>
