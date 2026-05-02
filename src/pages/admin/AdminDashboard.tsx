@@ -320,14 +320,14 @@ export default function AdminDashboard() {
             <StatCard
               label={t("serviceCharge")}
               value={formatMoney(stats.totalService, lang)}
-              hint={lang === "bn" ? "এ মাসে বিল হয়েছে" : "Billed this month"}
+              hint={`${monthLabel} ${lang === "bn" ? "—এর বিল" : "billed"}`}
               icon={Receipt}
               variant="primary"
             />
             <StatCard
               label={t("gasBill")}
               value={formatMoney(stats.totalGas, lang)}
-              hint={lang === "bn" ? "এ মাসে বিল হয়েছে" : "Billed this month"}
+              hint={`${monthLabel} ${lang === "bn" ? "—এর বিল" : "billed"}`}
               icon={Flame}
               variant="warning"
             />
