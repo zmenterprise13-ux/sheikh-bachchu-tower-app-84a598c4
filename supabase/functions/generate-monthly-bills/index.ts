@@ -47,9 +47,12 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
 
-    // Parse body once: { month?: "YYYY-MM", eid?: boolean }
+    // Parse body once: { month?: "YYYY-MM", eid?: boolean, backfill?: number }
+    // - month: target a specific month (default = current month)
+    // - backfill: also generate for the previous N months if missing (default 0; cron uses 3)
     let month = currentMonth();
     let eidOverride: boolean | undefined = undefined;
+    let backfill = 0;
     if (req.method === "POST") {
       try {
         const body = await req.json();
@@ -57,6 +60,9 @@ Deno.serve(async (req) => {
           month = body.month;
         }
         if (typeof body?.eid === "boolean") eidOverride = body.eid;
+        if (typeof body?.backfill === "number" && body.backfill >= 0) {
+          backfill = Math.min(12, Math.floor(body.backfill));
+        }
       } catch (_) { /* no body is fine */ }
     }
 
