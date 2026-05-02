@@ -178,10 +178,77 @@ export default function OwnerDashboard() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard label={t("due")} value={formatMoney(due, lang)} hint={t("month")} icon={Receipt} variant={due > 0 ? "warning" : "success"} />
+          <StatCard
+            label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
+            value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
+            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : t("month")}
+            icon={Receipt}
+            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "warning" : "success"}
+          />
           <StatCard label={t("serviceCharge")} value={formatMoney(Number(flat.service_charge), lang)} icon={Home} />
           <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
         </div>
+
+        {hasMultipleFlats && (
+          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                {lang === "bn" ? "আমার সব ফ্ল্যাট" : "My Flats"} — {month}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {lang === "bn" ? "ফ্ল্যাটে ক্লিক করে সিলেক্ট করুন" : "Click a flat to select"}
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {flats.map((f) => {
+                const b = allBills[f.id];
+                const fDue = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                const isActive = f.id === flat.id;
+                const hasBill = !!b;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setSelectedFlatId(f.id)}
+                    className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
+                      isActive
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                        : "border-border bg-background hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                          {f.flat_no}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)}
+                        </div>
+                      </div>
+                      {isActive && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {lang === "bn" ? "এ মাসের বকেয়া" : "This month due"}
+                    </div>
+                    {!hasBill ? (
+                      <div className="text-sm text-muted-foreground italic">
+                        {lang === "bn" ? "বিল তৈরি হয়নি" : "No bill yet"}
+                      </div>
+                    ) : fDue > 0 ? (
+                      <div className="text-lg font-bold text-destructive">{formatMoney(fDue, lang)}</div>
+                    ) : (
+                      <div className="text-sm font-semibold text-success flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
