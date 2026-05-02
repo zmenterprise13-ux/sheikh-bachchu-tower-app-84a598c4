@@ -426,6 +426,18 @@ export default function AdminDashboard() {
               {generating ? "..." : t("generateBills")}
             </Button>
 
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleDownloadReport}
+              disabled={pdfBusy}
+            >
+              <FileText className="h-4 w-4" />
+              {pdfBusy
+                ? (lang === "bn" ? "তৈরি হচ্ছে..." : "Preparing...")
+                : (lang === "bn" ? "রিপোর্ট PDF" : "Report PDF")}
+            </Button>
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
