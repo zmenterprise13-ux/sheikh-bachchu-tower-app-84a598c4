@@ -74,6 +74,7 @@ export default function AdminDashboard() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [month, setMonth] = useState<string>(currentMonth());
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -86,16 +87,23 @@ export default function AdminDashboard() {
     important: false,
   });
 
-  const month = currentMonth();
-
   const loadData = async () => {
     setLoading(true);
+    // Find the latest month that has any generated bills
+    const latestRes = await supabase
+      .from("bills")
+      .select("month")
+      .order("month", { ascending: false })
+      .limit(1);
+    const latestMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+    setMonth(latestMonth);
+
     const [flatsRes, billsRes, noticesRes] = await Promise.all([
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
-        .eq("month", month),
+        .eq("month", latestMonth),
       supabase
         .from("notices")
         .select("id, title, title_bn, body, body_bn, important, date")
@@ -312,14 +320,14 @@ export default function AdminDashboard() {
             <StatCard
               label={t("serviceCharge")}
               value={formatMoney(stats.totalService, lang)}
-              hint={lang === "bn" ? "এ মাসে বিল হয়েছে" : "Billed this month"}
+              hint={`${monthLabel} ${lang === "bn" ? "—এর বিল" : "billed"}`}
               icon={Receipt}
               variant="primary"
             />
             <StatCard
               label={t("gasBill")}
               value={formatMoney(stats.totalGas, lang)}
-              hint={lang === "bn" ? "এ মাসে বিল হয়েছে" : "Billed this month"}
+              hint={`${monthLabel} ${lang === "bn" ? "—এর বিল" : "billed"}`}
               icon={Flame}
               variant="warning"
             />
@@ -342,8 +350,8 @@ export default function AdminDashboard() {
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {lang === "bn"
-                  ? "সার্ভিস চার্জ ও গ্যাস বিল — এ মাসের সারাংশ"
-                  : "Service charge & gas bill summary for this month"}
+                  ? `সার্ভিস চার্জ ও গ্যাস বিল — ${monthLabel} এর সারাংশ`
+                  : `Service charge & gas bill summary for ${monthLabel}`}
               </p>
             </div>
             <Link to="/admin/dues">
