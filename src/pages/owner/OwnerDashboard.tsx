@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
-import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
+import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Receipt, Megaphone, Home, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
