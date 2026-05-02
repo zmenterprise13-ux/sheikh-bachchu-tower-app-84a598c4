@@ -104,12 +104,22 @@ export default function AdminDashboard() {
       setMonth(targetMonth);
     }
 
-    const [flatsRes, billsRes, noticesRes] = await Promise.all([
+    // Compute previous month YYYY-MM
+    const [py, pm] = targetMonth.split("-").map(Number);
+    const prev = new Date(Date.UTC(py, pm - 2, 1));
+    const prevTarget = `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}`;
+    setPrevMonth(prevTarget);
+
+    const [flatsRes, billsRes, prevBillsRes, noticesRes] = await Promise.all([
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
         .eq("month", targetMonth),
+      supabase
+        .from("bills")
+        .select("service_charge, gas_bill")
+        .eq("month", prevTarget),
       supabase
         .from("notices")
         .select("id, title, title_bn, body, body_bn, important, date")
@@ -123,6 +133,7 @@ export default function AdminDashboard() {
 
     setFlats((flatsRes.data ?? []) as Flat[]);
     setBills((billsRes.data ?? []) as Bill[]);
+    setPrevBills((prevBillsRes.data ?? []) as Bill[]);
     setNotices((noticesRes.data ?? []) as Notice[]);
     setLoading(false);
   };
