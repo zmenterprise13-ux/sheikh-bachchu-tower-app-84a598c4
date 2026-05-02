@@ -115,6 +115,40 @@ export default function AdminReports() {
   }, {});
   const maxCat = Math.max(1, ...Object.values(byCategory));
 
+  // Per-flat statement aggregation (across selected month range)
+  const perFlat = useMemo(() => {
+    const map = new Map<string, {
+      flat_id: string;
+      service: number; gas: number; parking: number; eid: number; other: number;
+      billed: number; paid: number; due: number;
+    }>();
+    for (const f of flats) {
+      map.set(f.id, { flat_id: f.id, service: 0, gas: 0, parking: 0, eid: 0, other: 0, billed: 0, paid: 0, due: 0 });
+    }
+    for (const b of bills) {
+      const row = map.get(b.flat_id);
+      if (!row) continue;
+      row.service += Number(b.service_charge);
+      row.gas += Number(b.gas_bill);
+      row.parking += Number(b.parking);
+      row.eid += Number(b.eid_bonus);
+      row.other += Number(b.other_charge);
+      row.billed += Number(b.total);
+      row.paid += Number(b.paid_amount);
+    }
+    for (const r of map.values()) r.due = r.billed - r.paid;
+    return flats.map((f) => {
+      const r = map.get(f.id)!;
+      return {
+        ...r,
+        flat_no: f.flat_no,
+        owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
+      };
+    }).filter((r) => r.billed > 0 || r.paid > 0);
+  }, [flats, bills, lang]);
+
+  const totalDue = perFlat.reduce((s, r) => s + r.due, 0);
+
   const fmtMonthLabel = (m: string) =>
     new Date(m + "-01").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "short" });
 
