@@ -21,15 +21,15 @@ export type OwnerFlat = {
   occupant_type: string;
 };
 
-export function useOwnerFlat() {
+export function useOwnerFlats() {
   const { user } = useAuth();
-  const [flat, setFlat] = useState<OwnerFlat | null>(null);
+  const [flats, setFlats] = useState<OwnerFlat[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     if (!user) {
-      setFlat(null);
+      setFlats([]);
       setLoading(false);
       return;
     }
@@ -39,14 +39,21 @@ export function useOwnerFlat() {
         .from("flats")
         .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type")
         .eq("owner_user_id", user.id)
-        .maybeSingle();
+        .order("floor", { ascending: true })
+        .order("flat_no", { ascending: true });
       if (active) {
-        setFlat((data as OwnerFlat | null) ?? null);
+        setFlats((data as OwnerFlat[] | null) ?? []);
         setLoading(false);
       }
     })();
     return () => { active = false; };
   }, [user]);
 
-  return { flat, loading };
+  return { flats, loading };
+}
+
+// Backwards-compatible single-flat hook (returns the first flat)
+export function useOwnerFlat() {
+  const { flats, loading } = useOwnerFlats();
+  return { flat: flats[0] ?? null, loading, flats };
 }

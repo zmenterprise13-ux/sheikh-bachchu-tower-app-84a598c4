@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
@@ -7,11 +7,12 @@ import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download, Building2, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerFlat } from "@/hooks/useOwnerFlat";
+import { useOwnerFlats, OwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
@@ -45,37 +46,58 @@ type Notice = {
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
+const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
-  const { flat, loading: flatLoading } = useOwnerFlat();
+  const { flats, loading: flatsLoading } = useOwnerFlats();
   const month = currentMonth();
-  const [currentBill, setCurrentBill] = useState<Bill | null>(null);
+  const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(SELECTED_FLAT_KEY);
+  });
+  const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const flat: OwnerFlat | null = useMemo(() => {
+    if (flats.length === 0) return null;
+    const found = flats.find(f => f.id === selectedFlatId);
+    return found ?? flats[0];
+  }, [flats, selectedFlatId]);
+
   useEffect(() => {
-    if (!flat) {
-      setLoading(flatLoading);
+    if (flat) window.localStorage.setItem(SELECTED_FLAT_KEY, flat.id);
+  }, [flat]);
+
+  useEffect(() => {
+    if (flats.length === 0) {
+      setLoading(flatsLoading);
       return;
     }
     (async () => {
       setLoading(true);
-      const [billRes, noticesRes] = await Promise.all([
+      const flatIds = flats.map(f => f.id);
+      const [billsRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
-          .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
+          .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+          .in("flat_id", flatIds).eq("month", month),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
           .order("date", { ascending: false }).limit(3),
       ]);
-      setCurrentBill((billRes.data as Bill) ?? null);
+      const map: Record<string, Bill | null> = {};
+      flatIds.forEach(id => { map[id] = null; });
+      ((billsRes.data ?? []) as (Bill & { flat_id: string })[]).forEach(b => {
+        map[b.flat_id] = b;
+      });
+      setAllBills(map);
       setNotices((noticesRes.data ?? []) as Notice[]);
       setLoading(false);
     })();
-  }, [flat, flatLoading, month]);
+  }, [flats, flatsLoading, month]);
 
-  if (flatLoading) {
+  if (flatsLoading) {
     return <AppShell><Skeleton className="h-40 rounded-2xl" /></AppShell>;
   }
 
@@ -89,7 +111,14 @@ export default function OwnerDashboard() {
     );
   }
 
+  const currentBill = allBills[flat.id] ?? null;
   const due = currentBill ? Number(currentBill.total) - Number(currentBill.paid_amount) : 0;
+  const totalDueAcrossFlats = flats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    if (!b) return sum;
+    return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+  }, 0);
+  const hasMultipleFlats = flats.length > 1;
 
   return (
     <AppShell>
@@ -104,8 +133,35 @@ export default function OwnerDashboard() {
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
-              <div className="text-sm opacity-90 mt-1">
-                {t("flatNo")}: <span className="font-bold">{flat.flat_no}</span> · {formatNumber(flat.size, lang)} sqft
+              <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
+                <Building2 className="h-3.5 w-3.5 opacity-80" />
+                {hasMultipleFlats ? (
+                  <>
+                    <span>{lang === "bn" ? "ফ্ল্যাট" : "Flat"}:</span>
+                    <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
+                      <SelectTrigger className="h-7 w-auto min-w-[110px] bg-white/15 border-white/30 text-primary-foreground hover:bg-white/25 px-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {flats.map((f) => {
+                          const b = allBills[f.id];
+                          const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                          return (
+                            <SelectItem key={f.id} value={f.id}>
+                              {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs opacity-80">· {flats.length} {lang === "bn" ? "ফ্ল্যাট" : "flats"}</span>
+                  </>
+                ) : (
+                  <>
+                    {t("flatNo")}: <span className="font-bold">{flat.flat_no}</span>
+                  </>
+                )}
+                <span className="opacity-70">· {formatNumber(flat.size, lang)} sqft</span>
               </div>
             </div>
             {due > 0 && (
@@ -122,10 +178,77 @@ export default function OwnerDashboard() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard label={t("due")} value={formatMoney(due, lang)} hint={t("month")} icon={Receipt} variant={due > 0 ? "warning" : "success"} />
+          <StatCard
+            label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
+            value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
+            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : t("month")}
+            icon={Receipt}
+            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "warning" : "success"}
+          />
           <StatCard label={t("serviceCharge")} value={formatMoney(Number(flat.service_charge), lang)} icon={Home} />
           <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
         </div>
+
+        {hasMultipleFlats && (
+          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                {lang === "bn" ? "আমার সব ফ্ল্যাট" : "My Flats"} — {month}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {lang === "bn" ? "ফ্ল্যাটে ক্লিক করে সিলেক্ট করুন" : "Click a flat to select"}
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {flats.map((f) => {
+                const b = allBills[f.id];
+                const fDue = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                const isActive = f.id === flat.id;
+                const hasBill = !!b;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setSelectedFlatId(f.id)}
+                    className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
+                      isActive
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                        : "border-border bg-background hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                          {f.flat_no}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)}
+                        </div>
+                      </div>
+                      {isActive && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {lang === "bn" ? "এ মাসের বকেয়া" : "This month due"}
+                    </div>
+                    {!hasBill ? (
+                      <div className="text-sm text-muted-foreground italic">
+                        {lang === "bn" ? "বিল তৈরি হয়নি" : "No bill yet"}
+                      </div>
+                    ) : fDue > 0 ? (
+                      <div className="text-lg font-bold text-destructive">{formatMoney(fDue, lang)}</div>
+                    ) : (
+                      <div className="text-sm font-semibold text-success flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
