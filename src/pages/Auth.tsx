@@ -22,6 +22,7 @@ export default function Auth() {
   const { user, role, loading } = useAuth();
   const { t, lang } = useLang();
   const navigate = useNavigate();
+  const { enabled: signupEnabled } = useSignupEnabled();
 
   const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
