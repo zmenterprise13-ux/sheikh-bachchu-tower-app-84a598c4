@@ -333,6 +333,27 @@ export default function AdminSettings() {
               </Button>
             </div>
 
+            {/* Signup toggle */}
+            <div className="rounded-2xl bg-card border border-border p-5 shadow-soft">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-semibold text-foreground">
+                    {lang === "bn" ? "সাইন আপ অনুমতি" : "Allow Sign up"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {lang === "bn"
+                      ? "বন্ধ থাকলে Auth পেজে 'সাইন আপ' ট্যাব এবং অ্যাডমিন প্যানেলে 'ওনার লগইন তৈরি' বাটন কাজ করবে না।"
+                      : "When off, the Sign up tab on Auth page and the 'Create owner login' button in admin will be disabled."}
+                  </p>
+                </div>
+                <Switch
+                  checked={signupEnabled}
+                  onCheckedChange={onToggleSignup}
+                  disabled={signupLoading || togglingSignup}
+                />
+              </div>
+            </div>
+
             <BillGenerationTester />
           </div>
         )}
