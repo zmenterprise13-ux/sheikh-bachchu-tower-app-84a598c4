@@ -124,11 +124,22 @@ Deno.serve(async (req) => {
 
     const { data: flats, error: flatsErr } = await admin
       .from("flats")
-      .select("id, service_charge, gas_bill, parking, eid_bonus");
+      .select("id, flat_no, service_charge, gas_bill, parking, eid_bonus");
     if (flatsErr) throw flatsErr;
 
     const today = new Date().toISOString().slice(0, 10);
-    const perMonth: Array<{ month: string; eid_included: boolean; inserted: number; already_billed: number }> = [];
+    type FlatRef = { id: string; flat_no: string };
+    type MonthResult = {
+      month: string;
+      eid_included: boolean;
+      inserted: number;
+      already_billed: number;
+      inserted_flats: FlatRef[];
+      skipped_flats: FlatRef[];
+      failed: boolean;
+      error?: string;
+    };
+    const perMonth: MonthResult[] = [];
     let totalInserted = 0;
 
     for (const m of months) {
@@ -158,40 +169,61 @@ Deno.serve(async (req) => {
 
       const existingSet = new Set((existing ?? []).map((b) => b.flat_id));
 
-      const rows = (flats ?? [])
-        .filter((f) => !existingSet.has(f.id))
-        .map((f) => {
-          const service = Number(f.service_charge ?? 0);
-          const gas = Number(f.gas_bill ?? 0);
-          const parking = Number(f.parking ?? 0);
-          const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
-          const total = service + gas + parking + eid;
-          return {
-            flat_id: f.id,
-            month: m,
-            service_charge: service,
-            gas_bill: gas,
-            parking,
-            eid_bonus: eid,
-            other_charge: 0,
-            total,
-            paid_amount: 0,
-            status: "unpaid" as const,
-            generated_at: today,
-            due_date: dueDate,
-          };
-        });
+      const candidateFlats = (flats ?? []).filter((f) => !existingSet.has(f.id));
+      const skippedFlats: FlatRef[] = (flats ?? [])
+        .filter((f) => existingSet.has(f.id))
+        .map((f) => ({ id: f.id, flat_no: f.flat_no }));
+
+      const rows = candidateFlats.map((f) => {
+        const service = Number(f.service_charge ?? 0);
+        const gas = Number(f.gas_bill ?? 0);
+        const parking = Number(f.parking ?? 0);
+        const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
+        const total = service + gas + parking + eid;
+        return {
+          flat_id: f.id,
+          month: m,
+          service_charge: service,
+          gas_bill: gas,
+          parking,
+          eid_bonus: eid,
+          other_charge: 0,
+          total,
+          paid_amount: 0,
+          status: "unpaid" as const,
+          generated_at: today,
+          due_date: dueDate,
+        };
+      });
 
       let inserted = 0;
+      let failed = false;
+      let errorMsg: string | undefined;
+      const insertedFlats: FlatRef[] = [];
+
       if (rows.length > 0) {
         const { error: insertErr, count } = await admin
           .from("bills")
           .insert(rows, { count: "exact" });
-        if (insertErr) throw insertErr;
-        inserted = count ?? rows.length;
+        if (insertErr) {
+          failed = true;
+          errorMsg = insertErr.message;
+        } else {
+          inserted = count ?? rows.length;
+          for (const f of candidateFlats) insertedFlats.push({ id: f.id, flat_no: f.flat_no });
+        }
       }
       totalInserted += inserted;
-      perMonth.push({ month: m, eid_included: includeEid, inserted, already_billed: existingSet.size });
+      perMonth.push({
+        month: m,
+        eid_included: includeEid,
+        inserted,
+        already_billed: existingSet.size,
+        inserted_flats: insertedFlats,
+        skipped_flats: skippedFlats,
+        failed,
+        error: errorMsg,
+      });
     }
 
     return new Response(
