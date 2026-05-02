@@ -529,6 +529,52 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Empty state — no bills generated for selected month */}
+        {!loading && bills.length === 0 && (
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-8 sm:p-10 text-center shadow-soft">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-warning/10 text-warning mb-4">
+              <AlertCircle className="h-7 w-7" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">
+              {lang === "bn" ? "এখনো বিল জেনারেট হয়নি" : "Bills not generated yet"}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+              {lang === "bn"
+                ? `${monthLabel} মাসের জন্য কোনো বিল পাওয়া যায়নি। উপরের “${t("generateBills")}” বাটন থেকে এ মাসের বিল তৈরি করুন।`
+                : `No bills found for ${monthLabel}. Use the “${t("generateBills")}” button above to create bills for this month.`}
+            </p>
+            <Button
+              className="gradient-primary text-primary-foreground gap-2 shadow-elegant mt-5"
+              disabled={generating}
+              onClick={async () => {
+                setGenerating(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke(
+                    "generate-monthly-bills",
+                    { body: { month } },
+                  );
+                  if (error) throw error;
+                  const inserted = Number((data as any)?.inserted ?? 0);
+                  const skipped = Number((data as any)?.skipped ?? 0);
+                  toast.success(
+                    lang === "bn"
+                      ? `${inserted} টি ফ্ল্যাটের বিল তৈরি হয়েছে${skipped ? ` · ${skipped} টি আগে থেকেই ছিল` : ""}`
+                      : `Created bills for ${inserted} flat(s)${skipped ? ` · ${skipped} already existed` : ""}`,
+                  );
+                  await loadData(month);
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Failed to generate bills");
+                } finally {
+                  setGenerating(false);
+                }
+              }}
+            >
+              <Receipt className="h-4 w-4" />
+              {generating ? "..." : t("generateBills")}
+            </Button>
+          </div>
+        )}
+
         {/* Stats */}
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
