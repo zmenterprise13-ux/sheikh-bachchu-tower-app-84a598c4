@@ -68,6 +68,13 @@ export default function AdminDues() {
   const [payAmount, setPayAmount] = useState<string>("");
   const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkType, setBulkType] = useState<"eid_bonus" | "other_charge">("eid_bonus");
+  const [bulkAmount, setBulkAmount] = useState<string>("");
+  const [bulkNote, setBulkNote] = useState<string>("");
+  const [bulkMode, setBulkMode] = useState<"add" | "set">("add");
+  const [bulkScope, setBulkScope] = useState<"all" | "filtered">("all");
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
