@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 type Flat = {
   id: string;
