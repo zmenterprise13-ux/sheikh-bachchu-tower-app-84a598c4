@@ -43,6 +43,7 @@ export const translations: T = {
   payNow: { bn: "এখন পেমেন্ট করুন", en: "Pay Now" },
   viewReport: { bn: "রিপোর্ট দেখুন", en: "View Report" },
   viewAll: { bn: "সব দেখুন", en: "View All" },
+  more: { bn: "আরও", en: "More" },
   save: { bn: "সংরক্ষণ", en: "Save" },
   cancel: { bn: "বাতিল", en: "Cancel" },
   download: { bn: "ডাউনলোড", en: "Download" },
