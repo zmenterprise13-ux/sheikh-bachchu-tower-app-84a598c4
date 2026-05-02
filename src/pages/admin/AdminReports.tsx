@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Bill = {
+  flat_id: string;
   month: string;
   service_charge: number;
   gas_bill: number;
@@ -22,6 +23,7 @@ type Bill = {
   paid_amount: number;
 };
 type Expense = { date: string; category: string; amount: number };
+type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const monthsAgo = (n: number) => {
