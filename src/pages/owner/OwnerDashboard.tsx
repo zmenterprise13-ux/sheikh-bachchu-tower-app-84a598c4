@@ -133,8 +133,35 @@ export default function OwnerDashboard() {
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
-              <div className="text-sm opacity-90 mt-1">
-                {t("flatNo")}: <span className="font-bold">{flat.flat_no}</span> · {formatNumber(flat.size, lang)} sqft
+              <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
+                <Building2 className="h-3.5 w-3.5 opacity-80" />
+                {hasMultipleFlats ? (
+                  <>
+                    <span>{lang === "bn" ? "ফ্ল্যাট" : "Flat"}:</span>
+                    <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
+                      <SelectTrigger className="h-7 w-auto min-w-[110px] bg-white/15 border-white/30 text-primary-foreground hover:bg-white/25 px-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {flats.map((f) => {
+                          const b = allBills[f.id];
+                          const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                          return (
+                            <SelectItem key={f.id} value={f.id}>
+                              {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs opacity-80">· {flats.length} {lang === "bn" ? "ফ্ল্যাট" : "flats"}</span>
+                  </>
+                ) : (
+                  <>
+                    {t("flatNo")}: <span className="font-bold">{flat.flat_no}</span>
+                  </>
+                )}
+                <span className="opacity-70">· {formatNumber(flat.size, lang)} sqft</span>
               </div>
             </div>
             {due > 0 && (
