@@ -10,6 +10,32 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge, type FlatStatus } from "@/components/StatusBadge";
+import { cn } from "@/lib/utils";
+import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from "lucide-react";
+
+function paymentStatusOf(billed: number, collected: number): FlatStatus {
+  if (billed <= 0) return "unpaid";
+  if (collected >= billed) return "paid";
+  if (collected <= 0) return "unpaid";
+  return "partial";
+}
+
+function BalanceBadge({ value, lang }: { value: number; lang: "bn" | "en" }) {
+  const variant = value > 0 ? "surplus" : value < 0 ? "deficit" : "even";
+  const cfg = {
+    surplus: { cls: "bg-success/15 text-success border-success/30", icon: TrendUpIcon, label: lang === "bn" ? "লাভ" : "Surplus" },
+    deficit: { cls: "bg-destructive/15 text-destructive border-destructive/30", icon: TrendDownIcon, label: lang === "bn" ? "ঘাটতি" : "Deficit" },
+    even:    { cls: "bg-muted text-muted-foreground border-border", icon: Minus, label: lang === "bn" ? "সমান" : "Even" },
+  }[variant];
+  const Icon = cfg.icon;
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", cfg.cls)}>
+      <Icon className="h-3 w-3" />
+      {cfg.label}
+    </span>
+  );
+}
 
 type Bill = {
   flat_id: string;
