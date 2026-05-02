@@ -116,8 +116,16 @@ export default function Index() {
       </section>
 
       <footer className="border-t border-border py-8">
-        <div className="container text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {t("appName")} · {t("appTagline")}
+        <div className="container text-center text-sm text-muted-foreground space-y-1">
+          <div>
+            {lang === "bn" ? "ডিজাইন ও ডেভেলপ করেছেন" : "Designed & developed by"}{" "}
+            <span className="font-semibold text-foreground">
+              {lang === "bn" ? "মো. রবিন হোসেন" : "Md. Robin Hossain"}
+            </span>
+          </div>
+          <div>
+            © {new Date().getFullYear()} {t("appName")} · {t("appTagline")}
+          </div>
         </div>
       </footer>
     </div>
