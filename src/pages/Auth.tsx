@@ -15,14 +15,19 @@ import { toast } from "sonner";
 const emailSchema = z.string().trim().email().max(255);
 const passSchema = z.string().min(6).max(72);
 const nameSchema = z.string().trim().min(1).max(100);
+const phoneSchema = z.string().regex(/^\d{11}$/, "11 digits required");
 
 export default function Auth() {
   const { user, role, loading } = useAuth();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState<"login" | "signup">("login");
+  const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
+
+  // owner phone login
+  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerPass, setOwnerPass] = useState("12345678");
 
   // login form
   const [loginEmail, setLoginEmail] = useState("");
@@ -55,6 +60,44 @@ export default function Auth() {
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
+      return;
+    }
+    toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+  };
+
+  const handleOwnerPhoneLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      phoneSchema.parse(ownerPhone);
+      passSchema.parse(ownerPass);
+    } catch {
+      toast.error(
+        lang === "bn"
+          ? "১১ সংখ্যার মোবাইল ও ৬+ অক্ষরের পাসওয়ার্ড দিন"
+          : "Enter an 11-digit phone and a 6+ char password",
+      );
+      return;
+    }
+    setSubmitting(true);
+    const { data, error } = await supabase.functions.invoke("owner-phone-login", {
+      body: { phone: ownerPhone, password: ownerPass },
+    });
+    if (error || (data as any)?.error || !(data as any)?.session) {
+      setSubmitting(false);
+      toast.error(
+        (data as any)?.error ||
+          (lang === "bn" ? "ভুল মোবাইল বা পাসওয়ার্ড" : "Invalid phone or password"),
+      );
+      return;
+    }
+    const session = (data as any).session;
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+    setSubmitting(false);
+    if (setErr) {
+      toast.error(setErr.message);
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
@@ -115,11 +158,41 @@ export default function Auth() {
             {lang === "bn" ? "অ্যাকাউন্টে প্রবেশ করুন" : "Sign in to your account"}
           </p>
 
-          <Tabs value={tab} onValueChange={v => setTab(v as "login" | "signup")} className="mt-6">
-            <TabsList className="grid grid-cols-2 w-full">
-              <TabsTrigger value="login">{lang === "bn" ? "লগইন" : "Log in"}</TabsTrigger>
+          <Tabs value={tab} onValueChange={v => setTab(v as "phone" | "login" | "signup")} className="mt-6">
+            <TabsList className="grid grid-cols-3 w-full">
+              <TabsTrigger value="phone">{lang === "bn" ? "ওনার (মোবাইল)" : "Owner (Phone)"}</TabsTrigger>
+              <TabsTrigger value="login">{lang === "bn" ? "ইমেইল" : "Email"}</TabsTrigger>
               <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="phone">
+              <form onSubmit={handleOwnerPhoneLogin} className="space-y-4 mt-4">
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "মোবাইল নম্বর (১১ সংখ্যা)" : "Mobile number (11 digits)"}</Label>
+                  <Input
+                    inputMode="numeric"
+                    value={ownerPhone}
+                    onChange={e => setOwnerPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    placeholder="01613458260"
+                    required
+                    maxLength={11}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
+                  <Input type="password" value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {lang === "bn" ? "লগইন করুন" : "Log in"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  {lang === "bn"
+                    ? "প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করুন। ডিফল্ট পাসওয়ার্ড: 12345678"
+                    : "Please change your password after first login. Default password: 12345678"}
+                </p>
+              </form>
+            </TabsContent>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4 mt-4">

@@ -5,7 +5,7 @@ import { formatMoney, formatNumber } from "@/i18n/translations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Phone, Home, Pencil, Wallet, CalendarIcon, BookOpen, Printer } from "lucide-react";
+import { Search, Phone, Home, Pencil, Wallet, CalendarIcon, BookOpen, Printer, KeyRound, Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -699,13 +699,42 @@ function FlatEditDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [form, setForm] = useState<Flat | null>(null);
   const [saving, setSaving] = useState(false);
+  const [creatingLogin, setCreatingLogin] = useState(false);
 
   useEffect(() => {
     setForm(flat);
   }, [flat]);
+
+  const createLogin = async () => {
+    if (!form) return;
+    const phone = (form.phone ?? "").trim();
+    if (!/^\d{11}$/.test(phone)) {
+      toast.error(
+        lang === "bn"
+          ? "১১ সংখ্যার বৈধ মোবাইল নম্বর দিন (যেমন 01613458260)"
+          : "Enter a valid 11-digit phone number (e.g. 01613458260)",
+      );
+      return;
+    }
+    setCreatingLogin(true);
+    const { data, error } = await supabase.functions.invoke("owner-create-account", {
+      body: { phone, flat_id: form.id },
+    });
+    setCreatingLogin(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Failed");
+      return;
+    }
+    toast.success(
+      lang === "bn"
+        ? `লগইন তৈরি হয়েছে। ইউজারনেম: ${phone}, পাসওয়ার্ড: 12345678`
+        : `Login created. Username: ${phone}, Password: 12345678`,
+    );
+    onSaved();
+  };
 
   if (!form) return null;
 
@@ -776,7 +805,14 @@ function FlatEditDialog({
                 <Input
                   value={form.phone ?? ""}
                   onChange={(e) => set("phone", e.target.value)}
+                  placeholder="01613458260"
+                  maxLength={11}
                 />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {lang === "bn"
+                    ? "১১ সংখ্যার মোবাইল নম্বর — এটিই ওনারের ইউজারনেম হবে"
+                    : "11-digit phone — this will be the owner's username"}
+                </p>
               </div>
             </div>
             <PhotoUpload
@@ -785,6 +821,23 @@ function FlatEditDialog({
               onChange={(url) => set("owner_photo_url", url)}
               folder="flats"
             />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={createLogin}
+              disabled={creatingLogin}
+              className="w-full"
+            >
+              {creatingLogin ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <KeyRound className="h-4 w-4 mr-2" />
+              )}
+              {lang === "bn"
+                ? "ওনার লগইন তৈরি করুন (পাসওয়ার্ড: 12345678)"
+                : "Create owner login (password: 12345678)"}
+            </Button>
           </div>
 
           {/* Occupant section */}
