@@ -94,7 +94,7 @@ export default function AdminDashboard() {
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
         .eq("month", month),
       supabase
         .from("notices")
