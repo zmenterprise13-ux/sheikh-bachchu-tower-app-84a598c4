@@ -180,9 +180,31 @@ export default function AdminReports() {
       lines.push([t(cat as TKey) || cat, amt].map(esc).join(","));
     });
     lines.push("");
+    lines.push(`# ${lang === "bn" ? "ফ্ল্যাট-ওয়াইজ স্টেটমেন্ট" : "Flat-wise Statement"}`);
+    lines.push([
+      lang === "bn" ? "ফ্ল্যাট" : "Flat",
+      lang === "bn" ? "মালিক/বাসিন্দা" : "Owner/Occupant",
+      t("serviceCharge"), t("gasBill"), t("parking"), t("eidBonus"), t("otherCharge"),
+      lang === "bn" ? "মোট বিল" : "Billed",
+      lang === "bn" ? "পরিশোধ" : "Paid",
+      lang === "bn" ? "বাকি" : "Due",
+    ].map(esc).join(","));
+    perFlat.forEach((r) => {
+      lines.push([r.flat_no, r.owner, r.service, r.gas, r.parking, r.eid, r.other, r.billed, r.paid, r.due].map(esc).join(","));
+    });
+    lines.push([t("total"), "",
+      perFlat.reduce((s, r) => s + r.service, 0),
+      perFlat.reduce((s, r) => s + r.gas, 0),
+      perFlat.reduce((s, r) => s + r.parking, 0),
+      perFlat.reduce((s, r) => s + r.eid, 0),
+      perFlat.reduce((s, r) => s + r.other, 0),
+      totalBilled, totalIncome, totalDue,
+    ].map(esc).join(","));
+    lines.push("");
     lines.push(`# ${lang === "bn" ? "সারসংক্ষেপ" : "Summary"}`);
     lines.push([lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats", flatCount].map(esc).join(","));
     lines.push([t("collectionRate"), `${collectionRate}%`].map(esc).join(","));
+    lines.push([lang === "bn" ? "মোট বাকি" : "Total due", totalDue].map(esc).join(","));
     lines.push([t("netBalance"), balance].map(esc).join(","));
 
     const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
