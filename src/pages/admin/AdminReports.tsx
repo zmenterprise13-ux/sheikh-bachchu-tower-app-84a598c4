@@ -576,19 +576,31 @@ export default function AdminReports() {
         </div>
 
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated print:bg-secondary print:text-foreground">
-          <div className="grid gap-4 sm:grid-cols-3 text-center sm:text-left">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 text-center sm:text-left">
             <div>
-              <div className="text-xs uppercase opacity-80">{t("totalFlats")}</div>
-              <div className="text-2xl font-bold mt-1">{formatNumber(flatCount, lang)}</div>
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</div>
+              <div className="text-xl font-bold mt-1">{formatMoney(openingCash, lang)}</div>
             </div>
             <div>
-              <div className="text-xs uppercase opacity-80">{t("collectionRate")}</div>
-              <div className="text-2xl font-bold mt-1">{formatNumber(collectionRate, lang)}%</div>
+              <div className="text-xs uppercase opacity-80">{t("income")}</div>
+              <div className="text-xl font-bold mt-1">+{formatMoney(totalIncome, lang)}</div>
             </div>
             <div>
-              <div className="text-xs uppercase opacity-80">{t("netBalance")}</div>
-              <div className="text-2xl font-bold mt-1">{formatMoney(balance, lang)}</div>
+              <div className="text-xs uppercase opacity-80">{t("expense")}</div>
+              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpense, lang)}</div>
             </div>
+            <div>
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "নিট" : "Net"}</div>
+              <div className={`text-xl font-bold mt-1 ${balance < 0 ? "text-destructive-foreground" : ""}`}>{formatMoney(balance, lang)}</div>
+            </div>
+            <div className="border-t lg:border-t-0 lg:border-l border-primary-foreground/30 pt-3 lg:pt-0 lg:pl-4">
+              <div className="text-xs uppercase opacity-80">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</div>
+              <div className="text-2xl font-bold mt-1">{formatMoney(closingBalance, lang)}</div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-primary-foreground/30 grid gap-2 sm:grid-cols-2 text-xs opacity-90">
+            <div>{lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats"}: <span className="font-bold">{formatNumber(flatCount, lang)}</span></div>
+            <div>{t("collectionRate")}: <span className="font-bold">{formatNumber(collectionRate, lang)}%</span></div>
           </div>
         </div>
       </div>
