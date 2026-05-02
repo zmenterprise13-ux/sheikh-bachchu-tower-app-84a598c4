@@ -142,6 +142,75 @@ export default function AdminDues() {
     setPaying(null);
   };
 
+  const applyBulk = async () => {
+    const amount = Number(bulkAmount);
+    if (!Number.isFinite(amount) || amount < 0) {
+      toast.error(lang === "bn" ? "সঠিক টাকার পরিমাণ দিন" : "Enter a valid amount");
+      return;
+    }
+    const targets = bulkScope === "filtered" ? visible : bills;
+    if (targets.length === 0) {
+      toast.error(lang === "bn" ? "কোনো বিল নেই" : "No bills to update");
+      return;
+    }
+    setBulkSaving(true);
+
+    // For other_charge: pre-compute due date once (today + offset) if any target needs it
+    let otherDueDate: string | null = null;
+    if (bulkType === "other_charge" && amount > 0) {
+      const { data: settings } = await supabase
+        .from("billing_settings")
+        .select("other_due_offset_days")
+        .maybeSingle();
+      const offset = Number(settings?.other_due_offset_days ?? 15);
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() + offset);
+      otherDueDate = d.toISOString().slice(0, 10);
+    }
+
+    const updated: Bill[] = [];
+    let failed = 0;
+    for (const b of targets) {
+      const currentVal = Number(b[bulkType] ?? 0);
+      const newVal = bulkMode === "add" ? currentVal + amount : amount;
+      const patch: Record<string, unknown> = { [bulkType]: newVal };
+      if (bulkType === "other_charge") {
+        patch.other_note = bulkNote || b.other_note || null;
+        if (newVal > 0) {
+          patch.other_due_date = b.other_due_date ?? otherDueDate;
+        } else {
+          patch.other_due_date = null;
+          patch.other_note = null;
+        }
+      }
+      const { data, error } = await supabase
+        .from("bills")
+        .update(patch)
+        .eq("id", b.id)
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
+        .single();
+      if (error || !data) { failed++; continue; }
+      updated.push(data as Bill);
+    }
+    setBulkSaving(false);
+
+    if (updated.length > 0) {
+      setBills((prev) => prev.map((x) => updated.find((u) => u.id === x.id) ?? x));
+    }
+    if (failed === 0) {
+      toast.success(lang === "bn"
+        ? `${updated.length} টি বিল আপডেট হয়েছে`
+        : `${updated.length} bills updated`);
+      setBulkOpen(false);
+      setBulkAmount("");
+      setBulkNote("");
+    } else {
+      toast.error(lang === "bn"
+        ? `${updated.length} সফল, ${failed} ব্যর্থ`
+        : `${updated.length} succeeded, ${failed} failed`);
+    }
+  };
+
   const filterChips: { key: Filter; label: string }[] = [
     { key: "all",     label: lang === "bn" ? "সব" : "All" },
     { key: "unpaid",  label: t("unpaid") },
