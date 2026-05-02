@@ -293,6 +293,16 @@ export default function AdminDues() {
               </button>
             ))}
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setBulkOpen(true)}
+            disabled={loading || bills.length === 0}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"}
+          </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
