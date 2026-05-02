@@ -63,6 +63,10 @@ export default function AdminDues() {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Bill | null>(null);
+  const [paying, setPaying] = useState<Bill | null>(null);
+  const [payDate, setPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [payAmount, setPayAmount] = useState<string>("");
+  const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
 
   const load = async (targetMonth: string) => {
@@ -96,23 +100,39 @@ export default function AdminDues() {
       || (flat.owner_name_bn ?? "").includes(q);
   });
 
-  const markPaid = async (b: Bill) => {
-    const { error } = await supabase
-      .from("bills")
-      .update({
-        status: "paid",
-        paid_amount: Number(b.total),
-        paid_at: new Date().toISOString().slice(0, 10),
-      })
-      .eq("id", b.id);
-    if (error) {
-      toast.error(error.message);
+  const openPay = (b: Bill) => {
+    setPaying(b);
+    const due = Number(b.total) - Number(b.paid_amount);
+    setPayAmount(String(due > 0 ? due : Number(b.total)));
+    setPayDate(new Date().toISOString().slice(0, 10));
+  };
+
+  const confirmPay = async () => {
+    if (!paying) return;
+    const amount = Number(payAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error(lang === "bn" ? "সঠিক টাকার পরিমাণ দিন" : "Enter a valid amount");
       return;
     }
-    toast.success(lang === "bn" ? "Paid মার্ক করা হয়েছে" : "Marked as paid");
-    setBills((prev) => prev.map((x) => x.id === b.id
-      ? { ...x, status: "paid", paid_amount: Number(b.total) }
+    if (!payDate) {
+      toast.error(lang === "bn" ? "পেমেন্ট তারিখ দিন" : "Pick a payment date");
+      return;
+    }
+    setPaySaving(true);
+    const newPaid = Number(paying.paid_amount) + amount;
+    const total = Number(paying.total);
+    const status: FlatStatus = newPaid >= total ? "paid" : newPaid > 0 ? "partial" : "unpaid";
+    const { error } = await supabase
+      .from("bills")
+      .update({ status, paid_amount: newPaid, paid_at: payDate })
+      .eq("id", paying.id);
+    setPaySaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? "পেমেন্ট রেকর্ড হয়েছে" : "Payment recorded");
+    setBills((prev) => prev.map((x) => x.id === paying.id
+      ? { ...x, status, paid_amount: newPaid }
       : x));
+    setPaying(null);
   };
 
   const filterChips: { key: Filter; label: string }[] = [
@@ -244,7 +264,7 @@ export default function AdminDues() {
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     {b.status !== "paid" && (
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPaid(b)}>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openPay(b)}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">{t("markPaid")}</span>
                       </Button>
@@ -267,6 +287,39 @@ export default function AdminDues() {
           setBills((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
         }}
       />
+      <Dialog open={!!paying} onOpenChange={(o) => !o && setPaying(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "bn" ? "পেমেন্ট রেকর্ড" : "Record payment"} — {paying?.month}
+            </DialogTitle>
+          </DialogHeader>
+          {paying && (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground">
+                {t("total")}: <b>{formatMoney(Number(paying.total), lang)}</b>
+                {" · "}
+                {lang === "bn" ? "পরিশোধিত" : "Paid"}: <b>{formatMoney(Number(paying.paid_amount), lang)}</b>
+                {" · "}
+                {t("due")}: <b className="text-destructive">{formatMoney(Number(paying.total) - Number(paying.paid_amount), lang)}</b>
+              </div>
+              <div>
+                <Label className="text-xs">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</Label>
+                <Input type="date" value={payDate} max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setPayDate(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">{lang === "bn" ? "টাকার পরিমাণ" : "Amount"}</Label>
+                <Input type="number" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaying(null)} disabled={paySaving}>{t("cancel")}</Button>
+            <Button onClick={confirmPay} disabled={paySaving}>{t("save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
