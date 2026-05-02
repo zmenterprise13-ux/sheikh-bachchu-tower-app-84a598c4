@@ -350,8 +350,8 @@ export default function AdminDashboard() {
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {lang === "bn"
-                  ? "সার্ভিস চার্জ ও গ্যাস বিল — এ মাসের সারাংশ"
-                  : "Service charge & gas bill summary for this month"}
+                  ? `সার্ভিস চার্জ ও গ্যাস বিল — ${monthLabel} এর সারাংশ`
+                  : `Service charge & gas bill summary for ${monthLabel}`}
               </p>
             </div>
             <Link to="/admin/dues">
