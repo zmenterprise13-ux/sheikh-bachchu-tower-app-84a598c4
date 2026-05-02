@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
@@ -7,11 +7,12 @@ import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download, Building2, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerFlat } from "@/hooks/useOwnerFlat";
+import { useOwnerFlats, OwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
