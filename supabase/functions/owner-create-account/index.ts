@@ -43,6 +43,16 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!roleRow) return json({ error: "Admin only" }, 403);
 
+    // 1b. Respect the global signup_enabled toggle
+    const { data: signupRow } = await admin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "signup_enabled")
+      .maybeSingle();
+    if (signupRow && signupRow.value === false) {
+      return json({ error: "Sign up is currently disabled" }, 403);
+    }
+
     // 2. Validate input — flat_id is now OPTIONAL.
     //    If provided, that specific flat is linked.
     //    All flats whose `phone` matches this number are also auto-linked.
