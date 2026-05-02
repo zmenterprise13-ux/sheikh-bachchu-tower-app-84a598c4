@@ -262,6 +262,7 @@ export default function AdminReports() {
     lines.push([t("collectionRate"), `${collectionRate}%`].map(esc).join(","));
     lines.push([lang === "bn" ? "মোট বাকি" : "Total due", totalDue].map(esc).join(","));
     lines.push([t("netBalance"), balance].map(esc).join(","));
+    lines.push([lang === "bn" ? "শেষ ব্যালেন্স" : "Closing balance", closingBalance].map(esc).join(","));
 
     const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
