@@ -362,6 +362,8 @@ export default function AdminReports() {
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right">{t("balance")}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
+                <th className="py-2 pr-3">{lang === "bn" ? "ব্যালেন্স স্ট্যাটাস" : "Balance"}</th>
               </tr>
             </thead>
             <tbody>
@@ -374,10 +376,12 @@ export default function AdminReports() {
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
+                  <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(r.billed, r.collected)} /></td>
+                  <td className="py-2 pr-3"><BalanceBadge value={r.balance} lang={lang} /></td>
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -389,6 +393,8 @@ export default function AdminReports() {
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
+                <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(totalBilled, totalIncome)} /></td>
+                <td className="py-2 pr-3"><BalanceBadge value={balance} lang={lang} /></td>
               </tr>
             </tfoot>
           </table>
