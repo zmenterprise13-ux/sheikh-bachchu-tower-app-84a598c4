@@ -81,6 +81,11 @@ export default function AdminReports() {
   const [flatCount, setFlatCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Opening cash (carry-forward from before `from`)
+  const [autoOpening, setAutoOpening] = useState(0);
+  const [openingOverride, setOpeningOverride] = useState<string>("");
+  const openingCash = openingOverride.trim() === "" ? autoOpening : Number(openingOverride) || 0;
+
   // validate range
   const validRange = from <= to;
 
@@ -93,7 +98,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -103,6 +108,13 @@ export default function AdminReports() {
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn")
           .order("flat_no", { ascending: true }),
+        // Prior carry-forward: everything before `from`
+        supabase.from("bills")
+          .select("paid_amount")
+          .lt("month", from),
+        supabase.from("expenses")
+          .select("amount")
+          .lt("date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -111,6 +123,11 @@ export default function AdminReports() {
       setExpenses((expRes.data ?? []) as Expense[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
+
+      const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
+      const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
+      setAutoOpening(prevIncome - prevExpense);
+
       setLoading(false);
     })();
   }, [from, to, validRange]);
