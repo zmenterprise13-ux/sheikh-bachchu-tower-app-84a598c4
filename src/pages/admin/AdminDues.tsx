@@ -41,6 +41,20 @@ type Flat = {
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
+function shiftMonth(m: string, delta: number): string {
+  const [y, mm] = m.split("-").map(Number);
+  const d = new Date(Date.UTC(y, mm - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatMonthLabel(m: string, lang: "bn" | "en"): string {
+  const [y, mm] = m.split("-").map(Number);
+  const d = new Date(Date.UTC(y, mm - 1, 1));
+  return d.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", {
+    year: "numeric", month: "long", timeZone: "UTC",
+  });
+}
+
 export default function AdminDues() {
   const { t, lang } = useLang();
   const [bills, setBills] = useState<Bill[]>([]);
@@ -49,15 +63,15 @@ export default function AdminDues() {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Bill | null>(null);
-  const month = currentMonth();
+  const [month, setMonth] = useState<string>(currentMonth());
 
-  const load = async () => {
+  const load = async (targetMonth: string) => {
     setLoading(true);
     const [billsRes, flatsRes] = await Promise.all([
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, other_note, other_due_date, total, paid_amount, status")
-        .eq("month", month),
+        .eq("month", targetMonth),
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
     ]);
     if (billsRes.error) toast.error(billsRes.error.message);
@@ -67,7 +81,9 @@ export default function AdminDues() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(month); }, [month]);
+
+  const isCurrent = month === currentMonth();
 
   const visible = bills.filter((b) => {
     const flat = flats.find((f) => f.id === b.flat_id);
