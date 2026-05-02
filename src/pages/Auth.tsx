@@ -15,14 +15,19 @@ import { toast } from "sonner";
 const emailSchema = z.string().trim().email().max(255);
 const passSchema = z.string().min(6).max(72);
 const nameSchema = z.string().trim().min(1).max(100);
+const phoneSchema = z.string().regex(/^\d{11}$/, "11 digits required");
 
 export default function Auth() {
   const { user, role, loading } = useAuth();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState<"login" | "signup">("login");
+  const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
+
+  // owner phone login
+  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerPass, setOwnerPass] = useState("12345678");
 
   // login form
   const [loginEmail, setLoginEmail] = useState("");
