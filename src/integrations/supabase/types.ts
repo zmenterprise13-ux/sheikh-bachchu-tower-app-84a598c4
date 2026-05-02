@@ -316,6 +316,100 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_repayments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          loan_id: string
+          note: string | null
+          paid_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_id: string
+          note?: string | null
+          paid_date?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_id?: string
+          note?: string | null
+          paid_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_repayments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          lender_flat_id: string | null
+          lender_name: string
+          lender_name_bn: string | null
+          loan_date: string
+          note: string | null
+          principal: number
+          purpose: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lender_flat_id?: string | null
+          lender_name: string
+          lender_name_bn?: string | null
+          loan_date?: string
+          note?: string | null
+          principal?: number
+          purpose?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lender_flat_id?: string | null
+          lender_name?: string
+          lender_name_bn?: string | null
+          loan_date?: string
+          note?: string | null
+          principal?: number
+          purpose?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loans_lender_flat_id_fkey"
+            columns: ["lender_flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notices: {
         Row: {
           body: string
