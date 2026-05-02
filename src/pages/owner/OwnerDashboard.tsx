@@ -129,9 +129,44 @@ export default function OwnerDashboard() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
               <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
-              {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
+              <div className="flex items-center gap-2">
+                {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
+                {currentBill && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      try {
+                        generateBillPdf({
+                          flatNo: flat.flat_no,
+                          ownerName: flat.owner_name,
+                          month: currentBill.month,
+                          serviceCharge: Number(currentBill.service_charge),
+                          gasBill: Number(currentBill.gas_bill),
+                          parking: Number(currentBill.parking),
+                          eidBonus: Number(currentBill.eid_bonus),
+                          otherCharge: Number(currentBill.other_charge),
+                          total: Number(currentBill.total),
+                          paid: Number(currentBill.paid_amount),
+                          due: Math.max(0, Number(currentBill.total) - Number(currentBill.paid_amount)),
+                          dueDate: currentBill.due_date,
+                          paidAt: currentBill.paid_at,
+                          generatedOn: currentBill.generated_at,
+                        });
+                        toast.success(lang === "bn" ? "PDF ডাউনলোড শুরু হয়েছে" : "PDF download started");
+                      } catch (err: any) {
+                        toast.error(err.message ?? "PDF generation failed");
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    {t("download")}
+                  </Button>
+                )}
+              </div>
             </div>
             {loading ? (
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div>
