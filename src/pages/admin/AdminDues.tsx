@@ -411,6 +411,138 @@ export default function AdminDues() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={bulkOpen} onOpenChange={(o) => !bulkSaving && setBulkOpen(o)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"} — {formatMonthLabel(month, lang)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "চার্জ টাইপ" : "Charge type"}
+              </Label>
+              <div className="flex gap-2">
+                {([
+                  { k: "eid_bonus" as const, label: t("eidBonus") },
+                  { k: "other_charge" as const, label: t("otherCharge") },
+                ]).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setBulkType(o.k)}
+                    className={cn(
+                      "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-base",
+                      bulkType === o.k
+                        ? "gradient-primary text-primary-foreground border-transparent shadow-soft"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "মোড" : "Mode"}
+              </Label>
+              <div className="flex gap-2">
+                {([
+                  { k: "add" as const, label: lang === "bn" ? "বিদ্যমান এর সাথে যোগ" : "Add to existing" },
+                  { k: "set" as const, label: lang === "bn" ? "নির্দিষ্ট মান সেট" : "Set fixed value" },
+                ]).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setBulkMode(o.k)}
+                    className={cn(
+                      "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                      bulkMode === o.k
+                        ? "border-primary text-primary bg-primary/5"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">
+                {lang === "bn" ? "প্রতি ফ্ল্যাটে টাকার পরিমাণ" : "Amount per flat"}
+              </Label>
+              <Input
+                type="number"
+                value={bulkAmount}
+                onChange={(e) => setBulkAmount(e.target.value)}
+                placeholder="0"
+                autoFocus
+              />
+            </div>
+
+            {bulkType === "other_charge" && (
+              <div>
+                <Label className="text-xs">{t("otherNote")}</Label>
+                <Input
+                  value={bulkNote}
+                  onChange={(e) => setBulkNote(e.target.value)}
+                  placeholder={lang === "bn" ? "যেমন: লিফট মেরামত" : "e.g. Lift repair"}
+                />
+              </div>
+            )}
+
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "প্রযোজ্য" : "Apply to"}
+              </Label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkScope("all")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkScope === "all"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn" ? `সব ফ্ল্যাট (${bills.length})` : `All flats (${bills.length})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkScope("filtered")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkScope === "filtered"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn" ? `ফিল্টারকৃত (${visible.length})` : `Filtered (${visible.length})`}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-secondary/40 border border-border px-3 py-2 text-xs text-muted-foreground">
+              {lang === "bn"
+                ? `${bulkScope === "all" ? bills.length : visible.length} টি বিল-এ ${bulkMode === "add" ? "যোগ" : "সেট"} হবে।`
+                : `Will ${bulkMode === "add" ? "add to" : "set on"} ${bulkScope === "all" ? bills.length : visible.length} bills.`}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkOpen(false)} disabled={bulkSaving}>{t("cancel")}</Button>
+            <Button onClick={applyBulk} disabled={bulkSaving}>
+              {bulkSaving ? (lang === "bn" ? "চলছে..." : "Applying...") : (lang === "bn" ? "প্রয়োগ করো" : "Apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </AppShell>
   );
 }
