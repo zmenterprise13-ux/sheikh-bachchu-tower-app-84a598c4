@@ -56,6 +56,20 @@ export default function AdminSettings() {
   const [form, setForm] = useState<Settings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { enabled: signupEnabled, loading: signupLoading, setSignupEnabled } = useSignupEnabled();
+  const [togglingSignup, setTogglingSignup] = useState(false);
+
+  const onToggleSignup = async (next: boolean) => {
+    setTogglingSignup(true);
+    const { error } = await setSignupEnabled(next);
+    setTogglingSignup(false);
+    if (error) toast.error(error.message);
+    else toast.success(
+      next
+        ? (lang === "bn" ? "সাইন আপ চালু হয়েছে" : "Sign up enabled")
+        : (lang === "bn" ? "সাইন আপ বন্ধ হয়েছে" : "Sign up disabled"),
+    );
+  };
 
   useEffect(() => {
     (async () => {
