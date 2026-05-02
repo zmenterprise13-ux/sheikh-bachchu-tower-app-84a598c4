@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
-import { TrendingUp, TrendingDown, Scale, Download, Printer } from "lucide-react";
+import { TrendingUp, TrendingDown, Scale, Download, Printer, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -119,6 +119,43 @@ export default function AdminReports() {
 
   const handlePrint = () => window.print();
 
+  const handleCsvExport = () => {
+    const esc = (v: string | number) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines: string[] = [];
+    lines.push(`# ${lang === "bn" ? "মাসিক রিপোর্ট" : "Monthly Report"} — ${rangeLabel}`);
+    lines.push("");
+    lines.push([t("month"), lang === "bn" ? "বিল" : "Billed", t("income"), t("expense"), t("balance")].map(esc).join(","));
+    perMonth.forEach((r) => {
+      lines.push([fmtMonthLabel(r.month), r.billed, r.collected, r.expense, r.balance].map(esc).join(","));
+    });
+    lines.push([t("total"), totalBilled, totalIncome, totalExpense, balance].map(esc).join(","));
+    lines.push("");
+    lines.push(`# ${t("expense")} — ${lang === "bn" ? "ক্যাটেগরি অনুযায়ী" : "By category"}`);
+    lines.push([lang === "bn" ? "ক্যাটেগরি" : "Category", lang === "bn" ? "টাকা" : "Amount"].map(esc).join(","));
+    Object.entries(byCategory).forEach(([cat, amt]) => {
+      lines.push([t(cat as TKey) || cat, amt].map(esc).join(","));
+    });
+    lines.push("");
+    lines.push(`# ${lang === "bn" ? "সারসংক্ষেপ" : "Summary"}`);
+    lines.push([lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats", flatCount].map(esc).join(","));
+    lines.push([t("collectionRate"), `${collectionRate}%`].map(esc).join(","));
+    lines.push([t("netBalance"), balance].map(esc).join(","));
+
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `report-${from}_to_${to}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(lang === "bn" ? "CSV ডাউনলোড হয়েছে" : "CSV downloaded");
+  };
+
   return (
     <AppShell>
       <div className="space-y-6 print:space-y-3 print-area" id="report-printable">
@@ -128,6 +165,9 @@ export default function AdminReports() {
             <p className="text-sm text-muted-foreground mt-1">{rangeLabel}</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleCsvExport}>
+              <FileSpreadsheet className="h-4 w-4" /> CSV
+            </Button>
             <Button variant="outline" className="gap-2" onClick={handlePrint}>
               <Printer className="h-4 w-4" /> {lang === "bn" ? "প্রিন্ট" : "Print"}
             </Button>
