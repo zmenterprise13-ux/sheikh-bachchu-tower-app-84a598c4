@@ -158,11 +158,41 @@ export default function Auth() {
             {lang === "bn" ? "অ্যাকাউন্টে প্রবেশ করুন" : "Sign in to your account"}
           </p>
 
-          <Tabs value={tab} onValueChange={v => setTab(v as "login" | "signup")} className="mt-6">
-            <TabsList className="grid grid-cols-2 w-full">
-              <TabsTrigger value="login">{lang === "bn" ? "লগইন" : "Log in"}</TabsTrigger>
+          <Tabs value={tab} onValueChange={v => setTab(v as "phone" | "login" | "signup")} className="mt-6">
+            <TabsList className="grid grid-cols-3 w-full">
+              <TabsTrigger value="phone">{lang === "bn" ? "ওনার (মোবাইল)" : "Owner (Phone)"}</TabsTrigger>
+              <TabsTrigger value="login">{lang === "bn" ? "ইমেইল" : "Email"}</TabsTrigger>
               <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="phone">
+              <form onSubmit={handleOwnerPhoneLogin} className="space-y-4 mt-4">
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "মোবাইল নম্বর (১১ সংখ্যা)" : "Mobile number (11 digits)"}</Label>
+                  <Input
+                    inputMode="numeric"
+                    value={ownerPhone}
+                    onChange={e => setOwnerPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    placeholder="01613458260"
+                    required
+                    maxLength={11}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
+                  <Input type="password" value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {lang === "bn" ? "লগইন করুন" : "Log in"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  {lang === "bn"
+                    ? "প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করুন। ডিফল্ট পাসওয়ার্ড: 12345678"
+                    : "Please change your password after first login. Default password: 12345678"}
+                </p>
+              </form>
+            </TabsContent>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4 mt-4">
