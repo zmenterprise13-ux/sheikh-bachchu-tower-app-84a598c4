@@ -177,12 +177,45 @@ export default function AdminReports() {
           </div>
         </div>
 
-        {/* Print header (only visible on print) */}
-        <div className="hidden print:block">
-          <h1 className="text-2xl font-bold">{lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}</h1>
-          <p className="text-sm">{t("monthlyReport")} — {rangeLabel}</p>
-          <hr className="my-2" />
+        {/* Print-only running header (repeats on every printed page) */}
+        <div className="hidden print:block print-running-header">
+          <div className="flex items-baseline justify-between gap-4">
+            <div>
+              <div className="text-base font-bold">
+                {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
+              </div>
+              <div className="text-xs">
+                {t("monthlyReport")} — {rangeLabel}
+              </div>
+            </div>
+            <div className="text-xs text-right">
+              {lang === "bn" ? "তৈরি" : "Generated"}:{" "}
+              {new Date().toLocaleString(lang === "bn" ? "bn-BD" : "en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </div>
+          </div>
         </div>
+
+        {/* Print-only running footer (repeats on every printed page) */}
+        <div className="hidden print:block print-running-footer">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              {lang === "bn"
+                ? "সোর্স: bills (পরিশোধ ও বিল হিসাব), expenses (খরচ হিসাব) — Sheikh Bachchu Tower ডাটাবেজ।"
+                : "Source: bills (billed & paid amounts), expenses (expense entries) — Sheikh Bachchu Tower database."}
+            </div>
+            <div>
+              {lang === "bn" ? "প্রিন্ট" : "Printed"}:{" "}
+              {new Date().toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}
+            </div>
+          </div>
+        </div>
+
+        {/* Spacer so first-page content clears the running header */}
+        <div className="hidden print:block" style={{ height: "18mm" }} />
+
 
         {/* Filters */}
         <div className="rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-soft print:hidden">
