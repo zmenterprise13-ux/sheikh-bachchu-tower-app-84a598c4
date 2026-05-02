@@ -138,7 +138,7 @@
 
   /* Bangla font support */
   :lang(bn), [lang="bn"] {
-    font-family: 'Hind Siliguri', 'Inter', system-ui, sans-serif;
+    font-family: 'Noto Sans Bengali', 'Inter', system-ui, sans-serif;
   }
 }
 
