@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRef } from "react";
+import { Camera } from "lucide-react";
 
 type Bill = {
   id: string;
@@ -88,14 +90,11 @@ export default function OwnerDashboard() {
       <div className="space-y-6">
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
-            <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg shrink-0">
-              {flat.owner_photo_url ? (
-                <AvatarImage src={flat.owner_photo_url} alt={flat.owner_name ?? "Owner"} />
-              ) : null}
-              <AvatarFallback className="bg-white/20 text-primary-foreground">
-                <Home className="h-7 w-7" />
-              </AvatarFallback>
-            </Avatar>
+            <OwnerAvatarUpload
+              photoUrl={flat.owner_photo_url}
+              ownerName={flat.owner_name}
+              flatId={flat.id}
+            />
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
@@ -272,6 +271,77 @@ function ChangePasswordCard() {
           {lang === "bn" ? "পাসওয়ার্ড পরিবর্তন করুন" : "Change Password"}
         </Button>
       </form>
+    </div>
+  );
+}
+
+function OwnerAvatarUpload({
+  photoUrl,
+  ownerName,
+  flatId,
+}: {
+  photoUrl: string | null;
+  ownerName: string | null;
+  flatId: string;
+}) {
+  const { lang } = useLang();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(lang === "bn" ? "ফাইল অনেক বড় (সর্বোচ্চ ৫MB)" : "File too large (max 5MB)");
+      return;
+    }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `owner/${flatId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("occupant-photos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("occupant-photos").getPublicUrl(path);
+      const newUrl = pub.publicUrl;
+      const { error: rpcErr } = await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
+      if (rpcErr) throw rpcErr;
+      setLocalUrl(newUrl);
+      toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="relative shrink-0">
+      <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg">
+        {localUrl ? <AvatarImage src={localUrl} alt={ownerName ?? "Owner"} /> : null}
+        <AvatarFallback className="bg-white/20 text-primary-foreground">
+          <Home className="h-7 w-7" />
+        </AvatarFallback>
+      </Avatar>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        aria-label={lang === "bn" ? "ছবি পরিবর্তন" : "Change photo"}
+        className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-accent text-accent-foreground shadow-md flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
     </div>
   );
 }
