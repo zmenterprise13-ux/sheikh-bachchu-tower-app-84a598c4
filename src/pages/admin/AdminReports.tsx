@@ -412,43 +412,50 @@ export default function AdminReports() {
             <thead>
               <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="py-2 pr-3">{t("month")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "বিল" : "Billed"}</th>
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
-                <th className="py-2 pr-3 text-right">{t("balance")}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
                 <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
-                <th className="py-2 pr-3">{lang === "bn" ? "ব্যালেন্স স্ট্যাটাস" : "Balance"}</th>
               </tr>
             </thead>
             <tbody>
-              {perMonth.map((r) => (
+              {perMonthRolling.map((r) => (
                 <tr key={r.month} className="border-b border-border/60">
                   <td className="py-2 pr-3 font-medium">{fmtMonthLabel(r.month)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(r.opening, lang)}</td>
                   <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
+                  <td className={`py-2 pr-3 text-right font-bold ${r.closing >= 0 ? "text-primary" : "text-destructive"}`}>
+                    {formatMoney(r.closing, lang)}
+                  </td>
                   <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(r.billed, r.collected)} /></td>
-                  <td className="py-2 pr-3"><BalanceBadge value={r.balance} lang={lang} /></td>
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-foreground/20 font-bold">
                 <td className="py-2 pr-3">{t("total")}</td>
+                <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(openingCash, lang)}</td>
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
+                <td className={`py-2 pr-3 text-right ${closingBalance >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {formatMoney(closingBalance, lang)}
+                </td>
                 <td className="py-2 pr-3"><StatusBadge status={paymentStatusOf(totalBilled, totalIncome)} /></td>
-                <td className="py-2 pr-3"><BalanceBadge value={balance} lang={lang} /></td>
               </tr>
             </tfoot>
           </table>
