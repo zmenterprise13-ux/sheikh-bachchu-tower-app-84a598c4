@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { StatusBadge } from "@/components/StatusBadge";
+import { CombinedBillStatus } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,6 +51,7 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: "paid" | "partial" | "unpaid";
+  generation_status: "generated" | "failed";
 };
 
 type Notice = {
@@ -93,7 +94,7 @@ export default function AdminDashboard() {
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
         .eq("month", month),
       supabase
         .from("notices")
@@ -420,7 +421,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-destructive">{formatMoney(due, lang)}</div>
-                      <div className="mt-1"><StatusBadge status={bill.status} /></div>
+                      <div className="mt-1"><CombinedBillStatus generation={bill.generation_status} payment={bill.status} /></div>
                     </div>
                   </div>
                 );

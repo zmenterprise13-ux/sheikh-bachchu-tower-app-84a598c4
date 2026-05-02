@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
-import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
+import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Receipt, Megaphone, Home, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -21,6 +21,7 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: FlatStatus;
+  generation_status: GenerationStatus;
 };
 type Notice = {
   id: string;
@@ -51,7 +52,7 @@ export default function OwnerDashboard() {
       setLoading(true);
       const [billRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
           .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
@@ -117,7 +118,7 @@ export default function OwnerDashboard() {
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
-              {currentBill && <StatusBadge status={currentBill.status} />}
+              {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
             </div>
             {loading ? (
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div>

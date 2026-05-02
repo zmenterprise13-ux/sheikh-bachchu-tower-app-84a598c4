@@ -118,6 +118,8 @@ export type Database = {
           flat_id: string
           gas_bill: number
           generated_at: string
+          generation_error: string | null
+          generation_status: Database["public"]["Enums"]["bill_generation_status"]
           id: string
           month: string
           other_charge: number
@@ -138,6 +140,8 @@ export type Database = {
           flat_id: string
           gas_bill?: number
           generated_at?: string
+          generation_error?: string | null
+          generation_status?: Database["public"]["Enums"]["bill_generation_status"]
           id?: string
           month: string
           other_charge?: number
@@ -158,6 +162,8 @@ export type Database = {
           flat_id?: string
           gas_bill?: number
           generated_at?: string
+          generation_error?: string | null
+          generation_status?: Database["public"]["Enums"]["bill_generation_status"]
           id?: string
           month?: string
           other_charge?: number
@@ -502,6 +508,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "owner"
+      bill_generation_status: "generated" | "failed"
       bill_status: "paid" | "unpaid" | "partial"
     }
     CompositeTypes: {
@@ -631,6 +638,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "owner"],
+      bill_generation_status: ["generated", "failed"],
       bill_status: ["paid", "unpaid", "partial"],
     },
   },
