@@ -150,6 +150,7 @@ export default function AdminReports() {
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
   const balance = totalIncome - totalExpense;
+  const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
   const byCategory = expenses.reduce<Record<string, number>>((acc, e) => {
