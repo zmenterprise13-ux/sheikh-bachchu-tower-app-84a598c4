@@ -180,3 +180,29 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
     </div>
   );
 }
+
+function FlatList({
+  title, flats, tone,
+}: { title: string; flats: Array<{ id: string; flat_no: string }>; tone: "success" | "muted" }) {
+  const toneCls = tone === "success"
+    ? "border-success/30 bg-success/5"
+    : "border-border bg-muted/30";
+  return (
+    <div className={`rounded-md border p-2 ${toneCls}`}>
+      <div className="text-[10px] uppercase text-muted-foreground mb-1">
+        {title} ({flats.length})
+      </div>
+      {flats.length === 0 ? (
+        <div className="text-[11px] text-muted-foreground italic">—</div>
+      ) : (
+        <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+          {flats.map((f) => (
+            <span key={f.id} className="inline-block rounded border border-border bg-background px-1.5 py-0.5 text-[11px] font-mono">
+              {f.flat_no}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
