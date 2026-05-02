@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRef, useState as useReactState } from "react";
+import { Camera, Loader2 } from "lucide-react";
 
 type Bill = {
   id: string;
@@ -88,14 +90,11 @@ export default function OwnerDashboard() {
       <div className="space-y-6">
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
-            <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg shrink-0">
-              {flat.owner_photo_url ? (
-                <AvatarImage src={flat.owner_photo_url} alt={flat.owner_name ?? "Owner"} />
-              ) : null}
-              <AvatarFallback className="bg-white/20 text-primary-foreground">
-                <Home className="h-7 w-7" />
-              </AvatarFallback>
-            </Avatar>
+            <OwnerAvatarUpload
+              photoUrl={flat.owner_photo_url}
+              ownerName={flat.owner_name}
+              flatId={flat.id}
+            />
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
