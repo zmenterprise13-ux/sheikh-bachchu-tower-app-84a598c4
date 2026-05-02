@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 const emailSchema = z.string().trim().email().max(255);
 const passSchema = z.string().min(6).max(72);
