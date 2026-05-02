@@ -48,6 +48,11 @@ export default function Auth() {
     }
   }, [user, role, loading, navigate]);
 
+  // If signup got disabled while signup tab is open, switch away
+  useEffect(() => {
+    if (!signupEnabled && tab === "signup") setTab("phone");
+  }, [signupEnabled, tab]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
