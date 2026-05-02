@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { StatusBadge } from "@/components/StatusBadge";
+import { CombinedBillStatus } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
