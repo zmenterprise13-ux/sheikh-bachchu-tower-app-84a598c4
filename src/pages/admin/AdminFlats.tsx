@@ -728,10 +728,16 @@ function FlatEditDialog({
       toast.error((data as any)?.error || error?.message || "Failed");
       return;
     }
+    const linkedCount = (data as any)?.linked_flat_count ?? 1;
+    const extraNote = linkedCount > 1
+      ? (lang === "bn"
+          ? ` (একই নম্বরের ${linkedCount}টি ফ্ল্যাট auto-link হয়েছে)`
+          : ` (auto-linked ${linkedCount} flats with same phone)`)
+      : "";
     toast.success(
       lang === "bn"
-        ? `লগইন তৈরি হয়েছে। ইউজারনেম: ${phone}, পাসওয়ার্ড: 12345678`
-        : `Login created. Username: ${phone}, Password: 12345678`,
+        ? `লগইন তৈরি হয়েছে। ইউজারনেম: ${phone}, পাসওয়ার্ড: 12345678${extraNote}`
+        : `Login created. Username: ${phone}, Password: 12345678${extraNote}`,
     );
     onSaved();
   };
