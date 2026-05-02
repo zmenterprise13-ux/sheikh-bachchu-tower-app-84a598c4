@@ -7,7 +7,7 @@ import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2 } from "lucide-react";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
 import { Camera } from "lucide-react";
+import { generateBillPdf } from "@/lib/billPdf";
 
 type Bill = {
   id: string;
@@ -23,8 +24,13 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
   total: number;
   paid_amount: number;
+  paid_at: string | null;
+  due_date: string | null;
+  generated_at: string | null;
   status: FlatStatus;
   generation_status: GenerationStatus;
 };
@@ -57,7 +63,7 @@ export default function OwnerDashboard() {
       setLoading(true);
       const [billRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
+          .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
           .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
