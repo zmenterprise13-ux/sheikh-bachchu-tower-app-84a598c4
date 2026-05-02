@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { BillGenerationTester } from "@/components/BillGenerationTester";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -315,6 +316,8 @@ export default function AdminSettings() {
                 <Save className="h-4 w-4" /> {t("save")}
               </Button>
             </div>
+
+            <BillGenerationTester />
           </div>
         )}
       </div>
