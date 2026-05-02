@@ -101,13 +101,20 @@ export default function AdminDashboard() {
     setLoading(true);
     let targetMonth = override;
     if (!targetMonth) {
-      // Find the latest month that has any generated bills
-      const latestRes = await supabase
-        .from("bills")
-        .select("month")
-        .order("month", { ascending: false })
-        .limit(1);
-      targetMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+      const saved = typeof window !== "undefined"
+        ? window.localStorage.getItem(MONTH_STORAGE_KEY)
+        : null;
+      if (saved && /^\d{4}-\d{2}$/.test(saved)) {
+        targetMonth = saved;
+      } else {
+        // Find the latest month that has any generated bills
+        const latestRes = await supabase
+          .from("bills")
+          .select("month")
+          .order("month", { ascending: false })
+          .limit(1);
+        targetMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+      }
       setMonth(targetMonth);
     }
 
