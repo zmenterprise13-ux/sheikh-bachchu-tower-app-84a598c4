@@ -173,10 +173,15 @@ export default function AdminDues() {
     for (const b of targets) {
       const currentVal = Number(b[bulkType] ?? 0);
       const newVal = bulkMode === "add" ? currentVal + amount : amount;
-      const patch: Record<string, unknown> = { [bulkType]: newVal };
+      const patch: {
+        eid_bonus?: number;
+        other_charge?: number;
+        other_note?: string | null;
+        other_due_date?: string | null;
+      } = { [bulkType]: newVal };
       if (bulkType === "other_charge") {
-        patch.other_note = bulkNote || b.other_note || null;
         if (newVal > 0) {
+          patch.other_note = bulkNote || b.other_note || null;
           patch.other_due_date = b.other_due_date ?? otherDueDate;
         } else {
           patch.other_due_date = null;
