@@ -79,7 +79,12 @@ export default function AdminDashboard() {
   const [prevBills, setPrevBills] = useState<Bill[]>([]);
   const [prevMonth, setPrevMonth] = useState<string>("");
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [month, setMonth] = useState<string>(currentMonth());
+  const MONTH_STORAGE_KEY = "admin_dashboard_month";
+  const [month, setMonth] = useState<string>(() => {
+    if (typeof window === "undefined") return currentMonth();
+    const saved = window.localStorage.getItem(MONTH_STORAGE_KEY);
+    return saved && /^\d{4}-\d{2}$/.test(saved) ? saved : currentMonth();
+  });
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
