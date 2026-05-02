@@ -65,6 +65,44 @@ export default function Auth() {
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
   };
 
+  const handleOwnerPhoneLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      phoneSchema.parse(ownerPhone);
+      passSchema.parse(ownerPass);
+    } catch {
+      toast.error(
+        lang === "bn"
+          ? "১১ সংখ্যার মোবাইল ও ৬+ অক্ষরের পাসওয়ার্ড দিন"
+          : "Enter an 11-digit phone and a 6+ char password",
+      );
+      return;
+    }
+    setSubmitting(true);
+    const { data, error } = await supabase.functions.invoke("owner-phone-login", {
+      body: { phone: ownerPhone, password: ownerPass },
+    });
+    if (error || (data as any)?.error || !(data as any)?.session) {
+      setSubmitting(false);
+      toast.error(
+        (data as any)?.error ||
+          (lang === "bn" ? "ভুল মোবাইল বা পাসওয়ার্ড" : "Invalid phone or password"),
+      );
+      return;
+    }
+    const session = (data as any).session;
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+    setSubmitting(false);
+    if (setErr) {
+      toast.error(setErr.message);
+      return;
+    }
+    toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
