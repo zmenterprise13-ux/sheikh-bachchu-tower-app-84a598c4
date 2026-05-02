@@ -51,6 +51,7 @@ export default function AdminReports() {
   const [to, setTo] = useState(currentMonth());
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -68,18 +69,22 @@ export default function AdminReports() {
 
       const [billsRes, expRes, flatsRes] = await Promise.all([
         supabase.from("bills")
-          .select("month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
+          .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
         supabase.from("expenses")
           .select("date, category, amount")
           .gte("date", monthStart).lt("date", monthEnd),
-        supabase.from("flats").select("id", { count: "exact", head: true }),
+        supabase.from("flats")
+          .select("id, flat_no, owner_name, owner_name_bn")
+          .order("flat_no", { ascending: true }),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
+      if (flatsRes.error) toast.error(flatsRes.error.message);
       setBills((billsRes.data ?? []) as Bill[]);
       setExpenses((expRes.data ?? []) as Expense[]);
-      setFlatCount(flatsRes.count ?? 0);
+      setFlats((flatsRes.data ?? []) as Flat[]);
+      setFlatCount((flatsRes.data ?? []).length);
       setLoading(false);
     })();
   }, [from, to, validRange]);
