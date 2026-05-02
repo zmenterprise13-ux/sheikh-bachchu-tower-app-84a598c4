@@ -52,7 +52,7 @@ export default function OwnerDashboard() {
       setLoading(true);
       const [billRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status")
+          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
           .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
