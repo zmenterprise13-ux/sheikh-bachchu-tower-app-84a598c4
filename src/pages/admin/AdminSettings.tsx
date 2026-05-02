@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { BillGenerationTester } from "@/components/BillGenerationTester";
+import { Switch } from "@/components/ui/switch";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -54,6 +56,20 @@ export default function AdminSettings() {
   const [form, setForm] = useState<Settings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { enabled: signupEnabled, loading: signupLoading, setSignupEnabled } = useSignupEnabled();
+  const [togglingSignup, setTogglingSignup] = useState(false);
+
+  const onToggleSignup = async (next: boolean) => {
+    setTogglingSignup(true);
+    const { error } = await setSignupEnabled(next);
+    setTogglingSignup(false);
+    if (error) toast.error(error.message);
+    else toast.success(
+      next
+        ? (lang === "bn" ? "সাইন আপ চালু হয়েছে" : "Sign up enabled")
+        : (lang === "bn" ? "সাইন আপ বন্ধ হয়েছে" : "Sign up disabled"),
+    );
+  };
 
   useEffect(() => {
     (async () => {
@@ -315,6 +331,27 @@ export default function AdminSettings() {
               <Button onClick={save} disabled={saving || errors.length > 0} className="gap-2 gradient-primary text-primary-foreground">
                 <Save className="h-4 w-4" /> {t("save")}
               </Button>
+            </div>
+
+            {/* Signup toggle */}
+            <div className="rounded-2xl bg-card border border-border p-5 shadow-soft">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-semibold text-foreground">
+                    {lang === "bn" ? "সাইন আপ অনুমতি" : "Allow Sign up"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {lang === "bn"
+                      ? "বন্ধ থাকলে Auth পেজে 'সাইন আপ' ট্যাব এবং অ্যাডমিন প্যানেলে 'ওনার লগইন তৈরি' বাটন কাজ করবে না।"
+                      : "When off, the Sign up tab on Auth page and the 'Create owner login' button in admin will be disabled."}
+                  </p>
+                </div>
+                <Switch
+                  checked={signupEnabled}
+                  onCheckedChange={onToggleSignup}
+                  disabled={signupLoading || togglingSignup}
+                />
+              </div>
             </div>
 
             <BillGenerationTester />

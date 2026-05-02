@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 type Flat = {
   id: string;
@@ -703,6 +704,7 @@ function FlatEditDialog({
   const [form, setForm] = useState<Flat | null>(null);
   const [saving, setSaving] = useState(false);
   const [creatingLogin, setCreatingLogin] = useState(false);
+  const { enabled: signupEnabled } = useSignupEnabled();
 
   useEffect(() => {
     setForm(flat);
@@ -710,6 +712,10 @@ function FlatEditDialog({
 
   const createLogin = async () => {
     if (!form) return;
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বর্তমানে বন্ধ আছে" : "Sign up is currently disabled");
+      return;
+    }
     const phone = (form.phone ?? "").trim();
     if (!/^\d{11}$/.test(phone)) {
       toast.error(
@@ -832,7 +838,7 @@ function FlatEditDialog({
               variant="outline"
               size="sm"
               onClick={createLogin}
-              disabled={creatingLogin}
+              disabled={creatingLogin || !signupEnabled}
               className="w-full"
             >
               {creatingLogin ? (
@@ -840,9 +846,11 @@ function FlatEditDialog({
               ) : (
                 <KeyRound className="h-4 w-4 mr-2" />
               )}
-              {lang === "bn"
-                ? "ওনার লগইন তৈরি করুন (পাসওয়ার্ড: 12345678)"
-                : "Create owner login (password: 12345678)"}
+              {!signupEnabled
+                ? (lang === "bn" ? "সাইন আপ বন্ধ আছে" : "Sign up is disabled")
+                : (lang === "bn"
+                    ? "ওনার লগইন তৈরি করুন (পাসওয়ার্ড: 12345678)"
+                    : "Create owner login (password: 12345678)")}
             </Button>
           </div>
 

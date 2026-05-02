@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
 const emailSchema = z.string().trim().email().max(255);
 const passSchema = z.string().min(6).max(72);
@@ -21,6 +22,7 @@ export default function Auth() {
   const { user, role, loading } = useAuth();
   const { t, lang } = useLang();
   const navigate = useNavigate();
+  const { enabled: signupEnabled } = useSignupEnabled();
 
   const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
@@ -45,6 +47,11 @@ export default function Auth() {
       navigate(role === "admin" ? "/admin" : "/owner", { replace: true });
     }
   }, [user, role, loading, navigate]);
+
+  // If signup got disabled while signup tab is open, switch away
+  useEffect(() => {
+    if (!signupEnabled && tab === "signup") setTab("phone");
+  }, [signupEnabled, tab]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +112,10 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বর্তমানে বন্ধ আছে" : "Sign up is currently disabled");
+      return;
+    }
     try {
       nameSchema.parse(name);
       emailSchema.parse(email);
@@ -159,10 +170,12 @@ export default function Auth() {
           </p>
 
           <Tabs value={tab} onValueChange={v => setTab(v as "phone" | "login" | "signup")} className="mt-6">
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className={`grid w-full ${signupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
               <TabsTrigger value="phone">{lang === "bn" ? "ওনার (মোবাইল)" : "Owner (Phone)"}</TabsTrigger>
               <TabsTrigger value="login">{lang === "bn" ? "ইমেইল" : "Email"}</TabsTrigger>
-              <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
+              {signupEnabled && (
+                <TabsTrigger value="signup">{lang === "bn" ? "সাইন আপ" : "Sign up"}</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="phone">
