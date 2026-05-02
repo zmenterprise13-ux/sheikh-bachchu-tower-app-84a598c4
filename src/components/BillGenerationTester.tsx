@@ -108,22 +108,63 @@ export function BillGenerationTester() {
             {" · "}
             <span className="font-mono text-xs">{result.status} · {result.durationMs}ms</span>
           </AlertTitle>
-          <AlertDescription className="space-y-2">
+          <AlertDescription className="space-y-3">
             {result.ok && result.data && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-2">
-                <Stat label={lang === "bn" ? "মাস" : "Month"} value={String(result.data.month)} />
-                <Stat label={lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats"} value={String(result.data.flats_total ?? 0)} />
-                <Stat label={lang === "bn" ? "ইতিমধ্যে বিল" : "Already billed"} value={String(result.data.already_billed ?? 0)} />
-                <Stat label={lang === "bn" ? "নতুন তৈরি" : "Inserted"} value={String(result.data.inserted ?? 0)} highlight />
-                <Stat label={lang === "bn" ? "ঈদ বোনাস" : "Eid included"} value={result.data.eid_included ? "Yes" : "No"} />
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-2">
+                  <Stat label={lang === "bn" ? "মাস" : "Month"} value={String(result.data.month)} />
+                  <Stat label={lang === "bn" ? "মোট ফ্ল্যাট" : "Total flats"} value={String(result.data.flats_total ?? 0)} />
+                  <Stat label={lang === "bn" ? "নতুন তৈরি" : "Inserted"} value={String(result.data.inserted ?? 0)} highlight />
+                  <Stat label={lang === "bn" ? "ব্যাকফিল মাস" : "Backfill"} value={String(result.data.backfill ?? 0)} />
+                </div>
+
+                {Array.isArray(result.data.months) && result.data.months.map((m: any) => (
+                  <div key={m.month} className="rounded-lg border border-border p-3 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="font-semibold text-sm">
+                        {m.month}
+                        {m.failed && (
+                          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-destructive/15 text-destructive border border-destructive/30 px-2 py-0.5 text-[10px] font-semibold">
+                            <XCircle className="h-3 w-3" /> {lang === "bn" ? "ব্যর্থ" : "Failed"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {lang === "bn" ? "ইনসার্ট" : "Inserted"}: <b className="text-success">{m.inserted}</b>
+                        {" · "}
+                        {lang === "bn" ? "স্কিপ" : "Skipped"}: <b className="text-muted-foreground">{m.already_billed}</b>
+                        {" · "}
+                        {lang === "bn" ? "ঈদ" : "Eid"}: {m.eid_included ? "✓" : "—"}
+                      </div>
+                    </div>
+                    {m.error && (
+                      <pre className="text-[10px] p-2 rounded bg-destructive/10 text-destructive overflow-x-auto whitespace-pre-wrap">{m.error}</pre>
+                    )}
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      <FlatList
+                        title={lang === "bn" ? "নতুন তৈরি ফ্ল্যাট" : "Inserted flats"}
+                        flats={m.inserted_flats ?? []}
+                        tone="success"
+                      />
+                      <FlatList
+                        title={lang === "bn" ? "স্কিপ হওয়া (ইতিমধ্যে বিল আছে)" : "Skipped (already billed)"}
+                        flats={m.skipped_flats ?? []}
+                        tone="muted"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
             {result.error && (
               <pre className="mt-2 p-2 rounded bg-muted text-xs overflow-x-auto whitespace-pre-wrap">{result.error}</pre>
             )}
-            <pre className="mt-2 p-2 rounded bg-muted/50 text-[10px] overflow-x-auto max-h-48">
-              {JSON.stringify({ startedAt: result.startedAt, response: result.data ?? null }, null, 2)}
-            </pre>
+            <details className="text-[10px]">
+              <summary className="cursor-pointer text-muted-foreground">{lang === "bn" ? "র Response" : "Raw response"}</summary>
+              <pre className="mt-1 p-2 rounded bg-muted/50 overflow-x-auto max-h-48">
+                {JSON.stringify({ startedAt: result.startedAt, response: result.data ?? null }, null, 2)}
+              </pre>
+            </details>
           </AlertDescription>
         </Alert>
       )}
@@ -136,6 +177,32 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
     <div className="rounded-md border border-border p-2">
       <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
       <div className={`font-semibold ${highlight ? "text-success" : "text-foreground"}`}>{value}</div>
+    </div>
+  );
+}
+
+function FlatList({
+  title, flats, tone,
+}: { title: string; flats: Array<{ id: string; flat_no: string }>; tone: "success" | "muted" }) {
+  const toneCls = tone === "success"
+    ? "border-success/30 bg-success/5"
+    : "border-border bg-muted/30";
+  return (
+    <div className={`rounded-md border p-2 ${toneCls}`}>
+      <div className="text-[10px] uppercase text-muted-foreground mb-1">
+        {title} ({flats.length})
+      </div>
+      {flats.length === 0 ? (
+        <div className="text-[11px] text-muted-foreground italic">—</div>
+      ) : (
+        <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+          {flats.map((f) => (
+            <span key={f.id} className="inline-block rounded border border-border bg-background px-1.5 py-0.5 text-[11px] font-mono">
+              {f.flat_no}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
