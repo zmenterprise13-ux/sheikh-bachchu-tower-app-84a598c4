@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
-import { TrendingUp, TrendingDown, Scale, Download, Printer } from "lucide-react";
+import { TrendingUp, TrendingDown, Scale, Download, Printer, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
