@@ -7,7 +7,7 @@ import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2 } from "lucide-react";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, KeyRound, Loader2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
 import { Camera } from "lucide-react";
+import { generateBillPdf } from "@/lib/billPdf";
 
 type Bill = {
   id: string;
@@ -23,8 +24,13 @@ type Bill = {
   service_charge: number;
   gas_bill: number;
   parking: number;
+  eid_bonus: number;
+  other_charge: number;
   total: number;
   paid_amount: number;
+  paid_at: string | null;
+  due_date: string | null;
+  generated_at: string | null;
   status: FlatStatus;
   generation_status: GenerationStatus;
 };
@@ -57,7 +63,7 @@ export default function OwnerDashboard() {
       setLoading(true);
       const [billRes, noticesRes] = await Promise.all([
         supabase.from("bills")
-          .select("id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
+          .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
           .eq("flat_id", flat.id).eq("month", month).maybeSingle(),
         supabase.from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
@@ -123,9 +129,44 @@ export default function OwnerDashboard() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
               <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
-              {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
+              <div className="flex items-center gap-2">
+                {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
+                {currentBill && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      try {
+                        generateBillPdf({
+                          flatNo: flat.flat_no,
+                          ownerName: flat.owner_name,
+                          month: currentBill.month,
+                          serviceCharge: Number(currentBill.service_charge),
+                          gasBill: Number(currentBill.gas_bill),
+                          parking: Number(currentBill.parking),
+                          eidBonus: Number(currentBill.eid_bonus),
+                          otherCharge: Number(currentBill.other_charge),
+                          total: Number(currentBill.total),
+                          paid: Number(currentBill.paid_amount),
+                          due: Math.max(0, Number(currentBill.total) - Number(currentBill.paid_amount)),
+                          dueDate: currentBill.due_date,
+                          paidAt: currentBill.paid_at,
+                          generatedOn: currentBill.generated_at,
+                        });
+                        toast.success(lang === "bn" ? "PDF ডাউনলোড শুরু হয়েছে" : "PDF download started");
+                      } catch (err: any) {
+                        toast.error(err.message ?? "PDF generation failed");
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    {t("download")}
+                  </Button>
+                )}
+              </div>
             </div>
             {loading ? (
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div>
