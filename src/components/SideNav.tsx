@@ -81,8 +81,14 @@ export function MobileNav() {
   const { role } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const all = role === "admin" ? adminNav : ownerNav;
-  const primary = all.slice(0, 4);
-  const overflow = all.slice(4);
+  // Mobile bottom-nav: show the 4 most-used pages; rest go under "More"
+  const primaryKeys: TKey[] = role === "admin"
+    ? ["dashboard", "dues", "ledger", "expenses"]
+    : ["dashboard", "myDues", "myPayments", "myLedger"];
+  const primary = primaryKeys
+    .map((k) => all.find((i) => i.key === k))
+    .filter((i): i is typeof all[number] => Boolean(i));
+  const overflow = all.filter((i) => !primaryKeys.includes(i.key));
 
   return (
     <nav className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
