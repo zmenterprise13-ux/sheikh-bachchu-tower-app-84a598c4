@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/StatCard";
 import { useLang } from "@/i18n/LangContext";
@@ -87,23 +87,26 @@ export default function AdminDashboard() {
     important: false,
   });
 
-  const loadData = async () => {
+  const loadData = async (override?: string) => {
     setLoading(true);
-    // Find the latest month that has any generated bills
-    const latestRes = await supabase
-      .from("bills")
-      .select("month")
-      .order("month", { ascending: false })
-      .limit(1);
-    const latestMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
-    setMonth(latestMonth);
+    let targetMonth = override;
+    if (!targetMonth) {
+      // Find the latest month that has any generated bills
+      const latestRes = await supabase
+        .from("bills")
+        .select("month")
+        .order("month", { ascending: false })
+        .limit(1);
+      targetMonth = (latestRes.data?.[0]?.month as string | undefined) ?? currentMonth();
+      setMonth(targetMonth);
+    }
 
     const [flatsRes, billsRes, noticesRes] = await Promise.all([
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
-        .eq("month", latestMonth),
+        .eq("month", targetMonth),
       supabase
         .from("notices")
         .select("id, title, title_bn, body, body_bn, important, date")
@@ -121,10 +124,18 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  const isFirstRun = useRef(true);
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Reload bills when user picks a different month (skip the initial auto-load)
+  useEffect(() => {
+    if (isFirstRun.current) { isFirstRun.current = false; return; }
+    loadData(month);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
 
   const stats = useMemo(() => {
     const totalService = bills.reduce((s, b) => s + Number(b.service_charge || 0), 0);
@@ -196,7 +207,19 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground mt-1">{monthLabel}</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-end">
+            <div className="flex flex-col">
+              <Label className="text-xs text-muted-foreground mb-1">
+                {lang === "bn" ? "মাস" : "Month"}
+              </Label>
+              <Input
+                type="month"
+                value={month}
+                max={currentMonth()}
+                onChange={(e) => e.target.value && setMonth(e.target.value)}
+                className="h-9 w-[160px]"
+              />
+            </div>
             <Button
               variant="outline"
               className="gap-2"
