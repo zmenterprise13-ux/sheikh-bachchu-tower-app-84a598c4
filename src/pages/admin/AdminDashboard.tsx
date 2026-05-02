@@ -207,7 +207,19 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground mt-1">{monthLabel}</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-end">
+            <div className="flex flex-col">
+              <Label className="text-xs text-muted-foreground mb-1">
+                {lang === "bn" ? "মাস" : "Month"}
+              </Label>
+              <Input
+                type="month"
+                value={month}
+                max={currentMonth()}
+                onChange={(e) => e.target.value && setMonth(e.target.value)}
+                className="h-9 w-[160px]"
+              />
+            </div>
             <Button
               variant="outline"
               className="gap-2"
