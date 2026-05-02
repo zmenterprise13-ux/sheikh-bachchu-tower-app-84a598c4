@@ -146,6 +146,16 @@ export default function AdminReports() {
     });
   }, [months, bills, expenses]);
 
+  // Running closing balance per month (starts from openingCash)
+  const perMonthRolling = useMemo(() => {
+    let running = openingCash;
+    return perMonth.map((r) => {
+      const opening = running;
+      running = opening + r.balance;
+      return { ...r, opening, closing: running };
+    });
+  }, [perMonth, openingCash]);
+
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
