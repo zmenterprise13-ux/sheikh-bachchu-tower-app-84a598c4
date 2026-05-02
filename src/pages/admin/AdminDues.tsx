@@ -63,6 +63,10 @@ export default function AdminDues() {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Bill | null>(null);
+  const [paying, setPaying] = useState<Bill | null>(null);
+  const [payDate, setPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [payAmount, setPayAmount] = useState<string>("");
+  const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
 
   const load = async (targetMonth: string) => {
