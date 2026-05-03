@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 import { Slider } from "@/components/ui/slider";
+import { useBkashSettings } from "@/hooks/useBkashSettings";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
