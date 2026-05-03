@@ -91,6 +91,35 @@ export default function AdminOwnersDirectory() {
   const east = useMemo(() => groupBySide("east"), [flats, lang]);
   const west = useMemo(() => groupBySide("west"), [flats, lang]);
 
+  const isTenantFlatTop = (f: Flat) =>
+    Boolean(f.occupant_name && f.occupant_name.trim()) ||
+    (f.occupant_type === "tenant" && Boolean(f.occupant_phone));
+
+  const stats = useMemo(() => {
+    const total = flats.length;
+    const eastCount = flats.filter((f) => sideOf(f.flat_no) === "east").length;
+    const westCount = flats.filter((f) => sideOf(f.flat_no) === "west").length;
+    const tenantCount = flats.filter(isTenantFlatTop).length;
+    const ownerOccupied = total - tenantCount;
+
+    // group all flats by owner across whole building
+    const map = new Map<string, { name: string; flats: Flat[] }>();
+    for (const f of flats) {
+      const key = (f.phone && f.phone.trim()) || `name:${(f.owner_name || "").trim().toLowerCase()}` || f.id;
+      if (!map.has(key)) {
+        map.set(key, {
+          name: (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name) || (lang === "bn" ? "অজানা" : "Unknown"),
+          flats: [],
+        });
+      }
+      map.get(key)!.flats.push(f);
+    }
+    const owners = Array.from(map.values()).sort((a, b) => b.flats.length - a.flats.length);
+    const uniqueOwners = owners.length;
+    const multiOwners = owners.filter((o) => o.flats.length > 1);
+    return { total, eastCount, westCount, tenantCount, ownerOccupied, uniqueOwners, multiOwners, owners };
+  }, [flats, lang]);
+
   const matches = (g: OwnerGroup) => {
     if (!q.trim()) return true;
     const s = q.toLowerCase();
