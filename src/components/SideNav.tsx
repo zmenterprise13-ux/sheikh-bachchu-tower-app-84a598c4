@@ -24,6 +24,7 @@ import {
   Building2,
   Box,
   ScanSearch,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -48,6 +49,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/notices", key: "notices", icon: Megaphone },
   { to: "/admin/committee", key: "committee" as TKey, icon: Users },
   { to: "/admin/settings", key: "settings", icon: SettingsIcon },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
 const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
@@ -60,6 +62,7 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
   { to: "/owner/notices", key: "notices", icon: Megaphone },
   { to: "/owner/reports", key: "reports", icon: FileBarChart },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
 export function SideNav() {

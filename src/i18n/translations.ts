@@ -84,6 +84,7 @@ export const translations: T = {
   otherNote: { bn: "বিবরণ", en: "Note" },
   billingSettings: { bn: "বিলিং সেটিংস", en: "Billing Settings" },
   settings: { bn: "সেটিংস", en: "Settings" },
+  changePassword: { bn: "পাসওয়ার্ড পরিবর্তন", en: "Change Password" },
   dueDay: { bn: "ডিউ-ডে", en: "Due Day" },
   status: { bn: "স্ট্যাটাস", en: "Status" },
   paid: { bn: "পরিশোধিত", en: "Paid" },
