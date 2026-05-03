@@ -163,19 +163,10 @@ function Building({
           position={[0, floors.length * FLOOR_H, 0]}
           fontSize={0.4}
           color="#10b981"
-            anchorX="center"
-          >
-            {lang === "bn" ? "পূর্ব" : "EAST"}
-          </Text>
-          <Text
-            position={[-SIDE_X, floors.length * FLOOR_H, 0]}
-            fontSize={0.4}
-            color="#10b981"
-            anchorX="center"
-          >
-            {lang === "bn" ? "পশ্চিম" : "WEST"}
-          </Text>
-        </>
+          anchorX="center"
+        >
+          {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
+        </Text>
       )}
     </group>
   );
