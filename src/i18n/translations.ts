@@ -17,6 +17,7 @@ export const translations: T = {
   flats: { bn: "ফ্ল্যাট সমূহ", en: "Flats" },
   flatsTable: { bn: "ফ্ল্যাট টেবিল", en: "Flats Table" },
   ownersDirectory: { bn: "মালিক তালিকা", en: "Owners List" },
+  buildingOverview: { bn: "বিল্ডিং সারসংক্ষেপ", en: "Building Overview" },
   shops: { bn: "দোকান", en: "Shops" },
   parkingNav: { bn: "পার্কিং", en: "Parking" },
   dues: { bn: "বকেয়া ও বিল", en: "Dues & Bills" },
