@@ -442,6 +442,10 @@ export default function AdminReports() {
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "বিল" : "Billed"}</th>
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
+                <th className="py-2 pr-3 text-right" title={lang === "bn" ? "শুধু তথ্য — লেজারে যোগ হয়নি" : "Info only — not in ledger"}>
+                  {lang === "bn" ? `বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%)` : `bKash Fee (${(bkash.fee_pct*100).toFixed(2)}%)`}
+                  <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
+                </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
@@ -455,6 +459,7 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(r.opening, lang)}</td>
                   <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
@@ -466,7 +471,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -475,6 +480,7 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(openingCash, lang)}</td>
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
+                <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
