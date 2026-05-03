@@ -78,6 +78,7 @@ export default function OwnerPayments() {
     const pick = b ?? dueBills[0];
     setBillId(pick?.id ?? "");
     setAmount(pick ? String(Number(pick.total) - Number(pick.paid_amount)) : "");
+    setMethodGroup("bkash");
     setMethod("bkash");
     setReference("");
     setNote("");
