@@ -603,6 +603,7 @@ function BillEditDialog({
         parking: form.parking,
         eid_bonus: form.eid_bonus,
         other_charge: form.other_charge,
+        arrears: form.arrears,
         other_note: form.other_note,
         other_due_date: otherDueDate,
       })
