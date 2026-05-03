@@ -103,7 +103,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -120,6 +120,13 @@ export default function AdminReports() {
         supabase.from("expenses")
           .select("amount")
           .lt("date", monthStart),
+        // bKash approved payments in range — for fee metadata only
+        supabase.from("payment_requests")
+          .select("amount, method, status, bills!inner(month)")
+          .eq("method", "bkash")
+          .eq("status", "approved")
+          .gte("bills.month", from)
+          .lte("bills.month", to),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -129,13 +136,25 @@ export default function AdminReports() {
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
 
+      const feeMap: Record<string, number> = {};
+      let feeTotal = 0;
+      for (const r of (bkashRes.data ?? []) as any[]) {
+        const m = r.bills?.month;
+        if (!m) continue;
+        const fee = round2(Number(r.amount) * bkash.fee_pct);
+        feeMap[m] = round2((feeMap[m] || 0) + fee);
+        feeTotal = round2(feeTotal + fee);
+      }
+      setBkashByMonth(feeMap);
+      setBkashTotal(feeTotal);
+
       const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
       const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
       setAutoOpening(prevIncome - prevExpense);
 
       setLoading(false);
     })();
-  }, [from, to, validRange]);
+  }, [from, to, validRange, bkash.fee_pct]);
 
   const months = useMemo(() => validRange ? enumerateMonths(from, to) : [], [from, to, validRange]);
 
