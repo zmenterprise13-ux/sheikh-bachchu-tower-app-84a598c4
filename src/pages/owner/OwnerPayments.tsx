@@ -76,6 +76,19 @@ export default function OwnerPayments() {
     refresh(flat.id);
   }, [flat, flatLoading]);
 
+  const dueBills = useMemo(() => bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0), [bills]);
+
+  const openSubmit = (b?: Bill) => {
+    const pick = b ?? dueBills[0];
+    setBillId(pick?.id ?? "");
+    setAmount(pick ? String(Number(pick.total) - Number(pick.paid_amount)) : "");
+    setMethodGroup("bkash");
+    setMethod("bkash");
+    setReference("");
+    setNote("");
+    setOpen(true);
+  };
+
   const [searchParams, setSearchParams] = useSearchParams();
   const autoOpenedRef = useRef(false);
   useEffect(() => {
@@ -92,19 +105,6 @@ export default function OwnerPayments() {
       setSearchParams(next, { replace: true });
     }
   }, [loading, flat, bills, dueBills, searchParams, setSearchParams]);
-
-  const dueBills = useMemo(() => bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0), [bills]);
-
-  const openSubmit = (b?: Bill) => {
-    const pick = b ?? dueBills[0];
-    setBillId(pick?.id ?? "");
-    setAmount(pick ? String(Number(pick.total) - Number(pick.paid_amount)) : "");
-    setMethodGroup("bkash");
-    setMethod("bkash");
-    setReference("");
-    setNote("");
-    setOpen(true);
-  };
 
   const submit = async () => {
     if (!flat || !billId || !amount) { toast.error(lang === "bn" ? "সব ফিল্ড পূরণ করুন" : "Fill all fields"); return; }
