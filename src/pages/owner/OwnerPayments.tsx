@@ -134,7 +134,7 @@ export default function OwnerPayments() {
     const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
     const { due, fee, total } = isBkash
-      ? fromTotal(Number(pr.amount), BKASH_FEE_PCT)
+      ? fromDue(Number(pr.amount), BKASH_FEE_PCT)
       : noFee(Number(pr.amount));
 
     // Header band
