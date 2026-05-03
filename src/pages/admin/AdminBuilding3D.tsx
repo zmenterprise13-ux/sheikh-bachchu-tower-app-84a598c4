@@ -108,30 +108,34 @@ function Building({
   }, [flats]);
 
   const FLOOR_H = 1.7;
-  const SIDE_X = 1.5;
+  const UNIT_W = 2.4;
+  const maxUnits = Math.max(1, ...floors.map(([, fs]) => fs.length));
+  const slabW = maxUnits * UNIT_W + 0.4;
 
   return (
     <group>
       {/* ground */}
       <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[20, 20]} />
+        <planeGeometry args={[Math.max(20, slabW + 6), 20]} />
         <meshStandardMaterial color="#1f2937" />
       </mesh>
 
       {floors.map(([floor, flatsOnFloor], i) => {
         const y = i * FLOOR_H;
-        const east = flatsOnFloor.find((f) => sideOf(f.flat_no) === "east");
-        const west = flatsOnFloor.find((f) => sideOf(f.flat_no) === "west");
+        const sorted = [...flatsOnFloor].sort((a, b) =>
+          a.flat_no.localeCompare(b.flat_no, undefined, { numeric: true })
+        );
+        const startX = -((sorted.length - 1) * UNIT_W) / 2;
         return (
           <group key={floor}>
             {/* slab */}
             <mesh position={[0, y - 0.78, 0]}>
-              <boxGeometry args={[5.2, 0.08, 1.8]} />
+              <boxGeometry args={[slabW, 0.08, 1.8]} />
               <meshStandardMaterial color="#475569" />
             </mesh>
             {/* floor label */}
             <Text
-              position={[-3.2, y, 0]}
+              position={[-slabW / 2 - 0.4, y, 0]}
               fontSize={0.35}
               color="#94a3b8"
               anchorX="right"
@@ -139,35 +143,26 @@ function Building({
             >
               {`F${floor}`}
             </Text>
-            {east && (
+            {sorted.map((f, idx) => (
               <FlatBox
-                flat={east}
-                position={[SIDE_X, y, 0]}
-                onClick={() => onSelect(east)}
-                selected={selectedId === east.id}
+                key={f.id}
+                flat={f}
+                position={[startX + idx * UNIT_W, y, 0]}
+                onClick={() => onSelect(f)}
+                selected={selectedId === f.id}
                 lang={lang}
               />
-            )}
-            {west && (
-              <FlatBox
-                flat={west}
-                position={[-SIDE_X, y, 0]}
-                onClick={() => onSelect(west)}
-                selected={selectedId === west.id}
-                lang={lang}
-              />
-            )}
+            ))}
           </group>
         );
       })}
 
-      {/* side labels */}
+      {/* top label */}
       {floors.length > 0 && (
-        <>
-          <Text
-            position={[SIDE_X, floors.length * FLOOR_H, 0]}
-            fontSize={0.4}
-            color="#10b981"
+        <Text
+          position={[0, floors.length * FLOOR_H, 0]}
+          fontSize={0.4}
+          color="#10b981"
             anchorX="center"
           >
             {lang === "bn" ? "পূর্ব" : "EAST"}
