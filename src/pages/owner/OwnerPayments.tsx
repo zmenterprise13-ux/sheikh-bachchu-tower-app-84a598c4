@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
+import { fromDue, fromTotal, noFee } from "@/lib/bkashMath";
 
 type Bill = {
   id: string;
@@ -55,7 +56,6 @@ export default function OwnerPayments() {
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const round2 = (n: number) => Math.round(n * 100) / 100;
 
   const refresh = async (fid: string) => {
     setLoading(true);
@@ -95,7 +95,7 @@ export default function OwnerPayments() {
       bill_id: billId,
       flat_id: flat.id,
       submitted_by: user?.id,
-      amount: methodGroup === "bkash" ? round2(Number(amount) * (1 + BKASH_FEE_PCT)) : round2(Number(amount)),
+      amount: methodGroup === "bkash" ? fromDue(Number(amount), BKASH_FEE_PCT).total : noFee(Number(amount)).total,
       method, reference: reference || null, note: note || null,
       status: "pending",
     });
@@ -111,10 +111,10 @@ export default function OwnerPayments() {
     doc.setFontSize(16);
     doc.text("Payment Receipt", 14, 18);
     doc.setFontSize(11);
-    const total = Number(pr.amount);
     const isBkash = pr.method === "bkash";
-    const due = round2(isBkash ? total / (1 + BKASH_FEE_PCT) : total);
-    const fee = round2(isBkash ? total - due : 0);
+    const { due, fee, total } = isBkash
+      ? fromTotal(Number(pr.amount), BKASH_FEE_PCT)
+      : noFee(Number(pr.amount));
     const lines = [
       `Flat: ${flat?.flat_no ?? "-"}`,
       `Owner: ${flat?.owner_name ?? "-"}`,
@@ -205,9 +205,11 @@ export default function OwnerPayments() {
             {methodGroup === "bkash" ? (
               <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-1">
                 <div>{lang === "bn" ? "বিকাশ নাম্বার" : "bKash Number"}: <span className="font-mono font-bold">{BKASH_NUMBER}</span> <span className="text-xs text-muted-foreground">({lang === "bn" ? "সেন্ড মানি" : "Send Money"})</span></div>
-                <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">৳ {round2(Number(amount || 0)).toFixed(2)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? `বিকাশ চার্জ (${(BKASH_FEE_PCT*100).toFixed(2)}%)` : `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%)`}</span><span>৳ {round2(Number(amount || 0) * BKASH_FEE_PCT).toFixed(2)}</span></div>
-                <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>৳ {round2(Number(amount || 0) * (1 + BKASH_FEE_PCT)).toFixed(2)}</span></div>
+                {(() => { const b = fromDue(Number(amount || 0), BKASH_FEE_PCT); return (<>
+                  <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">৳ {b.due.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? `বিকাশ চার্জ (${(BKASH_FEE_PCT*100).toFixed(2)}%)` : `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%)`}</span><span>৳ {b.fee.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>৳ {b.total.toFixed(2)}</span></div>
+                </>); })()}
               </div>
             ) : (
               <div>
