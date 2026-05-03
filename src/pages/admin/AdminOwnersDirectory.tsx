@@ -91,35 +91,6 @@ export default function AdminOwnersDirectory() {
   const east = useMemo(() => groupBySide("east"), [flats, lang]);
   const west = useMemo(() => groupBySide("west"), [flats, lang]);
 
-  const isTenantFlatTop = (f: Flat) =>
-    Boolean(f.occupant_name && f.occupant_name.trim()) ||
-    (f.occupant_type === "tenant" && Boolean(f.occupant_phone));
-
-  const stats = useMemo(() => {
-    const total = flats.length;
-    const eastCount = flats.filter((f) => sideOf(f.flat_no) === "east").length;
-    const westCount = flats.filter((f) => sideOf(f.flat_no) === "west").length;
-    const tenantCount = flats.filter(isTenantFlatTop).length;
-    const ownerOccupied = total - tenantCount;
-
-    // group all flats by owner across whole building
-    const map = new Map<string, { name: string; flats: Flat[] }>();
-    for (const f of flats) {
-      const key = (f.phone && f.phone.trim()) || `name:${(f.owner_name || "").trim().toLowerCase()}` || f.id;
-      if (!map.has(key)) {
-        map.set(key, {
-          name: (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name) || (lang === "bn" ? "অজানা" : "Unknown"),
-          flats: [],
-        });
-      }
-      map.get(key)!.flats.push(f);
-    }
-    const owners = Array.from(map.values()).sort((a, b) => b.flats.length - a.flats.length);
-    const uniqueOwners = owners.length;
-    const multiOwners = owners.filter((o) => o.flats.length > 1);
-    return { total, eastCount, westCount, tenantCount, ownerOccupied, uniqueOwners, multiOwners, owners };
-  }, [flats, lang]);
-
   const matches = (g: OwnerGroup) => {
     if (!q.trim()) return true;
     const s = q.toLowerCase();
@@ -265,54 +236,6 @@ export default function AdminOwnersDirectory() {
             />
           </div>
         </div>
-
-        {!loading && (
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {[
-                { label: lang === "bn" ? "মোট ফ্ল্যাট" : "Total Flats", value: stats.total },
-                { label: lang === "bn" ? "পূর্ব পাশ" : "East Side", value: stats.eastCount },
-                { label: lang === "bn" ? "পশ্চিম পাশ" : "West Side", value: stats.westCount },
-                { label: lang === "bn" ? "মালিক নিজে" : "Owner-occupied", value: stats.ownerOccupied },
-                { label: lang === "bn" ? "ভাড়াটিয়া" : "Tenants", value: stats.tenantCount },
-                { label: lang === "bn" ? "মোট মালিক" : "Unique Owners", value: stats.uniqueOwners },
-              ].map((s) => (
-                <div key={s.label} className="rounded-xl bg-muted/40 p-3">
-                  <div className="text-xs text-muted-foreground">{s.label}</div>
-                  <div className="text-xl font-bold text-foreground mt-1">{s.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {stats.multiOwners.length > 0 && (
-              <div>
-                <div className="text-sm font-semibold text-foreground mb-2">
-                  {lang === "bn" ? "একাধিক ফ্ল্যাটের মালিক" : "Owners with multiple flats"}
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {stats.multiOwners.map((o, i) => (
-                    <div key={i} className="rounded-lg border border-border/60 bg-background/40 p-2.5 flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm truncate flex-1 min-w-0">{o.name}</span>
-                      <Badge variant="secondary" className="gap-1">
-                        <Home className="h-3 w-3" />{o.flats.length}
-                      </Badge>
-                      <div className="flex flex-wrap gap-1 w-full">
-                        {o.flats
-                          .slice()
-                          .sort((a, b) => a.flat_no.localeCompare(b.flat_no))
-                          .map((f) => (
-                            <Badge key={f.id} variant="outline" className="text-[10px] py-0 px-1.5">
-                              {f.flat_no}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {loading ? (
           <Skeleton className="h-96 rounded-2xl" />

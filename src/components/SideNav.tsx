@@ -21,6 +21,7 @@ import {
   MoreHorizontal,
   Users,
   Table as TableIcon,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -31,6 +32,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/flats", key: "flats", icon: Building },
   { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
   { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+  { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
   { to: "/admin/shops", key: "shops", icon: Store },
   { to: "/admin/parking", key: "parkingNav", icon: Car },
   { to: "/admin/dues", key: "dues", icon: Receipt },
