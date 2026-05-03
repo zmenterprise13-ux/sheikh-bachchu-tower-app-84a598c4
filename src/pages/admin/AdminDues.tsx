@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
-import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,10 @@ export default function AdminDues() {
   const [bulkMode, setBulkMode] = useState<"add" | "set">("add");
   const [bulkScope, setBulkScope] = useState<"all" | "filtered">("all");
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkPayOpen, setBulkPayOpen] = useState(false);
+  const [bulkPayDate, setBulkPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [bulkPayScope, setBulkPayScope] = useState<"all" | "filtered">("filtered");
+  const [bulkPaySaving, setBulkPaySaving] = useState(false);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
@@ -217,6 +221,48 @@ export default function AdminDues() {
     }
   };
 
+  const applyBulkPay = async () => {
+    if (!bulkPayDate) {
+      toast.error(lang === "bn" ? "তারিখ দিন" : "Pick a date");
+      return;
+    }
+    const targets = (bulkPayScope === "filtered" ? visible : bills).filter(
+      (b) => Number(b.total) - Number(b.paid_amount) > 0
+    );
+    if (targets.length === 0) {
+      toast.error(lang === "bn" ? "কোনো বকেয়া বিল নেই" : "No unpaid bills");
+      return;
+    }
+    setBulkPaySaving(true);
+    const updated: Bill[] = [];
+    let failed = 0;
+    for (const b of targets) {
+      const total = Number(b.total);
+      const { data, error } = await supabase
+        .from("bills")
+        .update({ status: "paid", paid_amount: total, paid_at: bulkPayDate })
+        .eq("id", b.id)
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .single();
+      if (error || !data) { failed++; continue; }
+      updated.push(data as Bill);
+    }
+    setBulkPaySaving(false);
+    if (updated.length > 0) {
+      setBills((prev) => prev.map((x) => updated.find((u) => u.id === x.id) ?? x));
+    }
+    if (failed === 0) {
+      toast.success(lang === "bn"
+        ? `${updated.length} টি বিল পরিশোধিত হিসেবে চিহ্নিত হয়েছে`
+        : `${updated.length} bills marked paid`);
+      setBulkPayOpen(false);
+    } else {
+      toast.error(lang === "bn"
+        ? `${updated.length} সফল, ${failed} ব্যর্থ`
+        : `${updated.length} succeeded, ${failed} failed`);
+    }
+  };
+
   const filterChips: { key: Filter; label: string }[] = [
     { key: "all",     label: lang === "bn" ? "সব" : "All" },
     { key: "unpaid",  label: t("unpaid") },
@@ -303,6 +349,19 @@ export default function AdminDues() {
           >
             <Layers className="h-3.5 w-3.5" />
             {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"}
+          </Button>
+          <Button
+            size="sm"
+            className="gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+            onClick={() => {
+              setBulkPayDate(new Date().toISOString().slice(0, 10));
+              setBulkPayScope("filtered");
+              setBulkPayOpen(true);
+            }}
+            disabled={loading || bills.length === 0}
+          >
+            <Wallet className="h-3.5 w-3.5" />
+            {lang === "bn" ? "বাল্ক পরিশোধ" : "Bulk mark paid"}
           </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -540,6 +599,79 @@ export default function AdminDues() {
             <Button variant="outline" onClick={() => setBulkOpen(false)} disabled={bulkSaving}>{t("cancel")}</Button>
             <Button onClick={applyBulk} disabled={bulkSaving}>
               {bulkSaving ? (lang === "bn" ? "চলছে..." : "Applying...") : (lang === "bn" ? "প্রয়োগ করো" : "Apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkPayOpen} onOpenChange={(o) => !bulkPaySaving && setBulkPayOpen(o)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "bn" ? "বাল্ক পরিশোধ" : "Bulk mark paid"} — {formatMonthLabel(month, lang)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</Label>
+              <Input
+                type="date"
+                value={bulkPayDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setBulkPayDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">
+                {lang === "bn" ? "প্রযোজ্য" : "Apply to"}
+              </Label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkPayScope("filtered")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkPayScope === "filtered"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn"
+                    ? `ফিল্টারকৃত বকেয়া (${visible.filter(b => Number(b.total) - Number(b.paid_amount) > 0).length})`
+                    : `Filtered unpaid (${visible.filter(b => Number(b.total) - Number(b.paid_amount) > 0).length})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkPayScope("all")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-base",
+                    bulkPayScope === "all"
+                      ? "border-primary text-primary bg-primary/5"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  )}
+                >
+                  {lang === "bn"
+                    ? `সব বকেয়া (${bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0).length})`
+                    : `All unpaid (${bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0).length})`}
+                </button>
+              </div>
+            </div>
+            <div className="rounded-lg bg-warning/10 border border-warning/30 px-3 py-2 text-xs text-foreground">
+              {lang === "bn"
+                ? "প্রতিটি নির্বাচিত বিল সম্পূর্ণ পরিশোধিত হিসেবে চিহ্নিত হবে এবং উপরের তারিখে paid_at সেট হবে।"
+                : "Each selected bill will be fully marked paid with paid_at set to the date above."}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkPayOpen(false)} disabled={bulkPaySaving}>{t("cancel")}</Button>
+            <Button
+              onClick={applyBulkPay}
+              disabled={bulkPaySaving}
+              className="bg-success text-success-foreground hover:bg-success/90"
+            >
+              {bulkPaySaving
+                ? (lang === "bn" ? "চলছে..." : "Applying...")
+                : (lang === "bn" ? "এক ক্লিকে পরিশোধ" : "Mark all paid")}
             </Button>
           </DialogFooter>
         </DialogContent>
