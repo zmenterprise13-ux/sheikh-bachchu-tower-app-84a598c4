@@ -79,8 +79,13 @@ export default function OwnerDues() {
                     {t("serviceCharge")}: {formatMoney(Number(b.service_charge), lang)} · {t("gasBill")}: {formatMoney(Number(b.gas_bill), lang)}
                     {Number(b.parking) > 0 && ` · ${t("parking")}: ${formatMoney(Number(b.parking), lang)}`}
                   </div>
-                  {(eid > 0 || other > 0) && (
+                  {(eid > 0 || other > 0 || Number(b.arrears) > 0) && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
+                      {Number(b.arrears) > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 text-destructive text-[11px] font-semibold px-2 py-0.5">
+                          {lang === "bn" ? "পূর্বের বাকি" : "Arrears"}: {formatMoney(Number(b.arrears), lang)}
+                        </span>
+                      )}
                       {eid > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning text-[11px] font-semibold px-2 py-0.5">
                           🎉 {t("eidBonus")}: {formatMoney(eid, lang)}
