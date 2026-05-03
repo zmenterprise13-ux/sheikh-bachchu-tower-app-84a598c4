@@ -19,6 +19,7 @@ import {
   BookOpen,
   Menu,
   MoreHorizontal,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -35,6 +36,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
   { to: "/admin/reports", key: "reports", icon: FileBarChart },
   { to: "/admin/notices", key: "notices", icon: Megaphone },
+  { to: "/admin/committee", key: "committee" as TKey, icon: Users },
   { to: "/admin/settings", key: "settings", icon: SettingsIcon },
 ];
 
