@@ -53,7 +53,7 @@ export const translations: T = {
   submit: { bn: "জমা দিন", en: "Submit" },
   approve: { bn: "অনুমোদন", en: "Approve" },
   reject: { bn: "বাতিল", en: "Reject" },
-  pending: { bn: "অপেক্ষমান", en: "Pending" },
+  pendingStatus: { bn: "অপেক্ষমান", en: "Pending" },
   approved: { bn: "অনুমোদিত", en: "Approved" },
   rejected: { bn: "প্রত্যাখ্যাত", en: "Rejected" },
   paymentRequests: { bn: "পেমেন্ট অনুরোধ", en: "Payment Requests" },
