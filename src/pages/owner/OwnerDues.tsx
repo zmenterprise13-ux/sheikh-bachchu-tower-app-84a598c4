@@ -32,6 +32,7 @@ export default function OwnerDues() {
   const { flat, loading: flatLoading } = useOwnerFlat();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!flat) {
