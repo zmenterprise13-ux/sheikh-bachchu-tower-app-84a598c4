@@ -409,11 +409,12 @@ function OwnerAvatarUpload({
   };
 
   return (
-    <div className="relative shrink-0">
-      <Avatar className="h-16 w-16 border-2 border-white/40 shadow-lg">
-        {localUrl ? <AvatarImage src={localUrl} alt={ownerName ?? "Owner"} /> : null}
+    <div className="relative shrink-0 group">
+      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
+      <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30">
+        {localUrl ? <AvatarImage src={localUrl} alt={ownerName ?? "Owner"} className="object-cover" /> : null}
         <AvatarFallback className="bg-white/20 text-primary-foreground">
-          <Home className="h-7 w-7" />
+          <Home className="h-10 w-10" />
         </AvatarFallback>
       </Avatar>
       <button
@@ -421,7 +422,7 @@ function OwnerAvatarUpload({
         onClick={() => inputRef.current?.click()}
         disabled={busy}
         aria-label={lang === "bn" ? "ছবি পরিবর্তন" : "Change photo"}
-        className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-accent text-accent-foreground shadow-md flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-60"
+        className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60"
       >
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
       </button>
