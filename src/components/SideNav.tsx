@@ -23,6 +23,7 @@ import {
   Table as TableIcon,
   Building2,
   Box,
+  ScanSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -40,6 +41,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/dues", key: "dues", icon: Receipt },
   { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
   { to: "/admin/ledger", key: "ledger", icon: BookOpen },
+  { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
   { to: "/admin/expenses", key: "expenses", icon: Wallet },
   { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
   { to: "/admin/reports", key: "reports", icon: FileBarChart },

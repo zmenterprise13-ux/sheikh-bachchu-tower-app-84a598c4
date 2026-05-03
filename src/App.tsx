@@ -27,6 +27,7 @@ import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
+import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/admin/dues" element={<ProtectedRoute requireRole="admin"><AdminDues /></ProtectedRoute>} />
               <Route path="/admin/payment-requests" element={<ProtectedRoute requireRole="admin"><AdminPaymentRequests /></ProtectedRoute>} />
               <Route path="/admin/ledger" element={<ProtectedRoute requireRole="admin"><AdminLedger /></ProtectedRoute>} />
+              <Route path="/admin/reconcile" element={<ProtectedRoute requireRole="admin"><AdminReconcile /></ProtectedRoute>} />
               <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
               <Route path="/admin/loans" element={<ProtectedRoute requireRole="admin"><AdminLoans /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
