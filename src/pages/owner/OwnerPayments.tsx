@@ -126,30 +126,129 @@ export default function OwnerPayments() {
   };
 
   const downloadReceipt = (pr: PR) => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Payment Receipt", 14, 18);
-    doc.setFontSize(11);
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
     const { due, fee, total } = isBkash
       ? fromTotal(Number(pr.amount), BKASH_FEE_PCT)
       : noFee(Number(pr.amount));
-    const lines = [
-      `Flat: ${flat?.flat_no ?? "-"}`,
-      `Owner: ${flat?.owner_name ?? "-"}`,
-      `Month: ${pr.bills?.month ?? "-"}`,
-      `Method: ${pr.method}`,
-      `Reference: ${pr.reference ?? "-"}`,
-      `Status: ${pr.status}`,
-      `Submitted: ${new Date(pr.created_at).toLocaleString()}`,
-      `Approved: ${pr.reviewed_at ? new Date(pr.reviewed_at).toLocaleString() : "-"}`,
-      ``,
-      `Due (base):     BDT ${due.toFixed(2)}`,
-      `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%): BDT ${fee.toFixed(2)}`,
-      `Total Payable:  BDT ${total.toFixed(2)}`,
-    ];
-    lines.forEach((l, i) => doc.text(l, 14, 32 + i * 8));
-    doc.save(`receipt-${pr.id.slice(0,8)}.pdf`);
+
+    // Header band
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, W, 32, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("PAYMENT RECEIPT", 14, 18);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Apartment Owners Association", 14, 26);
+
+    // Receipt # / date on the right
+    doc.setFontSize(9);
+    const rNo = `Receipt #: ${pr.id.slice(0, 8).toUpperCase()}`;
+    const rDate = `Date: ${new Date(pr.reviewed_at ?? pr.created_at).toLocaleDateString()}`;
+    doc.text(rNo, W - 14, 18, { align: "right" });
+    doc.text(rDate, W - 14, 24, { align: "right" });
+
+    // Status badge
+    doc.setTextColor(15, 23, 42);
+    const badgeColor: [number, number, number] =
+      pr.status === "approved" ? [34, 197, 94] : pr.status === "rejected" ? [239, 68, 68] : [234, 179, 8];
+    doc.setFillColor(...badgeColor);
+    doc.roundedRect(W - 44, 38, 30, 8, 2, 2, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(pr.status.toUpperCase(), W - 29, 43.5, { align: "center" });
+
+    // Bill-to section
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("BILLED TO", 14, 44);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`${flat?.owner_name ?? "-"}`, 14, 51);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Flat: ${flat?.flat_no ?? "-"}`, 14, 57);
+    doc.text(`For Month: ${pr.bills?.month ?? "-"}`, 14, 63);
+
+    // Divider
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, 70, W - 14, 70);
+
+    // Payment method block (with bKash logo if applicable)
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("PAYMENT METHOD", 14, 80);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    if (isBkash) {
+      try { doc.addImage(bkashLogo, "PNG", 14, 84, 12, 12); } catch {}
+      doc.setTextColor(226, 19, 110);
+      doc.text("bKash", 30, 92);
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Send Money to: ${BKASH_NUMBER}`, 30, 97);
+    } else {
+      doc.text(pr.method.toUpperCase(), 14, 88);
+    }
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Reference: ${pr.reference ?? "-"}`, W - 14, 88, { align: "right" });
+    doc.text(`Submitted: ${new Date(pr.created_at).toLocaleString()}`, W - 14, 94, { align: "right" });
+    if (pr.reviewed_at) doc.text(`Approved: ${new Date(pr.reviewed_at).toLocaleString()}`, W - 14, 100, { align: "right" });
+
+    // Amount table
+    const tY = 112;
+    doc.setFillColor(241, 245, 249);
+    doc.rect(14, tY, W - 28, 9, "F");
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("DESCRIPTION", 18, tY + 6);
+    doc.text("AMOUNT (BDT)", W - 18, tY + 6, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    let row = tY + 17;
+    doc.text("Due (base)", 18, row);
+    doc.text(due.toFixed(2), W - 18, row, { align: "right" });
+    if (isBkash) {
+      row += 8;
+      doc.text(`bKash Fee (${(BKASH_FEE_PCT * 100).toFixed(2)}%)`, 18, row);
+      doc.text(fee.toFixed(2), W - 18, row, { align: "right" });
+    }
+    row += 4;
+    doc.setDrawColor(203, 213, 225);
+    doc.line(14, row, W - 14, row);
+    row += 8;
+
+    // Total row
+    doc.setFillColor(15, 23, 42);
+    doc.rect(14, row - 6, W - 28, 11, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("TOTAL PAID", 18, row + 1);
+    doc.text(`BDT ${total.toFixed(2)}`, W - 18, row + 1, { align: "right" });
+
+    // Footer
+    doc.setTextColor(148, 163, 184);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 280, { align: "center" });
+    doc.text("Thank you for your payment.", W / 2, 285, { align: "center" });
+
+    doc.save(`receipt-${pr.id.slice(0, 8)}.pdf`);
   };
 
   const statusIcon = (s: string) => s === "approved" ? <CheckCircle2 className="h-4 w-4 text-success"/> : s === "rejected" ? <XCircle className="h-4 w-4 text-destructive"/> : <Clock className="h-4 w-4 text-warning"/>;
