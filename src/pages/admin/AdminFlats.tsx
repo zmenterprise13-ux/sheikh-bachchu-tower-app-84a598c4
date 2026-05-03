@@ -5,7 +5,7 @@ import { formatMoney, formatNumber } from "@/i18n/translations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Phone, Home, Pencil, Wallet, CalendarIcon, BookOpen, Printer, KeyRound, Loader2 } from "lucide-react";
+import { Search, Phone, Home, Pencil, Wallet, CalendarIcon, BookOpen, Printer, KeyRound, Loader2, Plus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
