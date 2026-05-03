@@ -46,7 +46,10 @@ export default function OwnerPayments() {
   const [open, setOpen] = useState(false);
   const [billId, setBillId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [methodGroup, setMethodGroup] = useState<"bkash"|"others">("bkash");
   const [method, setMethod] = useState<string>("bkash");
+  const BKASH_NUMBER = "01613458260";
+  const BKASH_FEE_PCT = 0.02;
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
