@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
+import { NoticeTicker } from "@/components/NoticeTicker";
 
 export default function Index() {
   const { t, lang } = useLang();
@@ -88,6 +89,8 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      <NoticeTicker />
 
       {/* Features */}
       <section className="container py-16 sm:py-24">
