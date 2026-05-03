@@ -205,9 +205,9 @@ export default function OwnerPayments() {
             {methodGroup === "bkash" ? (
               <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-1">
                 <div>{lang === "bn" ? "বিকাশ নাম্বার" : "bKash Number"}: <span className="font-mono font-bold">{BKASH_NUMBER}</span> <span className="text-xs text-muted-foreground">({lang === "bn" ? "সেন্ড মানি" : "Send Money"})</span></div>
-                <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">{formatMoney(Number(amount || 0), lang)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? `বিকাশ চার্জ (${(BKASH_FEE_PCT*100).toFixed(2)}%)` : `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%)`}</span><span>{formatMoney(Number(amount || 0) * BKASH_FEE_PCT, lang)}</span></div>
-                <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>{formatMoney(Number(amount || 0) * (1 + BKASH_FEE_PCT), lang)}</span></div>
+                <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">৳ {round2(Number(amount || 0)).toFixed(2)}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? `বিকাশ চার্জ (${(BKASH_FEE_PCT*100).toFixed(2)}%)` : `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%)`}</span><span>৳ {round2(Number(amount || 0) * BKASH_FEE_PCT).toFixed(2)}</span></div>
+                <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>৳ {round2(Number(amount || 0) * (1 + BKASH_FEE_PCT)).toFixed(2)}</span></div>
               </div>
             ) : (
               <div>
