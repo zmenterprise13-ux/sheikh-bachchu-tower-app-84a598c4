@@ -8,6 +8,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 import { NoticeTicker } from "@/components/NoticeTicker";
+import { CommitteeSection } from "@/components/CommitteeSection";
 
 export default function Index() {
   const { t, lang } = useLang();
