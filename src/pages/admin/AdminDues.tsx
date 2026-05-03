@@ -76,6 +76,10 @@ export default function AdminDues() {
   const [bulkMode, setBulkMode] = useState<"add" | "set">("add");
   const [bulkScope, setBulkScope] = useState<"all" | "filtered">("all");
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkPayOpen, setBulkPayOpen] = useState(false);
+  const [bulkPayDate, setBulkPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [bulkPayScope, setBulkPayScope] = useState<"all" | "filtered">("filtered");
+  const [bulkPaySaving, setBulkPaySaving] = useState(false);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
