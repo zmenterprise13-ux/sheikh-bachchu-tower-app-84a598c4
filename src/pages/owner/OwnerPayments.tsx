@@ -138,11 +138,14 @@ export default function OwnerPayments() {
     doc.rect(0, 0, W, 32, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("PAYMENT RECEIPT", 14, 18);
+    doc.setFontSize(18);
+    doc.text("SHEIKH BACCHU TOWER SOCIETY", 14, 14);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Apartment Owners Association", 14, 26);
+    doc.setFontSize(9);
+    doc.text("14/2, Sheikh Bacchu Tower, Mokterbari Road, Tongi, Gazipur", 14, 20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("PAYMENT RECEIPT", 14, 28);
 
     // Receipt # / date on the right
     doc.setFontSize(9);
