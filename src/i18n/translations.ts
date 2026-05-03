@@ -15,6 +15,7 @@ export const translations: T = {
   // Nav
   dashboard: { bn: "ড্যাশবোর্ড", en: "Dashboard" },
   flats: { bn: "ফ্ল্যাট সমূহ", en: "Flats" },
+  flatsTable: { bn: "ফ্ল্যাট টেবিল", en: "Flats Table" },
   shops: { bn: "দোকান", en: "Shops" },
   parkingNav: { bn: "পার্কিং", en: "Parking" },
   dues: { bn: "বকেয়া ও বিল", en: "Dues & Bills" },
