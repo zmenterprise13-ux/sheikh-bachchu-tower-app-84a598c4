@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
+import { fromDue, fromTotal, noFee, round2 } from "@/lib/bkashMath";
 
 type Bill = {
   id: string;
