@@ -113,8 +113,8 @@ export default function OwnerPayments() {
     doc.setFontSize(11);
     const total = Number(pr.amount);
     const isBkash = pr.method === "bkash";
-    const due = isBkash ? total / (1 + BKASH_FEE_PCT) : total;
-    const fee = isBkash ? total - due : 0;
+    const due = round2(isBkash ? total / (1 + BKASH_FEE_PCT) : total);
+    const fee = round2(isBkash ? total - due : 0);
     const lines = [
       `Flat: ${flat?.flat_no ?? "-"}`,
       `Owner: ${flat?.owner_name ?? "-"}`,
