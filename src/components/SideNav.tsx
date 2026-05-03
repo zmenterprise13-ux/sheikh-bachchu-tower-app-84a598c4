@@ -30,6 +30,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin", key: "dashboard", icon: LayoutDashboard },
   { to: "/admin/flats", key: "flats", icon: Building },
   { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
+  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
   { to: "/admin/shops", key: "shops", icon: Store },
   { to: "/admin/parking", key: "parkingNav", icon: Car },
   { to: "/admin/dues", key: "dues", icon: Receipt },
