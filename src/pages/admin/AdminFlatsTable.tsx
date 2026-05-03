@@ -261,9 +261,11 @@ export default function AdminFlatsTable() {
                       <TableCell className="font-semibold">{row.flat_no}</TableCell>
                       <TableCell>{renderPhoto(row, "owner_photo_url")}</TableCell>
                       <TableCell>{renderText(row, "owner_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "owner_name_bn", "w-40")}</TableCell>
                       <TableCell>{renderText(row, "phone", "w-32")}</TableCell>
                       <TableCell>{renderPhoto(row, "occupant_photo_url")}</TableCell>
                       <TableCell>{renderText(row, "occupant_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "occupant_name_bn", "w-40")}</TableCell>
                       <TableCell>{renderText(row, "occupant_phone", "w-32")}</TableCell>
                       <TableCell>{renderNum(row, "service_charge")}</TableCell>
                       <TableCell>{renderNum(row, "gas_bill")}</TableCell>
