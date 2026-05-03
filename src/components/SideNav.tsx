@@ -23,6 +23,7 @@ import {
   Table as TableIcon,
   Building2,
   Box,
+  ScanSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
