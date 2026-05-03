@@ -211,6 +211,48 @@ export type Database = {
           },
         ]
       }
+      committee_members: {
+        Row: {
+          accent: string
+          created_at: string
+          id: string
+          is_published: boolean
+          name: string
+          name_bn: string
+          photo_url: string | null
+          role: string
+          role_bn: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          name: string
+          name_bn: string
+          photo_url?: string | null
+          role: string
+          role_bn: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          name?: string
+          name_bn?: string
+          photo_url?: string | null
+          role?: string
+          role_bn?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
