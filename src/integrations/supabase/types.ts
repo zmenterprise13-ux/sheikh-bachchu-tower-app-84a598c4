@@ -300,6 +300,7 @@ export type Database = {
           occupant_phone: string | null
           occupant_photo_url: string | null
           occupant_type: string
+          other_charge: number
           owner_name: string | null
           owner_name_bn: string | null
           owner_photo_url: string | null
@@ -323,6 +324,7 @@ export type Database = {
           occupant_phone?: string | null
           occupant_photo_url?: string | null
           occupant_type?: string
+          other_charge?: number
           owner_name?: string | null
           owner_name_bn?: string | null
           owner_photo_url?: string | null
@@ -346,6 +348,7 @@ export type Database = {
           occupant_phone?: string | null
           occupant_photo_url?: string | null
           occupant_type?: string
+          other_charge?: number
           owner_name?: string | null
           owner_name_bn?: string | null
           owner_photo_url?: string | null

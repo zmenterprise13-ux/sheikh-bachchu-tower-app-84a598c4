@@ -1,0 +1,1 @@
+ALTER TABLE public.flats ADD COLUMN IF NOT EXISTS other_charge numeric NOT NULL DEFAULT 0;
