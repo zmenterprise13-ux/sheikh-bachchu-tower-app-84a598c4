@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Megaphone, AlertTriangle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Megaphone, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +24,8 @@ type Notice = {
   date: string;
 };
 
+const emptyForm = { title: "", titleBn: "", body: "", bodyBn: "", important: false };
+
 export default function AdminNotices() {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -30,7 +33,9 @@ export default function AdminNotices() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ title: "", titleBn: "", body: "", bodyBn: "", important: false });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -45,30 +50,64 @@ export default function AdminNotices() {
 
   useEffect(() => { load(); }, []);
 
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setOpen(true);
+  };
+
+  const openEdit = (n: Notice) => {
+    setEditingId(n.id);
+    setForm({ title: n.title, titleBn: n.title_bn, body: n.body, bodyBn: n.body_bn, important: n.important });
+    setOpen(true);
+  };
+
   const submit = async () => {
     if (!form.titleBn.trim() || !form.bodyBn.trim()) {
       toast.error(lang === "bn" ? "শিরোনাম ও বিবরণ দিন" : "Title & body required");
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("notices").insert({
+    const payload = {
       title: form.title.trim() || form.titleBn.trim(),
       title_bn: form.titleBn.trim(),
       body: form.body.trim() || form.bodyBn.trim(),
       body_bn: form.bodyBn.trim(),
       important: form.important,
-      date: new Date().toISOString().slice(0, 10),
-      created_by: user?.id ?? null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("notices").update(payload).eq("id", editingId)
+      : await supabase.from("notices").insert({
+          ...payload,
+          date: new Date().toISOString().slice(0, 10),
+          created_by: user?.id ?? null,
+        });
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(lang === "bn" ? "নোটিশ পোস্ট হয়েছে" : "Notice posted");
-    setForm({ title: "", titleBn: "", body: "", bodyBn: "", important: false });
+    toast.success(
+      editingId
+        ? (lang === "bn" ? "নোটিশ আপডেট হয়েছে" : "Notice updated")
+        : (lang === "bn" ? "নোটিশ পোস্ট হয়েছে" : "Notice posted"),
+    );
+    setForm(emptyForm);
+    setEditingId(null);
     setOpen(false);
     load();
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("notices").delete().eq("id", deleteId);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(lang === "bn" ? "নোটিশ মুছে ফেলা হয়েছে" : "Notice deleted");
+      load();
+    }
+    setDeleteId(null);
   };
 
   return (
@@ -81,14 +120,20 @@ export default function AdminNotices() {
               {lang === "bn" ? "ফ্ল্যাট ওনারদের জন্য সাম্প্রতিক ঘোষণা" : "Recent announcements for flat owners"}
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingId(null); setForm(emptyForm); } }}>
             <DialogTrigger asChild>
-              <Button className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
+              <Button onClick={openCreate} className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
                 <Plus className="h-4 w-4" /> {t("addNotice")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>{t("addNotice")}</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingId
+                    ? (lang === "bn" ? "নোটিশ এডিট" : "Edit Notice")
+                    : t("addNotice")}
+                </DialogTitle>
+              </DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <Label>শিরোনাম (বাংলা)</Label>
@@ -147,10 +192,35 @@ export default function AdminNotices() {
                   <p className="text-sm text-muted-foreground mt-1.5">{lang === "bn" ? n.body_bn : n.body}</p>
                   <div className="text-xs text-muted-foreground mt-2">{n.date}</div>
                 </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(n)} aria-label="Edit">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(n.id)} aria-label="Delete" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
+
+        <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{lang === "bn" ? "নোটিশ মুছে ফেলবেন?" : "Delete notice?"}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {lang === "bn" ? "এই কাজটি ফিরিয়ে আনা যাবে না।" : "This action cannot be undone."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {lang === "bn" ? "মুছুন" : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppShell>
   );
