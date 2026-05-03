@@ -374,6 +374,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
       </DialogContent>
     </Dialog>
   );
+}
 
 type ChargeKey = "service_charge" | "gas_bill" | "eid_bonus" | "other_charge";
 type ChargeEntry = { enabled: boolean; mode: "flat" | "sqft"; value: string; note: string };
