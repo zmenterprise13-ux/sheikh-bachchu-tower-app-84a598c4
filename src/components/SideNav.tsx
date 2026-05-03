@@ -20,6 +20,7 @@ import {
   Menu,
   MoreHorizontal,
   Users,
+  Table as TableIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
