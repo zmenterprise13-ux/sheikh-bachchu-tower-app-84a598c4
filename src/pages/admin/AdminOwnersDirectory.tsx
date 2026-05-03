@@ -162,7 +162,7 @@ export default function AdminOwnersDirectory() {
                     </div>
                     <div className="text-sm font-medium truncate">{occName(f) || "—"}</div>
                   </div>
-                  {f.occupant_phone && (
+                  {f.occupant_phone ? (
                     <a
                       href={`tel:${f.occupant_phone}`}
                       className="ml-auto inline-flex items-center gap-1 text-sm text-primary hover:underline"
@@ -170,6 +170,11 @@ export default function AdminOwnersDirectory() {
                       <Phone className="h-3.5 w-3.5" />
                       {f.occupant_phone}
                     </a>
+                  ) : (
+                    <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5" />
+                      {lang === "bn" ? "মোবাইল নেই" : "N/A"}
+                    </span>
                   )}
                 </div>
               ) : (
