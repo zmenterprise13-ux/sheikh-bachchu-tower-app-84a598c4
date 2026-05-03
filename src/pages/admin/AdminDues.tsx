@@ -350,6 +350,19 @@ export default function AdminDues() {
             <Layers className="h-3.5 w-3.5" />
             {lang === "bn" ? "বাল্ক অ্যাড" : "Bulk add"}
           </Button>
+          <Button
+            size="sm"
+            className="gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+            onClick={() => {
+              setBulkPayDate(new Date().toISOString().slice(0, 10));
+              setBulkPayScope("filtered");
+              setBulkPayOpen(true);
+            }}
+            disabled={loading || bills.length === 0}
+          >
+            <Wallet className="h-3.5 w-3.5" />
+            {lang === "bn" ? "বাল্ক পরিশোধ" : "Bulk mark paid"}
+          </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
