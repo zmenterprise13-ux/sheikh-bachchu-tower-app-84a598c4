@@ -119,6 +119,8 @@ export default function Index() {
         </div>
       </section>
 
+      <CommitteeSection />
+
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground space-y-1">
           <div>
