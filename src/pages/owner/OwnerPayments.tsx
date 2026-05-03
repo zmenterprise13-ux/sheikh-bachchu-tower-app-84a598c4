@@ -111,10 +111,10 @@ export default function OwnerPayments() {
     doc.setFontSize(16);
     doc.text("Payment Receipt", 14, 18);
     doc.setFontSize(11);
-    const total = Number(pr.amount);
     const isBkash = pr.method === "bkash";
-    const due = round2(isBkash ? total / (1 + BKASH_FEE_PCT) : total);
-    const fee = round2(isBkash ? total - due : 0);
+    const { due, fee, total } = isBkash
+      ? fromTotal(Number(pr.amount), BKASH_FEE_PCT)
+      : noFee(Number(pr.amount));
     const lines = [
       `Flat: ${flat?.flat_no ?? "-"}`,
       `Owner: ${flat?.owner_name ?? "-"}`,
