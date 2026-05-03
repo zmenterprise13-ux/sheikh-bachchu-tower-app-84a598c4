@@ -279,9 +279,101 @@ export default function AdminFlats() {
         flat={ledgerFlat}
         onClose={() => setLedgerFlat(null)}
       />
+
+      <AddFlatDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSaved={() => { setAddOpen(false); load(); }}
+      />
     </AppShell>
   );
 }
+
+function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
+  const { lang } = useLang();
+  const [flatNo, setFlatNo] = useState("");
+  const [floor, setFloor] = useState<number>(1);
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerNameBn, setOwnerNameBn] = useState("");
+  const [phone, setPhone] = useState("");
+  const [size, setSize] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+
+  const reset = () => {
+    setFlatNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
+  };
+
+  const submit = async () => {
+    if (!flatNo.trim()) {
+      toast.error(lang === "bn" ? "ফ্ল্যাট নম্বর দিন" : "Flat number required");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("flats").insert({
+      flat_no: flatNo.trim(),
+      floor: Number(floor) || 1,
+      owner_name: ownerName || null,
+      owner_name_bn: ownerNameBn || null,
+      phone: phone || null,
+      size: Number(size) || 0,
+      occupant_type: "owner",
+      is_occupied: true,
+    } as any);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? "ফ্ল্যাট যোগ হয়েছে" : "Flat added");
+    reset();
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && (reset(), onClose())}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{lang === "bn" ? "নতুন ফ্ল্যাট যোগ করুন" : "Add new flat"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "ফ্ল্যাট নম্বর" : "Flat No"}</Label>
+              <Input value={flatNo} onChange={(e) => setFlatNo(e.target.value)} placeholder="11A" />
+            </div>
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "ফ্লোর" : "Floor"}</Label>
+              <Input type="number" value={floor} onChange={(e) => setFloor(Number(e.target.value))} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Owner Name (EN)</Label>
+            <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">ওনার নাম (BN)</Label>
+            <Input value={ownerNameBn} onChange={(e) => setOwnerNameBn(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "মোবাইল" : "Phone"}</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={11} placeholder="01XXXXXXXXX" />
+            </div>
+            <div>
+              <Label className="text-xs">Size (sqft)</Label>
+              <Input type="number" value={size} onChange={(e) => setSize(Number(e.target.value))} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { reset(); onClose(); }} disabled={saving}>
+            {lang === "bn" ? "বাতিল" : "Cancel"}
+          </Button>
+          <Button onClick={submit} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+            {lang === "bn" ? "যোগ করুন" : "Add"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
 type ChargeKey = "service_charge" | "gas_bill" | "eid_bonus" | "other_charge";
 type ChargeEntry = { enabled: boolean; mode: "flat" | "sqft"; value: string; note: string };
