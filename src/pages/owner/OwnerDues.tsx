@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 type Bill = {
   id: string;
