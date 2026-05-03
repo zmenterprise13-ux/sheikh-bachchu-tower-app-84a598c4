@@ -126,7 +126,7 @@ export default function OwnerPayments() {
     refresh(flat.id);
   };
 
-  const downloadReceipt = (pr: PR) => {
+  const downloadReceipt = async (pr: PR) => {
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
