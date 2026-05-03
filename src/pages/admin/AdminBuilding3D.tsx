@@ -37,20 +37,32 @@ function FlatBox({
   onClick,
   selected,
   lang,
+  width,
+  height,
+  depth,
 }: {
   flat: Flat;
   position: [number, number, number];
   onClick: () => void;
   selected: boolean;
   lang: "bn" | "en";
+  width: number;
+  height: number;
+  depth: number;
 }) {
   const [hover, setHover] = useState(false);
   const tenant = isTenant(flat);
-  const baseColor = tenant ? "#f59e0b" : "#3b82f6";
-  const color = selected ? "#10b981" : hover ? "#8b5cf6" : baseColor;
+  const wallColor = "#e7d3b3"; // warm beige facade
+  const accentColor = selected ? "#10b981" : hover ? "#8b5cf6" : tenant ? "#f59e0b" : "#3b82f6";
+
+  const W = width;
+  const H = height;
+  const D = depth;
+  const fz = D / 2 + 0.001;
 
   return (
     <group position={position}>
+      {/* main wall block (clickable) */}
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -65,18 +77,66 @@ function FlatBox({
           setHover(false);
           document.body.style.cursor = "default";
         }}
+        castShadow
+        receiveShadow
       >
-        <boxGeometry args={[2.2, 1.4, 1.6]} />
-        <meshStandardMaterial color={color} roughness={0.4} metalness={0.1} />
+        <boxGeometry args={[W, H, D]} />
+        <meshStandardMaterial color={wallColor} roughness={0.85} metalness={0.05} />
       </mesh>
-      {/* window */}
-      <mesh position={[0, 0.05, 0.81]}>
-        <planeGeometry args={[1.6, 0.7]} />
-        <meshStandardMaterial color="#bae6fd" emissive="#0ea5e9" emissiveIntensity={0.3} />
+
+      {/* status accent stripe at top */}
+      <mesh position={[0, H / 2 - 0.06, fz]}>
+        <planeGeometry args={[W - 0.1, 0.12]} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.4} />
+      </mesh>
+
+      {/* two windows */}
+      {[-W / 4, W / 4].map((wx, i) => (
+        <group key={i} position={[wx, 0.05, fz]}>
+          <mesh>
+            <planeGeometry args={[W / 2.6, H / 2.4]} />
+            <meshStandardMaterial color="#0f172a" />
+          </mesh>
+          <mesh position={[0, 0, 0.002]}>
+            <planeGeometry args={[W / 2.8, H / 2.6]} />
+            <meshStandardMaterial
+              color="#7dd3fc"
+              emissive="#0ea5e9"
+              emissiveIntensity={0.35}
+              metalness={0.6}
+              roughness={0.2}
+            />
+          </mesh>
+          {/* mullions */}
+          <mesh position={[0, 0, 0.004]}>
+            <planeGeometry args={[0.04, H / 2.6]} />
+            <meshStandardMaterial color="#0f172a" />
+          </mesh>
+          <mesh position={[0, 0, 0.004]}>
+            <planeGeometry args={[W / 2.8, 0.04]} />
+            <meshStandardMaterial color="#0f172a" />
+          </mesh>
+        </group>
+      ))}
+
+      {/* balcony railing */}
+      <mesh position={[0, -H / 2 + 0.18, fz + 0.18]} castShadow>
+        <boxGeometry args={[W - 0.15, 0.36, 0.06]} />
+        <meshStandardMaterial color="#475569" metalness={0.6} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, -H / 2 + 0.02, fz + 0.18]}>
+        <boxGeometry args={[W - 0.15, 0.04, 0.18]} />
+        <meshStandardMaterial color="#94a3b8" />
+      </mesh>
+
+      {/* flat number plate */}
+      <mesh position={[0, H / 2 - 0.22, fz + 0.001]}>
+        <planeGeometry args={[0.7, 0.3]} />
+        <meshStandardMaterial color="#0f172a" />
       </mesh>
       <Text
-        position={[0, -0.85, 0.81]}
-        fontSize={0.25}
+        position={[0, H / 2 - 0.22, fz + 0.005]}
+        fontSize={0.2}
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
@@ -107,18 +167,59 @@ function Building({
     return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
   }, [flats]);
 
-  const FLOOR_H = 1.7;
+  const FLOOR_H = 1.9;
   const UNIT_W = 2.4;
+  const UNIT_H = 1.6;
+  const UNIT_D = 1.8;
   const maxUnits = Math.max(1, ...floors.map(([, fs]) => fs.length));
   const slabW = maxUnits * UNIT_W + 0.4;
+  const slabD = UNIT_D + 0.4;
+  const totalH = floors.length * FLOOR_H;
 
   return (
     <group>
-      {/* ground */}
-      <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[Math.max(20, slabW + 6), 20]} />
+      {/* ground / plaza */}
+      <mesh position={[0, -1.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[Math.max(40, slabW + 16), 30]} />
         <meshStandardMaterial color="#1f2937" />
       </mesh>
+      {/* sidewalk */}
+      <mesh position={[0, -1.04, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[slabW + 4, slabD + 4]} />
+        <meshStandardMaterial color="#374151" />
+      </mesh>
+
+      {/* back wall of building (full height) */}
+      <mesh position={[0, totalH / 2 - FLOOR_H / 2, -slabD / 2 + 0.05]} receiveShadow>
+        <boxGeometry args={[slabW, totalH, 0.1]} />
+        <meshStandardMaterial color="#cbb892" roughness={0.9} />
+      </mesh>
+
+      {/* side walls */}
+      <mesh position={[-slabW / 2, totalH / 2 - FLOOR_H / 2, 0]} receiveShadow>
+        <boxGeometry args={[0.1, totalH, slabD]} />
+        <meshStandardMaterial color="#bfa97f" roughness={0.9} />
+      </mesh>
+      <mesh position={[slabW / 2, totalH / 2 - FLOOR_H / 2, 0]} receiveShadow>
+        <boxGeometry args={[0.1, totalH, slabD]} />
+        <meshStandardMaterial color="#bfa97f" roughness={0.9} />
+      </mesh>
+
+      {/* ground floor entrance */}
+      <group position={[0, -FLOOR_H / 2 - 0.1, slabD / 2 + 0.01]}>
+        <mesh>
+          <planeGeometry args={[1.4, 0.85]} />
+          <meshStandardMaterial color="#0f172a" />
+        </mesh>
+        <mesh position={[0, 0, 0.005]}>
+          <planeGeometry args={[1.3, 0.78]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.4} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0, 0.01]}>
+          <planeGeometry args={[0.04, 0.78]} />
+          <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.3} />
+        </mesh>
+      </group>
 
       {floors.map(([floor, flatsOnFloor], i) => {
         const y = i * FLOOR_H;
@@ -129,15 +230,15 @@ function Building({
         return (
           <group key={floor}>
             {/* slab */}
-            <mesh position={[0, y - 0.78, 0]}>
-              <boxGeometry args={[slabW, 0.08, 1.8]} />
-              <meshStandardMaterial color="#475569" />
+            <mesh position={[0, y - UNIT_H / 2 - 0.06, 0]} castShadow receiveShadow>
+              <boxGeometry args={[slabW + 0.2, 0.12, slabD]} />
+              <meshStandardMaterial color="#64748b" roughness={0.7} />
             </mesh>
             {/* floor label */}
             <Text
-              position={[-slabW / 2 - 0.4, y, 0]}
-              fontSize={0.35}
-              color="#94a3b8"
+              position={[-slabW / 2 - 0.5, y, slabD / 2]}
+              fontSize={0.32}
+              color="#fbbf24"
               anchorX="right"
               anchorY="middle"
             >
@@ -151,22 +252,47 @@ function Building({
                 onClick={() => onSelect(f)}
                 selected={selectedId === f.id}
                 lang={lang}
+                width={UNIT_W - 0.1}
+                height={UNIT_H}
+                depth={UNIT_D}
               />
             ))}
           </group>
         );
       })}
 
-      {/* top label */}
+      {/* roof / parapet */}
+      <mesh position={[0, totalH - FLOOR_H / 2 + 0.15, 0]} castShadow>
+        <boxGeometry args={[slabW + 0.3, 0.3, slabD + 0.2]} />
+        <meshStandardMaterial color="#94a3b8" roughness={0.6} />
+      </mesh>
+      {/* water tank */}
+      <mesh position={[slabW / 4, totalH - FLOOR_H / 2 + 0.7, 0]} castShadow>
+        <cylinderGeometry args={[0.35, 0.35, 0.7, 16]} />
+        <meshStandardMaterial color="#dc2626" />
+      </mesh>
+      <mesh position={[slabW / 4, totalH - FLOOR_H / 2 + 0.4, 0]}>
+        <boxGeometry args={[0.5, 0.2, 0.5]} />
+        <meshStandardMaterial color="#475569" />
+      </mesh>
+
+      {/* building name sign */}
       {floors.length > 0 && (
-        <Text
-          position={[0, floors.length * FLOOR_H, 0]}
-          fontSize={0.4}
-          color="#10b981"
-          anchorX="center"
-        >
-          {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
-        </Text>
+        <group position={[0, totalH - FLOOR_H / 2 + 0.15, slabD / 2 + 0.06]}>
+          <mesh>
+            <planeGeometry args={[Math.min(slabW - 0.5, 5), 0.26]} />
+            <meshStandardMaterial color="#0f172a" />
+          </mesh>
+          <Text
+            position={[0, 0, 0.01]}
+            fontSize={0.18}
+            color="#fbbf24"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "SHEIKH BACHCHU TOWER"}
+          </Text>
+        </group>
       )}
     </group>
   );
