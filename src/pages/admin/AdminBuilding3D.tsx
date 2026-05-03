@@ -329,6 +329,30 @@ function Building({
           </Text>
         </group>
       )}
+
+      {/* East / West side labels */}
+      {floors.length > 0 && (
+        <>
+          <Text
+            position={[eastCenterX, totalH - FLOOR_H / 2 + 0.85, slabD / 2 + 0.06]}
+            fontSize={0.32}
+            color="#38bdf8"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {lang === "bn" ? "পূর্ব" : "EAST"}
+          </Text>
+          <Text
+            position={[westCenterX, totalH - FLOOR_H / 2 + 0.85, slabD / 2 + 0.06]}
+            fontSize={0.32}
+            color="#38bdf8"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {lang === "bn" ? "পশ্চিম" : "WEST"}
+          </Text>
+        </>
+      )}
     </group>
   );
 }
