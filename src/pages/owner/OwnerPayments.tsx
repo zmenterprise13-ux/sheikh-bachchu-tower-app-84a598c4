@@ -245,12 +245,36 @@ export default function OwnerPayments() {
     doc.text("TOTAL PAID", 18, row + 1);
     doc.text(`BDT ${total.toFixed(2)}`, W - 18, row + 1, { align: "right" });
 
+    // Verification QR
+    try {
+      const verifyPayload = JSON.stringify({
+        id: pr.id,
+        flat: flat?.flat_no ?? null,
+        owner: flat?.owner_name ?? null,
+        month: pr.bills?.month ?? null,
+        method: pr.method,
+        ref: pr.reference ?? null,
+        due: due.toFixed(2),
+        fee: fee.toFixed(2),
+        total: total.toFixed(2),
+        status: pr.status,
+        date: pr.reviewed_at ?? pr.created_at,
+      });
+      const qrUrl = await QRCode.toDataURL(verifyPayload, { margin: 0, width: 256, errorCorrectionLevel: "M" });
+      doc.addImage(qrUrl, "PNG", 14, 250, 28, 28);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text("Scan to verify receipt", 46, 262);
+      doc.text(`Receipt ID: ${pr.id}`, 46, 267);
+    } catch {}
+
     // Footer
     doc.setTextColor(148, 163, 184);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 280, { align: "center" });
-    doc.text("Thank you for your payment.", W / 2, 285, { align: "center" });
+    doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
+    doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
 
     doc.save(`receipt-${pr.id.slice(0, 8)}.pdf`);
   };
