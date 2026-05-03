@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge, type FlatStatus } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from "lucide-react";
+import { useBkashSettings } from "@/hooks/useBkashSettings";
+import { round2 } from "@/lib/bkashMath";
 
 function paymentStatusOf(billed: number, collected: number): FlatStatus {
   if (billed <= 0) return "unpaid";
@@ -79,7 +81,10 @@ export default function AdminReports() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
+  const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
+  const [bkashTotal, setBkashTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { settings: bkash } = useBkashSettings();
 
   // Opening cash (carry-forward from before `from`)
   const [autoOpening, setAutoOpening] = useState(0);
@@ -98,7 +103,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -115,6 +120,13 @@ export default function AdminReports() {
         supabase.from("expenses")
           .select("amount")
           .lt("date", monthStart),
+        // bKash approved payments in range — for fee metadata only
+        supabase.from("payment_requests")
+          .select("amount, method, status, bills!inner(month)")
+          .eq("method", "bkash")
+          .eq("status", "approved")
+          .gte("bills.month", from)
+          .lte("bills.month", to),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -124,13 +136,25 @@ export default function AdminReports() {
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
 
+      const feeMap: Record<string, number> = {};
+      let feeTotal = 0;
+      for (const r of (bkashRes.data ?? []) as any[]) {
+        const m = r.bills?.month;
+        if (!m) continue;
+        const fee = round2(Number(r.amount) * bkash.fee_pct);
+        feeMap[m] = round2((feeMap[m] || 0) + fee);
+        feeTotal = round2(feeTotal + fee);
+      }
+      setBkashByMonth(feeMap);
+      setBkashTotal(feeTotal);
+
       const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
       const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
       setAutoOpening(prevIncome - prevExpense);
 
       setLoading(false);
     })();
-  }, [from, to, validRange]);
+  }, [from, to, validRange, bkash.fee_pct]);
 
   const months = useMemo(() => validRange ? enumerateMonths(from, to) : [], [from, to, validRange]);
 
@@ -224,11 +248,11 @@ export default function AdminReports() {
     lines.push("");
     lines.push([lang === "bn" ? "আগের ক্যাশ" : "Opening cash", openingCash, openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")].map(esc).join(","));
     lines.push("");
-    lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
+    lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), lang === "bn" ? `বিকাশ ফি (মেটা)` : `bKash Fee (meta)`, t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
     perMonthRolling.forEach((r) => {
-      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, r.expense, r.balance, r.closing].map(esc).join(","));
+      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, bkashByMonth[r.month] || 0, r.expense, r.balance, r.closing].map(esc).join(","));
     });
-    lines.push([t("total"), openingCash, totalBilled, totalIncome, totalExpense, balance, closingBalance].map(esc).join(","));
+    lines.push([t("total"), openingCash, totalBilled, totalIncome, bkashTotal, totalExpense, balance, closingBalance].map(esc).join(","));
     lines.push("");
     lines.push(`# ${t("expense")} — ${lang === "bn" ? "ক্যাটেগরি অনুযায়ী" : "By category"}`);
     lines.push([lang === "bn" ? "ক্যাটেগরি" : "Category", lang === "bn" ? "টাকা" : "Amount"].map(esc).join(","));
@@ -418,6 +442,10 @@ export default function AdminReports() {
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "আগের ক্যাশ" : "Opening"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "বিল" : "Billed"}</th>
                 <th className="py-2 pr-3 text-right">{t("income")}</th>
+                <th className="py-2 pr-3 text-right" title={lang === "bn" ? "শুধু তথ্য — লেজারে যোগ হয়নি" : "Info only — not in ledger"}>
+                  {lang === "bn" ? `বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%)` : `bKash Fee (${(bkash.fee_pct*100).toFixed(2)}%)`}
+                  <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
+                </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
@@ -431,6 +459,7 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(r.opening, lang)}</td>
                   <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
@@ -442,7 +471,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -451,6 +480,7 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-muted-foreground">{formatMoney(openingCash, lang)}</td>
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
+                <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
@@ -462,6 +492,11 @@ export default function AdminReports() {
               </tr>
             </tfoot>
           </table>
+          <p className="text-[11px] text-muted-foreground mt-3 italic">
+            {lang === "bn"
+              ? `* বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%) মালিক বিকাশকে দেন — সোসাইটির আয়/লেজারে যোগ হয় না, শুধু মেলানোর জন্য দেখানো।`
+              : `* bKash fee (${(bkash.fee_pct*100).toFixed(2)}%) is paid by owners directly to bKash — not part of society income/ledger; shown only for reconciliation.`}
+          </p>
         </div>
 
         {/* Flat-wise statement */}
