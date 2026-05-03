@@ -221,7 +221,47 @@ export default function AdminDues() {
     }
   };
 
-  const filterChips: { key: Filter; label: string }[] = [
+  const applyBulkPay = async () => {
+    if (!bulkPayDate) {
+      toast.error(lang === "bn" ? "তারিখ দিন" : "Pick a date");
+      return;
+    }
+    const targets = (bulkPayScope === "filtered" ? visible : bills).filter(
+      (b) => Number(b.total) - Number(b.paid_amount) > 0
+    );
+    if (targets.length === 0) {
+      toast.error(lang === "bn" ? "কোনো বকেয়া বিল নেই" : "No unpaid bills");
+      return;
+    }
+    setBulkPaySaving(true);
+    const updated: Bill[] = [];
+    let failed = 0;
+    for (const b of targets) {
+      const total = Number(b.total);
+      const { data, error } = await supabase
+        .from("bills")
+        .update({ status: "paid", paid_amount: total, paid_at: bulkPayDate })
+        .eq("id", b.id)
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .single();
+      if (error || !data) { failed++; continue; }
+      updated.push(data as Bill);
+    }
+    setBulkPaySaving(false);
+    if (updated.length > 0) {
+      setBills((prev) => prev.map((x) => updated.find((u) => u.id === x.id) ?? x));
+    }
+    if (failed === 0) {
+      toast.success(lang === "bn"
+        ? `${updated.length} টি বিল পরিশোধিত হিসেবে চিহ্নিত হয়েছে`
+        : `${updated.length} bills marked paid`);
+      setBulkPayOpen(false);
+    } else {
+      toast.error(lang === "bn"
+        ? `${updated.length} সফল, ${failed} ব্যর্থ`
+        : `${updated.length} succeeded, ${failed} failed`);
+    }
+  };
     { key: "all",     label: lang === "bn" ? "সব" : "All" },
     { key: "unpaid",  label: t("unpaid") },
     { key: "partial", label: t("partial") },
