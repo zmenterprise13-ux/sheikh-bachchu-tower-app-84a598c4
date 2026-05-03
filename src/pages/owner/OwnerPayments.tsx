@@ -55,6 +55,7 @@ export default function OwnerPayments() {
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const round2 = (n: number) => Math.round(n * 100) / 100;
 
   const refresh = async (fid: string) => {
     setLoading(true);
