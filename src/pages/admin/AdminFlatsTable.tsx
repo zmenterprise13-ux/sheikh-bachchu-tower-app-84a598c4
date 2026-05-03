@@ -240,10 +240,12 @@ export default function AdminFlatsTable() {
                 <TableRow>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ছবি (ওনার)" : "Owner Photo"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম" : "Owner Name"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম (EN)" : "Owner Name (EN)"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম (BN)" : "Owner Name (BN)"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার মোবাইল" : "Owner Mobile"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ছবি (ভাড়াটিয়া)" : "Tenant Photo"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম" : "Tenant Name"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম (EN)" : "Tenant Name (EN)"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম (BN)" : "Tenant Name (BN)"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া মোবাইল" : "Tenant Mobile"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "সার্ভিস চার্জ" : "Service"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "গ্যাস" : "Gas"}</TableHead>
