@@ -570,7 +570,7 @@ function BillEditDialog({
 
   const computedTotal =
     Number(form.service_charge) + Number(form.gas_bill) + Number(form.parking) +
-    Number(form.eid_bonus) + Number(form.other_charge);
+    Number(form.eid_bonus) + Number(form.other_charge) + Number(form.arrears ?? 0);
 
   const save = async () => {
     setSaving(true);
