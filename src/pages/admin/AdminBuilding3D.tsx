@@ -171,30 +171,46 @@ function Building({
   const UNIT_W = 2.4;
   const UNIT_H = 1.6;
   const UNIT_D = 1.8;
-  const maxUnits = Math.max(1, ...floors.map(([, fs]) => fs.length));
-  const slabW = maxUnits * UNIT_W + 0.4;
+  const CORE_W = 1.6;
+
+  const splitFloors = useMemo(
+    () =>
+      floors.map(([floor, fs]) => {
+        const sorted = [...fs].sort((a, b) =>
+          a.flat_no.localeCompare(b.flat_no, undefined, { numeric: true })
+        );
+        const east = sorted.filter((f) => sideOf(f.flat_no) === "east");
+        const west = sorted.filter((f) => sideOf(f.flat_no) === "west");
+        return { floor, east, west };
+      }),
+    [floors]
+  );
+
+  const maxEast = Math.max(1, ...splitFloors.map((f) => f.east.length));
+  const maxWest = Math.max(1, ...splitFloors.map((f) => f.west.length));
+  const slabW = (maxEast + maxWest) * UNIT_W + CORE_W + 0.4;
   const slabD = UNIT_D + 0.4;
   const totalH = floors.length * FLOOR_H;
+  const eastCenterX = -(CORE_W / 2 + (maxEast * UNIT_W) / 2);
+  const westCenterX = CORE_W / 2 + (maxWest * UNIT_W) / 2;
 
   return (
     <group>
-      {/* ground / plaza */}
+      {/* ground */}
       <mesh position={[0, -1.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[Math.max(40, slabW + 16), 30]} />
         <meshStandardMaterial color="#1f2937" />
       </mesh>
-      {/* sidewalk */}
       <mesh position={[0, -1.04, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[slabW + 4, slabD + 4]} />
         <meshStandardMaterial color="#374151" />
       </mesh>
 
-      {/* back wall of building (full height) */}
+      {/* back wall */}
       <mesh position={[0, totalH / 2 - FLOOR_H / 2, -slabD / 2 + 0.05]} receiveShadow>
         <boxGeometry args={[slabW, totalH, 0.1]} />
         <meshStandardMaterial color="#cbb892" roughness={0.9} />
       </mesh>
-
       {/* side walls */}
       <mesh position={[-slabW / 2, totalH / 2 - FLOOR_H / 2, 0]} receiveShadow>
         <boxGeometry args={[0.1, totalH, slabD]} />
@@ -205,14 +221,24 @@ function Building({
         <meshStandardMaterial color="#bfa97f" roughness={0.9} />
       </mesh>
 
-      {/* ground floor entrance */}
-      <group position={[0, -FLOOR_H / 2 - 0.1, slabD / 2 + 0.01]}>
+      {/* central stair/lift core */}
+      <mesh position={[0, totalH / 2 - FLOOR_H / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[CORE_W - 0.1, totalH, UNIT_D]} />
+        <meshStandardMaterial color="#a89070" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, totalH / 2 - FLOOR_H / 2, UNIT_D / 2 + 0.005]}>
+        <planeGeometry args={[0.18, totalH - 0.2]} />
+        <meshStandardMaterial color="#0f172a" />
+      </mesh>
+
+      {/* entrance */}
+      <group position={[0, -FLOOR_H / 2 - 0.1, UNIT_D / 2 + 0.01]}>
         <mesh>
-          <planeGeometry args={[1.4, 0.85]} />
+          <planeGeometry args={[1.2, 0.85]} />
           <meshStandardMaterial color="#0f172a" />
         </mesh>
         <mesh position={[0, 0, 0.005]}>
-          <planeGeometry args={[1.3, 0.78]} />
+          <planeGeometry args={[1.1, 0.78]} />
           <meshStandardMaterial color="#1e293b" metalness={0.4} roughness={0.3} />
         </mesh>
         <mesh position={[0, 0, 0.01]}>
@@ -221,20 +247,16 @@ function Building({
         </mesh>
       </group>
 
-      {floors.map(([floor, flatsOnFloor], i) => {
+      {splitFloors.map(({ floor, east, west }, i) => {
         const y = i * FLOOR_H;
-        const sorted = [...flatsOnFloor].sort((a, b) =>
-          a.flat_no.localeCompare(b.flat_no, undefined, { numeric: true })
-        );
-        const startX = -((sorted.length - 1) * UNIT_W) / 2;
+        const eastStart = eastCenterX - ((east.length - 1) * UNIT_W) / 2;
+        const westStart = westCenterX - ((west.length - 1) * UNIT_W) / 2;
         return (
           <group key={floor}>
-            {/* slab */}
             <mesh position={[0, y - UNIT_H / 2 - 0.06, 0]} castShadow receiveShadow>
               <boxGeometry args={[slabW + 0.2, 0.12, slabD]} />
               <meshStandardMaterial color="#64748b" roughness={0.7} />
             </mesh>
-            {/* floor label */}
             <Text
               position={[-slabW / 2 - 0.5, y, slabD / 2]}
               fontSize={0.32}
@@ -244,11 +266,24 @@ function Building({
             >
               {`F${floor}`}
             </Text>
-            {sorted.map((f, idx) => (
+            {east.map((f, idx) => (
               <FlatBox
                 key={f.id}
                 flat={f}
-                position={[startX + idx * UNIT_W, y, 0]}
+                position={[eastStart + idx * UNIT_W, y, 0]}
+                onClick={() => onSelect(f)}
+                selected={selectedId === f.id}
+                lang={lang}
+                width={UNIT_W - 0.1}
+                height={UNIT_H}
+                depth={UNIT_D}
+              />
+            ))}
+            {west.map((f, idx) => (
+              <FlatBox
+                key={f.id}
+                flat={f}
+                position={[westStart + idx * UNIT_W, y, 0]}
                 onClick={() => onSelect(f)}
                 selected={selectedId === f.id}
                 lang={lang}
@@ -293,6 +328,30 @@ function Building({
             {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "SHEIKH BACHCHU TOWER"}
           </Text>
         </group>
+      )}
+
+      {/* East / West side labels */}
+      {floors.length > 0 && (
+        <>
+          <Text
+            position={[eastCenterX, totalH - FLOOR_H / 2 + 0.85, slabD / 2 + 0.06]}
+            fontSize={0.32}
+            color="#38bdf8"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {lang === "bn" ? "পূর্ব" : "EAST"}
+          </Text>
+          <Text
+            position={[westCenterX, totalH - FLOOR_H / 2 + 0.85, slabD / 2 + 0.06]}
+            fontSize={0.32}
+            color="#38bdf8"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {lang === "bn" ? "পশ্চিম" : "WEST"}
+          </Text>
+        </>
       )}
     </group>
   );
