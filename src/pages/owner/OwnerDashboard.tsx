@@ -453,6 +453,12 @@ function OwnerAvatarUpload({
   const [busy, setBusy] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
 
+  // Keep local preview in sync with the latest prop (e.g., after auth refresh
+  // following a password change, which causes flats to be refetched).
+  useEffect(() => {
+    setLocalUrl(photoUrl);
+  }, [photoUrl]);
+
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
