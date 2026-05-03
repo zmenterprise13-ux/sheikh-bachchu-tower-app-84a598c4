@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFlats from "./pages/admin/AdminFlats";
 import AdminFlatsTable from "./pages/admin/AdminFlatsTable";
 import AdminOwnersDirectory from "./pages/admin/AdminOwnersDirectory";
+import AdminBuildingOverview from "./pages/admin/AdminBuildingOverview";
 import AdminShops from "./pages/admin/AdminShops";
 import AdminParking from "./pages/admin/AdminParking";
 import AdminDues from "./pages/admin/AdminDues";
