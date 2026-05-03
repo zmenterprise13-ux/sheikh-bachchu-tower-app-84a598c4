@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -26,6 +26,22 @@ export function useOwnerFlats() {
   const [flats, setFlats] = useState<OwnerFlat[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchFlats = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from("flats")
+      .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type")
+      .eq("owner_user_id", uid)
+      .order("floor", { ascending: true })
+      .order("flat_no", { ascending: true });
+    return (data as OwnerFlat[] | null) ?? [];
+  }, []);
+
+  const refetch = useCallback(async () => {
+    if (!user) return;
+    const rows = await fetchFlats(user.id);
+    setFlats(rows);
+  }, [user, fetchFlats]);
+
   useEffect(() => {
     let active = true;
     if (!user) {
@@ -35,25 +51,31 @@ export function useOwnerFlats() {
     }
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("flats")
-        .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type")
-        .eq("owner_user_id", user.id)
-        .order("floor", { ascending: true })
-        .order("flat_no", { ascending: true });
+      const rows = await fetchFlats(user.id);
       if (active) {
-        setFlats((data as OwnerFlat[] | null) ?? []);
+        setFlats(rows);
         setLoading(false);
       }
     })();
     return () => { active = false; };
-  }, [user]);
+  }, [user, fetchFlats]);
 
-  return { flats, loading };
+  // Auto re-sync when the auth user is updated (e.g., password change),
+  // so profile photo and other flat info stay fresh.
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
+        refetch();
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [refetch]);
+
+  return { flats, loading, refetch };
 }
 
 // Backwards-compatible single-flat hook (returns the first flat)
 export function useOwnerFlat() {
-  const { flats, loading } = useOwnerFlats();
-  return { flat: flats[0] ?? null, loading, flats };
+  const { flats, loading, refetch } = useOwnerFlats();
+  return { flat: flats[0] ?? null, loading, flats, refetch };
 }
