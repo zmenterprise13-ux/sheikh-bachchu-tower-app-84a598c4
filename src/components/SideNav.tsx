@@ -49,6 +49,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/notices", key: "notices", icon: Megaphone },
   { to: "/admin/committee", key: "committee" as TKey, icon: Users },
   { to: "/admin/settings", key: "settings", icon: SettingsIcon },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
 const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
