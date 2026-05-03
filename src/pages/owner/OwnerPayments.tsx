@@ -76,6 +76,23 @@ export default function OwnerPayments() {
     refresh(flat.id);
   }, [flat, flatLoading]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (autoOpenedRef.current || loading || !flat) return;
+    const wantPay = searchParams.get("pay") === "1";
+    const wantBill = searchParams.get("bill");
+    if (!wantPay && !wantBill) return;
+    const target = wantBill ? bills.find(b => b.id === wantBill && Number(b.total) - Number(b.paid_amount) > 0) : undefined;
+    if (target || dueBills.length > 0) {
+      openSubmit(target);
+      autoOpenedRef.current = true;
+      const next = new URLSearchParams(searchParams);
+      next.delete("pay"); next.delete("bill");
+      setSearchParams(next, { replace: true });
+    }
+  }, [loading, flat, bills, dueBills, searchParams, setSearchParams]);
+
   const dueBills = useMemo(() => bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0), [bills]);
 
   const openSubmit = (b?: Bill) => {
