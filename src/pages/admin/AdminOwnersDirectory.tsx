@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Flat = {
   id: string;
@@ -45,6 +46,7 @@ export default function AdminOwnersDirectory() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"all" | "tenant" | "owner">("all");
 
   useEffect(() => {
     (async () => {
@@ -182,8 +184,18 @@ export default function AdminOwnersDirectory() {
     </div>
   );
 
+  const isTenantFlat = (f: Flat) =>
+    f.occupant_type === "tenant" && Boolean(f.occupant_name || f.occupant_phone);
+
   const renderList = (groups: OwnerGroup[]) => {
-    const visible = groups.filter(matches);
+    const visible = groups
+      .map((g) => {
+        if (filter === "all") return g;
+        const flats = g.flats.filter((f) => (filter === "tenant" ? isTenantFlat(f) : !isTenantFlat(f)));
+        return flats.length ? { ...g, flats } : null;
+      })
+      .filter((g): g is OwnerGroup => g !== null)
+      .filter(matches);
     if (visible.length === 0) {
       return (
         <p className="text-sm text-muted-foreground text-center py-8">
@@ -235,6 +247,24 @@ export default function AdminOwnersDirectory() {
                 <Badge variant="secondary" className="ml-1">{west.length}</Badge>
               </TabsTrigger>
             </TabsList>
+            <div className="mt-3 flex justify-end">
+              <ToggleGroup
+                type="single"
+                value={filter}
+                onValueChange={(v) => v && setFilter(v as any)}
+                className="bg-muted rounded-md p-1"
+              >
+                <ToggleGroupItem value="all" className="text-xs px-3">
+                  {lang === "bn" ? "সব" : "All"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="owner" className="text-xs px-3">
+                  {lang === "bn" ? "মালিক-নিজে" : "Owner-occupied"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="tenant" className="text-xs px-3">
+                  {lang === "bn" ? "ভাড়াটিয়া" : "Tenant"}
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
             <TabsContent value="east" className="mt-4">{renderList(east)}</TabsContent>
             <TabsContent value="west" className="mt-4">{renderList(west)}</TabsContent>
           </Tabs>
