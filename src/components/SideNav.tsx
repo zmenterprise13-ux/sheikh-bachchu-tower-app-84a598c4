@@ -21,6 +21,7 @@ import {
   MoreHorizontal,
   Users,
   Table as TableIcon,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
