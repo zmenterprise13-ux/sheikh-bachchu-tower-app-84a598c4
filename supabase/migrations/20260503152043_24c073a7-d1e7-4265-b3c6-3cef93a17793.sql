@@ -1,0 +1,2 @@
+UPDATE public.payment_requests SET amount = 3500 WHERE id='06d457cb-893d-4d69-bf14-e17cc89ca6a3';
+UPDATE public.bills SET paid_amount = 3500, status='paid' WHERE id='f28d1653-7b63-4e68-bbcb-e89bee266b9c';
