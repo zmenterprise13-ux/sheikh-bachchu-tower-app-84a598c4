@@ -92,7 +92,7 @@ export default function OwnerPayments() {
       bill_id: billId,
       flat_id: flat.id,
       submitted_by: user?.id,
-      amount: Number(amount),
+      amount: methodGroup === "bkash" ? Number(amount) * (1 + BKASH_FEE_PCT) : Number(amount),
       method, reference: reference || null, note: note || null,
       status: "pending",
     });
