@@ -137,7 +137,7 @@ export default function AdminFlatsTable() {
     );
   });
 
-  const PhotoCell = ({ row, field }: { row: Flat; field: "owner_photo_url" | "occupant_photo_url" }) => {
+  const renderPhoto = (row: Flat, field: "owner_photo_url" | "occupant_photo_url") => {
     const url = row[field];
     const busy = uploadingId === row.id + field;
     const inputId = `${row.id}-${field}`;
@@ -179,7 +179,7 @@ export default function AdminFlatsTable() {
     );
   };
 
-  const NumCell = ({ row, field }: { row: Flat; field: keyof Flat }) => (
+  const renderNum = (row: Flat, field: keyof Flat) => (
     <Input
       type="number"
       value={(row[field] as number) ?? 0}
@@ -188,7 +188,7 @@ export default function AdminFlatsTable() {
     />
   );
 
-  const TextCell = ({ row, field, w = "w-32" }: { row: Flat; field: keyof Flat; w?: string }) => (
+  const renderText = (row: Flat, field: keyof Flat, w = "w-32") => (
     <Input
       value={(row[field] as string) ?? ""}
       onChange={(e) => updateRow(row.id, { [field]: e.target.value } as any)}
