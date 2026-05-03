@@ -492,6 +492,11 @@ export default function AdminReports() {
               </tr>
             </tfoot>
           </table>
+          <p className="text-[11px] text-muted-foreground mt-3 italic">
+            {lang === "bn"
+              ? `* বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%) মালিক বিকাশকে দেন — সোসাইটির আয়/লেজারে যোগ হয় না, শুধু মেলানোর জন্য দেখানো।`
+              : `* bKash fee (${(bkash.fee_pct*100).toFixed(2)}%) is paid by owners directly to bKash — not part of society income/ledger; shown only for reconciliation.`}
+          </p>
         </div>
 
         {/* Flat-wise statement */}
