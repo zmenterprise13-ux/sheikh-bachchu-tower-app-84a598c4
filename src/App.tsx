@@ -14,6 +14,7 @@ import AdminFlats from "./pages/admin/AdminFlats";
 import AdminFlatsTable from "./pages/admin/AdminFlatsTable";
 import AdminOwnersDirectory from "./pages/admin/AdminOwnersDirectory";
 import AdminBuildingOverview from "./pages/admin/AdminBuildingOverview";
+import AdminBuilding3D from "./pages/admin/AdminBuilding3D";
 import AdminShops from "./pages/admin/AdminShops";
 import AdminParking from "./pages/admin/AdminParking";
 import AdminDues from "./pages/admin/AdminDues";
