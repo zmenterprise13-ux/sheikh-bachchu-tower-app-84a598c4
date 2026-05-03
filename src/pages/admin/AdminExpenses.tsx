@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Wallet } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Wallet, Pencil, Trash2 } from "lucide-react";
 import { TKey } from "@/i18n/translations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,8 @@ export default function AdminExpenses() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -39,6 +42,16 @@ export default function AdminExpenses() {
     description: "",
     amount: "",
   });
+
+  const resetForm = () => {
+    setForm({
+      date: new Date().toISOString().slice(0, 10),
+      category: "cleaning" as TKey,
+      description: "",
+      amount: "",
+    });
+    setEditingId(null);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -55,6 +68,17 @@ export default function AdminExpenses() {
 
   const total = items.reduce((s, e) => s + Number(e.amount), 0);
 
+  const openEdit = (e: Expense) => {
+    setEditingId(e.id);
+    setForm({
+      date: e.date,
+      category: e.category as TKey,
+      description: e.description,
+      amount: String(e.amount),
+    });
+    setOpen(true);
+  };
+
   const submit = async () => {
     const amt = Number(form.amount);
     if (!amt || amt <= 0 || !form.description.trim()) {
@@ -62,22 +86,44 @@ export default function AdminExpenses() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("expenses").insert({
-      date: form.date,
-      category: form.category,
-      description: form.description.trim(),
-      amount: amt,
-      created_by: user?.id ?? null,
-    });
+    let error;
+    if (editingId) {
+      ({ error } = await supabase.from("expenses").update({
+        date: form.date,
+        category: form.category,
+        description: form.description.trim(),
+        amount: amt,
+      }).eq("id", editingId));
+    } else {
+      ({ error } = await supabase.from("expenses").insert({
+        date: form.date,
+        category: form.category,
+        description: form.description.trim(),
+        amount: amt,
+        created_by: user?.id ?? null,
+      }));
+    }
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(lang === "bn" ? "খরচ যোগ হয়েছে" : "Expense added");
-    setForm({ ...form, description: "", amount: "" });
+    toast.success(editingId ? (lang === "bn" ? "আপডেট হয়েছে" : "Updated") : (lang === "bn" ? "খরচ যোগ হয়েছে" : "Expense added"));
+    resetForm();
     setOpen(false);
     load();
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("expenses").delete().eq("id", deleteId);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(lang === "bn" ? "মুছে ফেলা হয়েছে" : "Deleted");
+      load();
+    }
+    setDeleteId(null);
   };
 
   return (
@@ -91,7 +137,7 @@ export default function AdminExpenses() {
             </p>
           </div>
 
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
                 <Plus className="h-4 w-4" /> {t("addExpense")}
@@ -99,7 +145,7 @@ export default function AdminExpenses() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t("addExpense")}</DialogTitle>
+                <DialogTitle>{editingId ? t("edit") + " - " + t("expenses") : t("addExpense")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -127,7 +173,7 @@ export default function AdminExpenses() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>{t("cancel")}</Button>
+                <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting}>{t("cancel")}</Button>
                 <Button className="gradient-primary text-primary-foreground" onClick={submit} disabled={submitting}>
                   {submitting ? "..." : t("save")}
                 </Button>
@@ -140,8 +186,9 @@ export default function AdminExpenses() {
           <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
             <div className="col-span-2">{t("date")}</div>
             <div className="col-span-3">{t("category")}</div>
-            <div className="col-span-5">{t("description")}</div>
+            <div className="col-span-4">{t("description")}</div>
             <div className="col-span-2 text-right">{t("amount")}</div>
+            <div className="col-span-1 text-right"></div>
           </div>
           <div className="divide-y divide-border">
             {loading && (
@@ -160,8 +207,16 @@ export default function AdminExpenses() {
                     <Wallet className="h-3 w-3" /> {t(e.category as TKey) || e.category}
                   </span>
                 </div>
-                <div className="md:col-span-5 text-sm text-foreground">{e.description}</div>
+                <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
                 <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                <div className="md:col-span-1 flex justify-end gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -170,6 +225,23 @@ export default function AdminExpenses() {
             <div className="text-lg font-bold text-primary">{formatMoney(total, lang)}</div>
           </div>
         </div>
+
+        <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{lang === "bn" ? "মুছে ফেলবেন?" : "Delete expense?"}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {lang === "bn" ? "এই খরচটি স্থায়ীভাবে মুছে যাবে।" : "This expense will be permanently deleted."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {lang === "bn" ? "মুছুন" : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppShell>
   );
