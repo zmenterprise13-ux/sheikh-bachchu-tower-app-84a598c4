@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
+import { useBkashSettings } from "@/hooks/useBkashSettings";
 
 type Bill = {
   id: string;
@@ -48,8 +49,9 @@ export default function OwnerPayments() {
   const [amount, setAmount] = useState<string>("");
   const [methodGroup, setMethodGroup] = useState<"bkash"|"others">("bkash");
   const [method, setMethod] = useState<string>("bkash");
-  const BKASH_NUMBER = "01613458260";
-  const BKASH_FEE_PCT = 0.02;
+  const { settings: bkash } = useBkashSettings();
+  const BKASH_NUMBER = bkash.number;
+  const BKASH_FEE_PCT = bkash.fee_pct;
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -123,7 +125,7 @@ export default function OwnerPayments() {
       `Approved: ${pr.reviewed_at ? new Date(pr.reviewed_at).toLocaleString() : "-"}`,
       ``,
       `Due (base):     BDT ${due.toFixed(2)}`,
-      `bKash Fee (2%): BDT ${fee.toFixed(2)}`,
+      `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%): BDT ${fee.toFixed(2)}`,
       `Total Payable:  BDT ${total.toFixed(2)}`,
     ];
     lines.forEach((l, i) => doc.text(l, 14, 32 + i * 8));
@@ -203,7 +205,7 @@ export default function OwnerPayments() {
               <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-1">
                 <div>{lang === "bn" ? "বিকাশ নাম্বার" : "bKash Number"}: <span className="font-mono font-bold">{BKASH_NUMBER}</span> <span className="text-xs text-muted-foreground">({lang === "bn" ? "সেন্ড মানি" : "Send Money"})</span></div>
                 <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">{formatMoney(Number(amount || 0), lang)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? "বিকাশ চার্জ (২%)" : "bKash Fee (2%)"}</span><span>{formatMoney(Number(amount || 0) * BKASH_FEE_PCT, lang)}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? `বিকাশ চার্জ (${(BKASH_FEE_PCT*100).toFixed(2)}%)` : `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%)`}</span><span>{formatMoney(Number(amount || 0) * BKASH_FEE_PCT, lang)}</span></div>
                 <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>{formatMoney(Number(amount || 0) * (1 + BKASH_FEE_PCT), lang)}</span></div>
               </div>
             ) : (

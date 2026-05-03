@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 import { Slider } from "@/components/ui/slider";
+import { useBkashSettings } from "@/hooks/useBkashSettings";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -359,6 +360,8 @@ export default function AdminSettings() {
             {/* Notice ticker speed */}
             <TickerSpeedCard />
 
+            <BkashSettingsCard />
+
             <BillGenerationTester />
           </div>
         )}
@@ -406,6 +409,66 @@ function TickerSpeedCard() {
           {lang === "bn" ? `দ্রুত (${MIN}s) — ধীর (${MAX}s)` : `Fast (${MIN}s) — Slow (${MAX}s)`}
         </div>
         <Button size="sm" onClick={onSave} disabled={saving || loading || val === speed} className="gap-2">
+          <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function BkashSettingsCard() {
+  const { lang } = useLang();
+  const { settings, loading, save } = useBkashSettings();
+  const [number, setNumber] = useState("");
+  const [feePct, setFeePct] = useState<number>(2);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setNumber(settings.number);
+      setFeePct(settings.fee_pct * 100);
+    }
+  }, [loading, settings]);
+
+  const onSave = async () => {
+    if (!/^01\d{9}$/.test(number)) {
+      toast.error(lang === "bn" ? "সঠিক মোবাইল নম্বর দিন (১১ ডিজিট)" : "Enter a valid 11-digit mobile number");
+      return;
+    }
+    if (feePct < 0 || feePct > 20) {
+      toast.error(lang === "bn" ? "ফি ০-২০% এর মধ্যে হতে হবে" : "Fee must be between 0 and 20%");
+      return;
+    }
+    setSaving(true);
+    const { error } = await save({ number, fee_pct: feePct / 100 });
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
+  };
+
+  return (
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+      <div className="font-semibold text-foreground">
+        {lang === "bn" ? "বিকাশ পেমেন্ট সেটিংস" : "bKash Payment Settings"}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {lang === "bn"
+          ? "ওনারদের পেমেন্ট ফর্মে এই নাম্বার ও ফি দেখানো হবে।"
+          : "This number and fee will be shown to owners on the payment form."}
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "বিকাশ নম্বর" : "bKash Number"}</Label>
+          <Input value={number} onChange={(e) => setNumber(e.target.value.trim())} placeholder="01XXXXXXXXX" disabled={loading} />
+        </div>
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "ফি (%)" : "Fee (%)"}</Label>
+          <Input type="number" step="0.01" min={0} max={20} value={feePct}
+            onChange={(e) => setFeePct(Number(e.target.value) || 0)} disabled={loading} />
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" onClick={onSave} disabled={saving || loading} className="gap-2">
           <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
         </Button>
       </div>
