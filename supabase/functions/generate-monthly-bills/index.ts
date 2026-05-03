@@ -174,12 +174,31 @@ Deno.serve(async (req) => {
         .filter((f) => existingSet.has(f.id))
         .map((f) => ({ id: f.id, flat_no: f.flat_no }));
 
+      // Compute arrears = sum of (total - paid_amount) of all previous unpaid/partial bills per flat
+      const flatIds = candidateFlats.map((f) => f.id);
+      const arrearsMap = new Map<string, number>();
+      if (flatIds.length > 0) {
+        const { data: prevBills, error: prevErr } = await admin
+          .from("bills")
+          .select("flat_id, total, paid_amount, month")
+          .in("flat_id", flatIds)
+          .lt("month", m);
+        if (prevErr) throw prevErr;
+        for (const b of prevBills ?? []) {
+          const due = Number(b.total ?? 0) - Number(b.paid_amount ?? 0);
+          if (due > 0) {
+            arrearsMap.set(b.flat_id, (arrearsMap.get(b.flat_id) ?? 0) + due);
+          }
+        }
+      }
+
       const rows = candidateFlats.map((f) => {
         const service = Number(f.service_charge ?? 0);
         const gas = Number(f.gas_bill ?? 0);
         const parking = Number(f.parking ?? 0);
         const eid = includeEid ? Number(f.eid_bonus ?? 0) : 0;
-        const total = service + gas + parking + eid;
+        const arrears = arrearsMap.get(f.id) ?? 0;
+        const total = service + gas + parking + eid + arrears;
         return {
           flat_id: f.id,
           month: m,
@@ -188,6 +207,7 @@ Deno.serve(async (req) => {
           parking,
           eid_bonus: eid,
           other_charge: 0,
+          arrears,
           total,
           paid_amount: 0,
           status: "unpaid" as const,
