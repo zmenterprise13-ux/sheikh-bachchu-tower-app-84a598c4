@@ -8,6 +8,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 import { NoticeTicker } from "@/components/NoticeTicker";
+import { CommitteeSection } from "@/components/CommitteeSection";
 
 export default function Index() {
   const { t, lang } = useLang();
@@ -117,6 +118,8 @@ export default function Index() {
           ))}
         </div>
       </section>
+
+      <CommitteeSection />
 
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground space-y-1">
