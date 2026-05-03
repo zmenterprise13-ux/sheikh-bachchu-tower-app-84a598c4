@@ -195,8 +195,9 @@ export default function OwnerPayments() {
             {methodGroup === "bkash" ? (
               <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-1">
                 <div>{lang === "bn" ? "বিকাশ নাম্বার" : "bKash Number"}: <span className="font-mono font-bold">{BKASH_NUMBER}</span> <span className="text-xs text-muted-foreground">({lang === "bn" ? "সেন্ড মানি" : "Send Money"})</span></div>
-                <div className="text-xs text-muted-foreground">{lang === "bn" ? "বিকাশে ২% চার্জ যোগ হবে" : "2% bKash charge will be added"}</div>
-                <div className="font-semibold">{lang === "bn" ? "প্রদেয়" : "Payable"}: {formatMoney(Number(amount || 0) * (1 + BKASH_FEE_PCT), lang)}</div>
+                <div className="flex justify-between"><span>{lang === "bn" ? "বকেয়া (মূল)" : "Due (base)"}</span><span className="font-medium">{formatMoney(Number(amount || 0), lang)}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>{lang === "bn" ? "বিকাশ চার্জ (২%)" : "bKash Fee (2%)"}</span><span>{formatMoney(Number(amount || 0) * BKASH_FEE_PCT, lang)}</span></div>
+                <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>{lang === "bn" ? "মোট প্রদেয়" : "Total Payable"}</span><span>{formatMoney(Number(amount || 0) * (1 + BKASH_FEE_PCT), lang)}</span></div>
               </div>
             ) : (
               <div>
