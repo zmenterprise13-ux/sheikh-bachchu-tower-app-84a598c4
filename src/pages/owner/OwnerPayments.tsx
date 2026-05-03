@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { fromDue, fromTotal, noFee } from "@/lib/bkashMath";
+import bkashLogo from "@/assets/bkash-logo.png";
 
 type Bill = {
   id: string;
