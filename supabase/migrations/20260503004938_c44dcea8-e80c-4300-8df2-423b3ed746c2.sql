@@ -1,0 +1,1 @@
+CREATE POLICY "Anon can view notices" ON public.notices FOR SELECT TO anon USING (true);
