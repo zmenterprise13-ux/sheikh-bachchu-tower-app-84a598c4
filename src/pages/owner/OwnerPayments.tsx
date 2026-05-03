@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
+import { useBkashSettings } from "@/hooks/useBkashSettings";
 
 type Bill = {
   id: string;
