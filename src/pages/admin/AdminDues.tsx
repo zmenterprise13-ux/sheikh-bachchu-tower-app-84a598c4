@@ -24,6 +24,7 @@ type Bill = {
   parking: number;
   eid_bonus: number;
   other_charge: number;
+  arrears: number;
   other_note: string | null;
   other_due_date: string | null;
   total: number;
