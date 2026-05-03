@@ -125,7 +125,7 @@ export default function OwnerPayments() {
       `Approved: ${pr.reviewed_at ? new Date(pr.reviewed_at).toLocaleString() : "-"}`,
       ``,
       `Due (base):     BDT ${due.toFixed(2)}`,
-      `bKash Fee (2%): BDT ${fee.toFixed(2)}`,
+      `bKash Fee (${(BKASH_FEE_PCT*100).toFixed(2)}%): BDT ${fee.toFixed(2)}`,
       `Total Payable:  BDT ${total.toFixed(2)}`,
     ];
     lines.forEach((l, i) => doc.text(l, 14, 32 + i * 8));
