@@ -262,6 +262,8 @@ export default function AdminDues() {
         : `${updated.length} succeeded, ${failed} failed`);
     }
   };
+
+  const filterChips: { key: Filter; label: string }[] = [
     { key: "all",     label: lang === "bn" ? "সব" : "All" },
     { key: "unpaid",  label: t("unpaid") },
     { key: "partial", label: t("partial") },
