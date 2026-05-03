@@ -48,6 +48,38 @@ export default function AdminPaymentRequests() {
 
   useEffect(() => { refresh(); }, [filter]);
 
+  // Realtime: notify admin when a new payment request arrives or status changes
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-payment-requests")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "payment_requests" },
+        async (payload) => {
+          const row: any = payload.new;
+          // fetch flat info for nicer toast
+          const { data: f } = await supabase
+            .from("flats")
+            .select("flat_no, owner_name")
+            .eq("id", row.flat_id)
+            .maybeSingle();
+          const who = f ? `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${f.flat_no}${f.owner_name ? " · " + f.owner_name : ""}` : "";
+          toast.info(
+            lang === "bn" ? "নতুন পেমেন্ট রিকোয়েস্ট" : "New payment request",
+            { description: `${who} — ${formatMoney(Number(row.amount), lang)}` }
+          );
+          refresh();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "payment_requests" },
+        () => refresh()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [filter, lang]);
+
   const review = async (pr: PR, status: "approved"|"rejected") => {
     const { error } = await supabase.from("payment_requests").update({
       status,
