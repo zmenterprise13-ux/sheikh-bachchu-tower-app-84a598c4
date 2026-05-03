@@ -108,16 +108,23 @@ export default function OwnerPayments() {
     doc.setFontSize(16);
     doc.text("Payment Receipt", 14, 18);
     doc.setFontSize(11);
+    const total = Number(pr.amount);
+    const isBkash = pr.method === "bkash";
+    const due = isBkash ? total / (1 + BKASH_FEE_PCT) : total;
+    const fee = isBkash ? total - due : 0;
     const lines = [
       `Flat: ${flat?.flat_no ?? "-"}`,
       `Owner: ${flat?.owner_name ?? "-"}`,
       `Month: ${pr.bills?.month ?? "-"}`,
-      `Amount: BDT ${Number(pr.amount).toFixed(2)}`,
       `Method: ${pr.method}`,
       `Reference: ${pr.reference ?? "-"}`,
       `Status: ${pr.status}`,
       `Submitted: ${new Date(pr.created_at).toLocaleString()}`,
       `Approved: ${pr.reviewed_at ? new Date(pr.reviewed_at).toLocaleString() : "-"}`,
+      ``,
+      `Due (base):     BDT ${due.toFixed(2)}`,
+      `bKash Fee (2%): BDT ${fee.toFixed(2)}`,
+      `Total Payable:  BDT ${total.toFixed(2)}`,
     ];
     lines.forEach((l, i) => doc.text(l, 14, 32 + i * 8));
     doc.save(`receipt-${pr.id.slice(0,8)}.pdf`);
