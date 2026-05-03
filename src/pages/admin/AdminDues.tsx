@@ -338,9 +338,10 @@ export default function AdminDues() {
                   </div>
                   <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
                   <div className="md:col-span-2 md:text-right text-sm">
-                    {formatMoney(Number(b.gas_bill) + Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge), lang)}
-                    {(Number(b.eid_bonus) > 0 || Number(b.other_charge) > 0) && (
+                    {formatMoney(Number(b.gas_bill) + Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge) + Number(b.arrears ?? 0), lang)}
+                    {(Number(b.eid_bonus) > 0 || Number(b.other_charge) > 0 || Number(b.arrears ?? 0) > 0) && (
                       <div className="text-[10px] text-muted-foreground">
+                        {Number(b.arrears ?? 0) > 0 && <span className="text-destructive">{lang === "bn" ? "বাকি" : "Arr"}: {formatMoney(Number(b.arrears), lang)} </span>}
                         {Number(b.eid_bonus) > 0 && <>ঈদ: {formatMoney(Number(b.eid_bonus), lang)} </>}
                         {Number(b.other_charge) > 0 && <>+ {b.other_note || t("otherCharge")}: {formatMoney(Number(b.other_charge), lang)}</>}
                       </div>
