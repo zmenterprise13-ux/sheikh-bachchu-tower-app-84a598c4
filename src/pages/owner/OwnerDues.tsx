@@ -109,7 +109,7 @@ export default function OwnerDues() {
                 <StatusBadge status={b.status} />
                 {due > 0 && (
                   <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5"
-                    onClick={() => navigate("/owner/payments")}>
+                    onClick={() => navigate(`/owner/payments?bill=${b.id}&pay=1`)}>
                     <CreditCard className="h-3.5 w-3.5" /> {t("payNow")}
                   </Button>
                 )}
