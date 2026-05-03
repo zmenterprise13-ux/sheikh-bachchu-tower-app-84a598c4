@@ -34,6 +34,7 @@ import OwnerPayments from "./pages/owner/OwnerPayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
 import OwnerLedger from "./pages/owner/OwnerLedger";
+import AccountPassword from "./pages/AccountPassword";
 
 const queryClient = new QueryClient();
 
