@@ -139,7 +139,7 @@ export default function AdminOwnersDirectory() {
 
       <div className="mt-3 space-y-2">
         {g.flats.map((f) => {
-          const isTenant = f.occupant_type === "tenant" && (f.occupant_name || f.occupant_phone);
+          const isTenant = isTenantFlat(f);
           return (
             <div
               key={f.id}
@@ -185,7 +185,8 @@ export default function AdminOwnersDirectory() {
   );
 
   const isTenantFlat = (f: Flat) =>
-    f.occupant_type === "tenant" && Boolean(f.occupant_name || f.occupant_phone);
+    Boolean(f.occupant_name && f.occupant_name.trim()) ||
+    (f.occupant_type === "tenant" && Boolean(f.occupant_phone));
 
   const renderList = (groups: OwnerGroup[]) => {
     const visible = groups
