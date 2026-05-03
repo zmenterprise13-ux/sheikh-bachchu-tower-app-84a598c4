@@ -28,7 +28,8 @@ type Row = {
 
 export default function AdminReconcile() {
   const { lang } = useLang();
-  const { feePct } = useBkashSettings();
+  const { settings } = useBkashSettings();
+  const feePct = settings.fee_pct;
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
