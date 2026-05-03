@@ -15,9 +15,11 @@ type Flat = {
   flat_no: string;
   floor: number;
   owner_name: string | null;
+  owner_name_bn: string | null;
   phone: string | null;
   occupant_type: "owner" | "tenant" | string;
   occupant_name: string | null;
+  occupant_name_bn: string | null;
   occupant_phone: string | null;
   service_charge: number;
   gas_bill: number;
@@ -28,12 +30,14 @@ type Flat = {
 };
 
 const COLS =
-  "id, flat_no, floor, owner_name, phone, occupant_type, occupant_name, occupant_phone, service_charge, gas_bill, eid_bonus, other_charge, owner_photo_url, occupant_photo_url";
+  "id, flat_no, floor, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, service_charge, gas_bill, eid_bonus, other_charge, owner_photo_url, occupant_photo_url";
 
 const EDITABLE_KEYS: (keyof Flat)[] = [
   "owner_name",
+  "owner_name_bn",
   "phone",
   "occupant_name",
+  "occupant_name_bn",
   "occupant_phone",
   "service_charge",
   "gas_bill",
