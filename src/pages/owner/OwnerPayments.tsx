@@ -46,7 +46,10 @@ export default function OwnerPayments() {
   const [open, setOpen] = useState(false);
   const [billId, setBillId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [methodGroup, setMethodGroup] = useState<"bkash"|"others">("bkash");
   const [method, setMethod] = useState<string>("bkash");
+  const BKASH_NUMBER = "01613458260";
+  const BKASH_FEE_PCT = 0.02;
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -75,6 +78,7 @@ export default function OwnerPayments() {
     const pick = b ?? dueBills[0];
     setBillId(pick?.id ?? "");
     setAmount(pick ? String(Number(pick.total) - Number(pick.paid_amount)) : "");
+    setMethodGroup("bkash");
     setMethod("bkash");
     setReference("");
     setNote("");
@@ -88,7 +92,7 @@ export default function OwnerPayments() {
       bill_id: billId,
       flat_id: flat.id,
       submitted_by: user?.id,
-      amount: Number(amount),
+      amount: methodGroup === "bkash" ? Number(amount) * (1 + BKASH_FEE_PCT) : Number(amount),
       method, reference: reference || null, note: note || null,
       status: "pending",
     });
@@ -180,17 +184,34 @@ export default function OwnerPayments() {
             </div>
             <div>
               <Label>{t("paymentMethod")}</Label>
-              <Select value={method} onValueChange={setMethod}>
+              <Select value={methodGroup} onValueChange={(v: "bkash"|"others")=>{ setMethodGroup(v); setMethod(v === "bkash" ? "bkash" : "cash"); }}>
                 <SelectTrigger><SelectValue/></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="bkash">{t("bkash")}</SelectItem>
-                  <SelectItem value="nagad">{t("nagad")}</SelectItem>
-                  <SelectItem value="rocket">{t("rocket")}</SelectItem>
-                  <SelectItem value="bank">{t("bank")}</SelectItem>
-                  <SelectItem value="cash">{t("cash")}</SelectItem>
+                  <SelectItem value="others">{lang === "bn" ? "অন্যান্য" : "Others"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            {methodGroup === "bkash" ? (
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-1">
+                <div>{lang === "bn" ? "বিকাশ নাম্বার" : "bKash Number"}: <span className="font-mono font-bold">{BKASH_NUMBER}</span> <span className="text-xs text-muted-foreground">({lang === "bn" ? "সেন্ড মানি" : "Send Money"})</span></div>
+                <div className="text-xs text-muted-foreground">{lang === "bn" ? "বিকাশে ২% চার্জ যোগ হবে" : "2% bKash charge will be added"}</div>
+                <div className="font-semibold">{lang === "bn" ? "প্রদেয়" : "Payable"}: {formatMoney(Number(amount || 0) * (1 + BKASH_FEE_PCT), lang)}</div>
+              </div>
+            ) : (
+              <div>
+                <Label>{lang === "bn" ? "মাধ্যম" : "Method"}</Label>
+                <Select value={method} onValueChange={setMethod}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nagad">{t("nagad")}</SelectItem>
+                    <SelectItem value="rocket">{t("rocket")}</SelectItem>
+                    <SelectItem value="bank">{t("bank")}</SelectItem>
+                    <SelectItem value="cash">{t("cash")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>{t("reference")}</Label>
               <Input value={reference} onChange={(e)=>setReference(e.target.value)} placeholder="TrxID / last 4 digits"/>
