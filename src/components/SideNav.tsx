@@ -55,6 +55,9 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/owner/dues", key: "myDues", icon: CreditCard },
   { to: "/owner/payments", key: "myPayments", icon: History },
   { to: "/owner/ledger", key: "myLedger", icon: BookOpen },
+  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+  { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
+  { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
   { to: "/owner/notices", key: "notices", icon: Megaphone },
   { to: "/owner/reports", key: "reports", icon: FileBarChart },
 ];
