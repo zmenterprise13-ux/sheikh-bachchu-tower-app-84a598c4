@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
+import QRCode from "qrcode";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { fromDue, fromTotal, noFee } from "@/lib/bkashMath";
 import bkashLogo from "@/assets/bkash-logo.png";
