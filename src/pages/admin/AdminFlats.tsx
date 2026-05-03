@@ -106,6 +106,15 @@ export default function AdminFlats() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
+              variant="default"
+              size="sm"
+              onClick={() => setAddOpen(true)}
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "নতুন ফ্ল্যাট" : "New Flat"}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={() => setBulkOpen(true)}
