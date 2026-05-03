@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 type Bill = {
   id: string;
@@ -31,6 +32,7 @@ export default function OwnerDues() {
   const { flat, loading: flatLoading } = useOwnerFlat();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!flat) {
@@ -107,7 +109,7 @@ export default function OwnerDues() {
                 <StatusBadge status={b.status} />
                 {due > 0 && (
                   <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5"
-                    onClick={() => toast.info(lang === "bn" ? "অনলাইন পেমেন্ট শীঘ্রই" : "Online payment coming soon")}>
+                    onClick={() => navigate("/owner/payments")}>
                     <CreditCard className="h-3.5 w-3.5" /> {t("payNow")}
                   </Button>
                 )}
