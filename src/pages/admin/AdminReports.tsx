@@ -248,11 +248,11 @@ export default function AdminReports() {
     lines.push("");
     lines.push([lang === "bn" ? "আগের ক্যাশ" : "Opening cash", openingCash, openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")].map(esc).join(","));
     lines.push("");
-    lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
+    lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), lang === "bn" ? `বিকাশ ফি (মেটা)` : `bKash Fee (meta)`, t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
     perMonthRolling.forEach((r) => {
-      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, r.expense, r.balance, r.closing].map(esc).join(","));
+      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, bkashByMonth[r.month] || 0, r.expense, r.balance, r.closing].map(esc).join(","));
     });
-    lines.push([t("total"), openingCash, totalBilled, totalIncome, totalExpense, balance, closingBalance].map(esc).join(","));
+    lines.push([t("total"), openingCash, totalBilled, totalIncome, bkashTotal, totalExpense, balance, closingBalance].map(esc).join(","));
     lines.push("");
     lines.push(`# ${t("expense")} — ${lang === "bn" ? "ক্যাটেগরি অনুযায়ী" : "By category"}`);
     lines.push([lang === "bn" ? "ক্যাটেগরি" : "Category", lang === "bn" ? "টাকা" : "Amount"].map(esc).join(","));
