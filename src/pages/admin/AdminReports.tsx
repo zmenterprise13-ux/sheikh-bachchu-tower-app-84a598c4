@@ -81,7 +81,10 @@ export default function AdminReports() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
+  const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
+  const [bkashTotal, setBkashTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { settings: bkash } = useBkashSettings();
 
   // Opening cash (carry-forward from before `from`)
   const [autoOpening, setAutoOpening] = useState(0);
