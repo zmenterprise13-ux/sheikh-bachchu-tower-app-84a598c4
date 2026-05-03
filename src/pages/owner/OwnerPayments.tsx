@@ -18,7 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
-import { fromDue, fromTotal, noFee } from "@/lib/bkashMath";
+import { fromDue, noFee } from "@/lib/bkashMath";
 import bkashLogo from "@/assets/bkash-logo.png";
 
 type Bill = {
@@ -111,11 +111,14 @@ export default function OwnerPayments() {
   const submit = async () => {
     if (!flat || !billId || !amount) { toast.error(lang === "bn" ? "সব ফিল্ড পূরণ করুন" : "Fill all fields"); return; }
     setSubmitting(true);
+    // Store only the base due amount in payment_requests.amount.
+    // The bKash 2% fee goes to bKash, NOT to the society — so it must not
+    // be credited to the bill's paid_amount or counted as income.
     const { error } = await supabase.from("payment_requests").insert({
       bill_id: billId,
       flat_id: flat.id,
       submitted_by: user?.id,
-      amount: methodGroup === "bkash" ? fromDue(Number(amount), BKASH_FEE_PCT).total : noFee(Number(amount)).total,
+      amount: Number(amount),
       method, reference: reference || null, note: note || null,
       status: "pending",
     });
@@ -131,7 +134,7 @@ export default function OwnerPayments() {
     const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
     const { due, fee, total } = isBkash
-      ? fromTotal(Number(pr.amount), BKASH_FEE_PCT)
+      ? fromDue(Number(pr.amount), BKASH_FEE_PCT)
       : noFee(Number(pr.amount));
 
     // Header band
