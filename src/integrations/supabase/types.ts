@@ -136,6 +136,7 @@ export type Database = {
       }
       bills: {
         Row: {
+          arrears: number
           created_at: string
           due_date: string | null
           eid_bonus: number
@@ -158,6 +159,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arrears?: number
           created_at?: string
           due_date?: string | null
           eid_bonus?: number
@@ -180,6 +182,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arrears?: number
           created_at?: string
           due_date?: string | null
           eid_bonus?: number
