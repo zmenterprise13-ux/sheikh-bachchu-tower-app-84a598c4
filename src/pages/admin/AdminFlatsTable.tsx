@@ -111,7 +111,7 @@ export default function AdminFlatsTable() {
         for (const k of EDITABLE_KEYS) {
           patch[k as string] = (f as any)[k];
         }
-        const { error } = await supabase.from("flats").update(patch).eq("id", f.id);
+        const { error } = await supabase.from("flats").update(patch as any).eq("id", f.id);
         if (error) throw error;
       }
       toast.success(
