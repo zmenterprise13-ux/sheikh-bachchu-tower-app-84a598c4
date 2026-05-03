@@ -23,6 +23,7 @@ import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
 import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
+import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
