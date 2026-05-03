@@ -137,7 +137,7 @@ export default function AdminFlatsTable() {
     );
   });
 
-  const PhotoCell = ({ row, field }: { row: Flat; field: "owner_photo_url" | "occupant_photo_url" }) => {
+  const renderPhoto = (row: Flat, field: "owner_photo_url" | "occupant_photo_url") => {
     const url = row[field];
     const busy = uploadingId === row.id + field;
     const inputId = `${row.id}-${field}`;
@@ -179,7 +179,7 @@ export default function AdminFlatsTable() {
     );
   };
 
-  const NumCell = ({ row, field }: { row: Flat; field: keyof Flat }) => (
+  const renderNum = (row: Flat, field: keyof Flat) => (
     <Input
       type="number"
       value={(row[field] as number) ?? 0}
@@ -188,7 +188,7 @@ export default function AdminFlatsTable() {
     />
   );
 
-  const TextCell = ({ row, field, w = "w-32" }: { row: Flat; field: keyof Flat; w?: string }) => (
+  const renderText = (row: Flat, field: keyof Flat, w = "w-32") => (
     <Input
       value={(row[field] as string) ?? ""}
       onChange={(e) => updateRow(row.id, { [field]: e.target.value } as any)}
@@ -253,16 +253,16 @@ export default function AdminFlatsTable() {
                   return (
                     <TableRow key={row.id} className={isDirty ? "bg-primary/5" : ""}>
                       <TableCell className="font-semibold">{row.flat_no}</TableCell>
-                      <TableCell><PhotoCell row={row} field="owner_photo_url" /></TableCell>
-                      <TableCell><TextCell row={row} field="owner_name" w="w-40" /></TableCell>
-                      <TableCell><TextCell row={row} field="phone" w="w-32" /></TableCell>
-                      <TableCell><PhotoCell row={row} field="occupant_photo_url" /></TableCell>
-                      <TableCell><TextCell row={row} field="occupant_name" w="w-40" /></TableCell>
-                      <TableCell><TextCell row={row} field="occupant_phone" w="w-32" /></TableCell>
-                      <TableCell><NumCell row={row} field="service_charge" /></TableCell>
-                      <TableCell><NumCell row={row} field="gas_bill" /></TableCell>
-                      <TableCell><NumCell row={row} field="eid_bonus" /></TableCell>
-                      <TableCell><NumCell row={row} field="other_charge" /></TableCell>
+                      <TableCell>{renderPhoto(row, "owner_photo_url")}</TableCell>
+                      <TableCell>{renderText(row, "owner_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "phone", "w-32")}</TableCell>
+                      <TableCell>{renderPhoto(row, "occupant_photo_url")}</TableCell>
+                      <TableCell>{renderText(row, "occupant_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "occupant_phone", "w-32")}</TableCell>
+                      <TableCell>{renderNum(row, "service_charge")}</TableCell>
+                      <TableCell>{renderNum(row, "gas_bill")}</TableCell>
+                      <TableCell>{renderNum(row, "eid_bonus")}</TableCell>
+                      <TableCell>{renderNum(row, "other_charge")}</TableCell>
                     </TableRow>
                   );
                 })}
