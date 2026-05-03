@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { BillGenerationTester } from "@/components/BillGenerationTester";
 import { Switch } from "@/components/ui/switch";
 import { useSignupEnabled } from "@/hooks/useSignupEnabled";
+import { useTickerSpeed } from "@/hooks/useTickerSpeed";
+import { Slider } from "@/components/ui/slider";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -354,10 +356,59 @@ export default function AdminSettings() {
               </div>
             </div>
 
+            {/* Notice ticker speed */}
+            <TickerSpeedCard />
+
             <BillGenerationTester />
           </div>
         )}
       </div>
     </AppShell>
+  );
+}
+
+function TickerSpeedCard() {
+  const { lang } = useLang();
+  const { speed, loading, save, MIN, MAX } = useTickerSpeed();
+  const [val, setVal] = useState<number>(20);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (!loading) setVal(speed); }, [loading, speed]);
+
+  const onSave = async () => {
+    setSaving(true);
+    const { error } = await save(val);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
+  };
+
+  return (
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+      <div className="font-semibold text-foreground">
+        {lang === "bn" ? "নোটিশ স্ক্রলিং স্পিড" : "Notice scrolling speed"}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {lang === "bn"
+          ? `এক চক্রের সময় (সেকেন্ড) — কম মানে দ্রুত। বর্তমান: ${val}s`
+          : `Time per loop in seconds — lower is faster. Current: ${val}s`}
+      </p>
+      <Slider
+        value={[val]}
+        min={MIN}
+        max={MAX}
+        step={1}
+        onValueChange={(v) => setVal(v[0])}
+        disabled={loading}
+      />
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs text-muted-foreground">
+          {lang === "bn" ? `দ্রুত (${MIN}s) — ধীর (${MAX}s)` : `Fast (${MIN}s) — Slow (${MAX}s)`}
+        </div>
+        <Button size="sm" onClick={onSave} disabled={saving || loading || val === speed} className="gap-2">
+          <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
+        </Button>
+      </div>
+    </div>
   );
 }

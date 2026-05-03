@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { Megaphone, AlertTriangle } from "lucide-react";
+import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 
 type Notice = {
   id: string;
@@ -16,6 +17,7 @@ type Notice = {
 export function NoticeTicker() {
   const { lang } = useLang();
   const [items, setItems] = useState<Notice[]>([]);
+  const { speed } = useTickerSpeed();
 
   useEffect(() => {
     let active = true;
@@ -44,7 +46,10 @@ export function NoticeTicker() {
           <span>{lang === "bn" ? "নোটিশ" : "Notices"}</span>
         </div>
         <div className="relative flex-1 overflow-hidden">
-          <div className="flex gap-10 animate-marquee whitespace-nowrap">
+          <div
+            className="flex gap-10 animate-marquee whitespace-nowrap"
+            style={{ animationDuration: `${speed}s` }}
+          >
             {loop.map((n, idx) => {
               const title = lang === "bn" ? n.title_bn : n.title;
               const body = lang === "bn" ? n.body_bn : n.body;
