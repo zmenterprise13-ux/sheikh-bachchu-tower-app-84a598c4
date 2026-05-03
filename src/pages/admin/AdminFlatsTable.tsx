@@ -15,9 +15,11 @@ type Flat = {
   flat_no: string;
   floor: number;
   owner_name: string | null;
+  owner_name_bn: string | null;
   phone: string | null;
   occupant_type: "owner" | "tenant" | string;
   occupant_name: string | null;
+  occupant_name_bn: string | null;
   occupant_phone: string | null;
   service_charge: number;
   gas_bill: number;
@@ -28,12 +30,14 @@ type Flat = {
 };
 
 const COLS =
-  "id, flat_no, floor, owner_name, phone, occupant_type, occupant_name, occupant_phone, service_charge, gas_bill, eid_bonus, other_charge, owner_photo_url, occupant_photo_url";
+  "id, flat_no, floor, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, service_charge, gas_bill, eid_bonus, other_charge, owner_photo_url, occupant_photo_url";
 
 const EDITABLE_KEYS: (keyof Flat)[] = [
   "owner_name",
+  "owner_name_bn",
   "phone",
   "occupant_name",
+  "occupant_name_bn",
   "occupant_phone",
   "service_charge",
   "gas_bill",
@@ -236,10 +240,12 @@ export default function AdminFlatsTable() {
                 <TableRow>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ছবি (ওনার)" : "Owner Photo"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম" : "Owner Name"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম (EN)" : "Owner Name (EN)"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার নাম (BN)" : "Owner Name (BN)"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ওনার মোবাইল" : "Owner Mobile"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ছবি (ভাড়াটিয়া)" : "Tenant Photo"}</TableHead>
-                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম" : "Tenant Name"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম (EN)" : "Tenant Name (EN)"}</TableHead>
+                  <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া নাম (BN)" : "Tenant Name (BN)"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "ভাড়াটিয়া মোবাইল" : "Tenant Mobile"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "সার্ভিস চার্জ" : "Service"}</TableHead>
                   <TableHead className="whitespace-nowrap">{lang === "bn" ? "গ্যাস" : "Gas"}</TableHead>
@@ -255,9 +261,11 @@ export default function AdminFlatsTable() {
                       <TableCell className="font-semibold">{row.flat_no}</TableCell>
                       <TableCell>{renderPhoto(row, "owner_photo_url")}</TableCell>
                       <TableCell>{renderText(row, "owner_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "owner_name_bn", "w-40")}</TableCell>
                       <TableCell>{renderText(row, "phone", "w-32")}</TableCell>
                       <TableCell>{renderPhoto(row, "occupant_photo_url")}</TableCell>
                       <TableCell>{renderText(row, "occupant_name", "w-40")}</TableCell>
+                      <TableCell>{renderText(row, "occupant_name_bn", "w-40")}</TableCell>
                       <TableCell>{renderText(row, "occupant_phone", "w-32")}</TableCell>
                       <TableCell>{renderNum(row, "service_charge")}</TableCell>
                       <TableCell>{renderNum(row, "gas_bill")}</TableCell>
