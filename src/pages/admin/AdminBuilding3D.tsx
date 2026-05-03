@@ -237,7 +237,7 @@ export default function AdminBuilding3D() {
           <div className="relative rounded-2xl border border-border bg-gradient-to-b from-slate-900 to-slate-700 overflow-hidden" style={{ height: "70vh", minHeight: 500 }}>
             <Canvas
               shadows
-              camera={{ position: [8, cameraY, 9], fov: 45 }}
+              camera={{ position: [12, cameraY, 16], fov: 45 }}
               dpr={[1, 2]}
             >
               <ambientLight intensity={0.5} />
