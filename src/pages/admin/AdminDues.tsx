@@ -643,6 +643,11 @@ function BillEditDialog({
             <Input type="number" value={form.eid_bonus}
               onChange={(e) => set("eid_bonus", Number(e.target.value))} />
           </div>
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "পূর্বের বাকি" : "Arrears"}</Label>
+            <Input type="number" value={form.arrears ?? 0}
+              onChange={(e) => set("arrears", Number(e.target.value))} />
+          </div>
           <div className="col-span-2">
             <Label className="text-xs">{t("otherCharge")}</Label>
             <Input type="number" value={form.other_charge}
