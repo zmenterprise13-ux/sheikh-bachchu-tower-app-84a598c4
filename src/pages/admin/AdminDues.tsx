@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
-import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
