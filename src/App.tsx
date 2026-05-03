@@ -14,6 +14,7 @@ import AdminFlats from "./pages/admin/AdminFlats";
 import AdminFlatsTable from "./pages/admin/AdminFlatsTable";
 import AdminOwnersDirectory from "./pages/admin/AdminOwnersDirectory";
 import AdminBuildingOverview from "./pages/admin/AdminBuildingOverview";
+import AdminBuilding3D from "./pages/admin/AdminBuilding3D";
 import AdminShops from "./pages/admin/AdminShops";
 import AdminParking from "./pages/admin/AdminParking";
 import AdminDues from "./pages/admin/AdminDues";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/admin/flats/table" element={<ProtectedRoute requireRole="admin"><AdminFlatsTable /></ProtectedRoute>} />
               <Route path="/admin/flats/owners" element={<ProtectedRoute requireRole="admin"><AdminOwnersDirectory /></ProtectedRoute>} />
               <Route path="/admin/building" element={<ProtectedRoute requireRole="admin"><AdminBuildingOverview /></ProtectedRoute>} />
+              <Route path="/admin/building/3d" element={<ProtectedRoute requireRole="admin"><AdminBuilding3D /></ProtectedRoute>} />
 
               <Route path="/admin/shops" element={<ProtectedRoute requireRole="admin"><AdminShops /></ProtectedRoute>} />
               <Route path="/admin/parking" element={<ProtectedRoute requireRole="admin"><AdminParking /></ProtectedRoute>} />
