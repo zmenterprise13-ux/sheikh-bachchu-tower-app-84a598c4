@@ -454,7 +454,23 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
           </div>
           <div>
             <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"} <span className="text-destructive">*</span></Label>
-            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} maxLength={50} required />
+            <Input
+              value={holdingNo}
+              onChange={(e) => setHoldingNo(e.target.value)}
+              placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+              maxLength={50}
+              required
+              aria-invalid={!!holdingError}
+              aria-describedby="add-holding-error"
+              className={holdingError ? "border-destructive focus-visible:ring-destructive" : undefined}
+            />
+            {holdingError ? (
+              <p id="add-holding-error" className="text-xs text-destructive mt-1">{holdingError}</p>
+            ) : holdingChecking ? (
+              <p className="text-xs text-muted-foreground mt-1">{lang === "bn" ? "যাচাই করা হচ্ছে…" : "Checking…"}</p>
+            ) : holdingNo.trim() ? (
+              <p className="text-xs text-success mt-1">{lang === "bn" ? "ব্যবহারযোগ্য" : "Available"}</p>
+            ) : null}
           </div>
           <div>
             <Label className="text-xs">Owner Name (EN)</Label>
