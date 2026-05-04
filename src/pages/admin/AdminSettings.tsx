@@ -361,6 +361,8 @@ export default function AdminSettings() {
             {/* Notice ticker speed */}
             <TickerSpeedCard />
 
+            <OwnerReportStyleCard />
+
             <BkashSettingsCard />
 
             <BillGenerationTester />
