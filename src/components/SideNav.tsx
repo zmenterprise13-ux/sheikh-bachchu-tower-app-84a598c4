@@ -9,6 +9,7 @@ import {
   Store,
   Car,
   Receipt,
+  ReceiptText,
   Wallet,
   HandCoins,
   FileBarChart,
