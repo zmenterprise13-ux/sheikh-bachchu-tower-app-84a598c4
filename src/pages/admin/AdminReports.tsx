@@ -93,9 +93,12 @@ export default function AdminReports() {
   const [loading, setLoading] = useState(true);
   const { settings: bkash } = useBkashSettings();
 
-  // Opening cash (carry-forward from before `from`)
+  // Opening cash (carry-forward from before `from`) — backed by DB overrides
   const [autoOpening, setAutoOpening] = useState(0);
   const [openingOverride, setOpeningOverride] = useState<string>("");
+  const [savedOverride, setSavedOverride] = useState<{ month: string; amount: number } | null>(null);
+  const [anchorOverride, setAnchorOverride] = useState<{ month: string; amount: number } | null>(null);
+  const [savingOpening, setSavingOpening] = useState(false);
   const openingCash = openingOverride.trim() === "" ? autoOpening : Number(openingOverride) || 0;
 
   // validate range
