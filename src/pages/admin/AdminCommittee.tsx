@@ -53,6 +53,7 @@ const emptyForm = {
   is_published: true,
   bio: "",
   bio_bn: "",
+  phone: "",
 };
 
 export default function AdminCommittee() {
