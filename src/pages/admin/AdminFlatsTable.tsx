@@ -150,7 +150,7 @@ export default function AdminFlatsTable() {
       <div className="flex items-center gap-1">
         <Avatar className="h-9 w-9">
           {url ? <AvatarImage src={url} /> : null}
-          <AvatarFallback className="text-[10px]">{row.flat_no}</AvatarFallback>
+          <InitialsFallback name={row.flat_no} seed={row.id ?? row.flat_no} className="text-[10px]" />
         </Avatar>
         <label htmlFor={inputId}>
           <Button asChild size="icon" variant="ghost" className="h-7 w-7" disabled={busy}>
