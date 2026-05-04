@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Wallet, Pencil, Trash2, Settings2, X, ChevronDown, ChevronRight, Calendar, List } from "lucide-react";
+import { Plus, Wallet, Pencil, Trash2, Settings2, X, ChevronDown, ChevronRight, Calendar, List, ClipboardList, Check, AlertCircle } from "lucide-react";
 import { TKey } from "@/i18n/translations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,25 @@ export default function AdminExpenses() {
 
   const [viewMode, setViewMode] = useState<"flat" | "grouped">("grouped");
   const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
+
+  // Monthly template
+  const TEMPLATE_ITEMS: { name: string; name_bn: string }[] = [
+    { name: "Gas Bill", name_bn: "গ্যাস বিল" },
+    { name: "Electricity", name_bn: "বিদ্যুৎ" },
+    { name: "Water", name_bn: "পানি" },
+    { name: "Garbage Bill", name_bn: "ময়লা বিল" },
+    { name: "Security Guard", name_bn: "সিকিউরিটি গার্ড বিল" },
+    { name: "Lift & Generator Service", name_bn: "লিফট ও জেনারেটর সার্ভিস চার্জ" },
+    { name: "Night Guard", name_bn: "নাইট গার্ড" },
+    { name: "Miscellaneous", name_bn: "বিবিধ" },
+  ];
+  const currentYM = new Date().toISOString().slice(0, 7);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [templateMonth, setTemplateMonth] = useState(currentYM);
+  const [templateRows, setTemplateRows] = useState<{ checked: boolean; amount: string; description: string }[]>(
+    TEMPLATE_ITEMS.map(() => ({ checked: false, amount: "", description: "" }))
+  );
+  const [templateSubmitting, setTemplateSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -210,6 +229,68 @@ export default function AdminExpenses() {
     setDeleteCatId(null);
   };
 
+  const openTemplate = (ym: string) => {
+    setTemplateMonth(ym);
+    // Pre-fill: check which template items already exist for that month
+    const monthSet = new Set(
+      items.filter((e) => (e.date || "").slice(0, 7) === ym).map((e) => e.category)
+    );
+    setTemplateRows(
+      TEMPLATE_ITEMS.map((it) => ({
+        checked: !monthSet.has(it.name),
+        amount: "",
+        description: "",
+      }))
+    );
+    setTemplateOpen(true);
+  };
+
+  const submitTemplate = async () => {
+    const selected = TEMPLATE_ITEMS
+      .map((it, i) => ({ it, row: templateRows[i] }))
+      .filter(({ row }) => row.checked && Number(row.amount) > 0);
+    if (selected.length === 0) {
+      toast.error(lang === "bn" ? "অন্তত একটি খরচ যোগ করুন" : "Add at least one expense");
+      return;
+    }
+    setTemplateSubmitting(true);
+
+    // Ensure all template categories exist
+    const existingNames = new Set(categories.map((c) => c.name));
+    const toCreate = TEMPLATE_ITEMS.filter((it) => !existingNames.has(it.name));
+    if (toCreate.length > 0) {
+      let maxOrder = categories.reduce((m, c) => Math.max(m, c.sort_order), 0);
+      const rows = toCreate.map((it) => ({
+        name: it.name,
+        name_bn: it.name_bn,
+        sort_order: ++maxOrder,
+        created_by: user?.id ?? null,
+      }));
+      const { error } = await supabase.from("expense_categories").insert(rows);
+      if (error) { setTemplateSubmitting(false); toast.error(error.message); return; }
+      await loadCategories();
+    }
+
+    // Insert expenses (use last day of month as date)
+    const [yy, mm] = templateMonth.split("-").map(Number);
+    const lastDay = new Date(yy, mm, 0).getDate();
+    const date = `${templateMonth}-${String(lastDay).padStart(2, "0")}`;
+
+    const expenseRows = selected.map(({ it, row }) => ({
+      date,
+      category: it.name,
+      description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(templateMonth)}` : `${it.name} - ${monthLabel(templateMonth)}`),
+      amount: Number(row.amount),
+      created_by: user?.id ?? null,
+    }));
+    const { error } = await supabase.from("expenses").insert(expenseRows);
+    setTemplateSubmitting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? `${selected.length} টি খরচ যোগ হয়েছে` : `${selected.length} expenses added`);
+    setTemplateOpen(false);
+    load();
+  };
+
   return (
     <AppShell>
       <div className="space-y-6">
@@ -221,9 +302,12 @@ export default function AdminExpenses() {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" className="gap-2" onClick={() => setCatOpen(true)}>
               <Settings2 className="h-4 w-4" /> {lang === "bn" ? "ক্যাটেগরি" : "Categories"}
+            </Button>
+            <Button variant="outline" className="gap-2 border-primary/40 text-primary hover:bg-primary/5" onClick={() => openTemplate(currentYM)}>
+              <ClipboardList className="h-4 w-4" /> {lang === "bn" ? "মাসিক টেমপ্লেট" : "Monthly Template"}
             </Button>
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
               <DialogTrigger asChild>
@@ -512,6 +596,117 @@ export default function AdminExpenses() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Monthly Template Dialog */}
+        <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-primary" />
+                {lang === "bn" ? "মাসিক খরচ টেমপ্লেট" : "Monthly Expense Template"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-muted-foreground flex gap-2">
+                <AlertCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <div>
+                  {lang === "bn"
+                    ? "প্রতি মাসে যেগুলো নিয়মিত আসে সেগুলো এখান থেকে দ্রুত যোগ করুন। যেগুলো আগে থেকেই এই মাসে যোগ করা আছে সেগুলো অটো আনচেক হবে।"
+                    : "Quickly add the recurring monthly expenses. Items already added for this month are auto-unchecked."}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t("month")}</Label>
+                <Input
+                  type="month"
+                  value={templateMonth}
+                  onChange={(e) => openTemplate(e.target.value)}
+                />
+              </div>
+
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                {TEMPLATE_ITEMS.map((it, i) => {
+                  const row = templateRows[i];
+                  const alreadyExists = items.some(
+                    (e) => (e.date || "").slice(0, 7) === templateMonth && e.category === it.name
+                  );
+                  return (
+                    <div key={it.name} className={`p-3 grid grid-cols-12 gap-2 items-center ${row.checked ? "bg-primary/5" : ""}`}>
+                      <label className="col-span-12 sm:col-span-5 flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-primary"
+                          checked={row.checked}
+                          onChange={(e) => {
+                            const next = [...templateRows];
+                            next[i] = { ...row, checked: e.target.checked };
+                            setTemplateRows(next);
+                          }}
+                        />
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm text-foreground">
+                            {lang === "bn" ? it.name_bn : it.name}
+                          </div>
+                          {alreadyExists && (
+                            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                              <Check className="h-3 w-3" /> {lang === "bn" ? "এই মাসে যোগ করা আছে" : "Already added this month"}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder={lang === "bn" ? "টাকা" : "Amount"}
+                        className="col-span-5 sm:col-span-3"
+                        value={row.amount}
+                        disabled={!row.checked}
+                        onChange={(e) => {
+                          const next = [...templateRows];
+                          next[i] = { ...row, amount: e.target.value };
+                          setTemplateRows(next);
+                        }}
+                      />
+                      <Input
+                        placeholder={lang === "bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
+                        className="col-span-7 sm:col-span-4"
+                        value={row.description}
+                        disabled={!row.checked}
+                        onChange={(e) => {
+                          const next = [...templateRows];
+                          next[i] = { ...row, description: e.target.value };
+                          setTemplateRows(next);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-between items-center text-sm">
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => setTemplateRows(templateRows.map((r) => ({ ...r, checked: true })))}
+                >
+                  {lang === "bn" ? "সব নির্বাচন" : "Select all"}
+                </button>
+                <div className="font-semibold text-foreground">
+                  {t("total")}: {formatMoney(templateRows.reduce((s, r) => s + (r.checked ? Number(r.amount) || 0 : 0), 0), lang)}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setTemplateOpen(false)} disabled={templateSubmitting}>
+                {t("cancel")}
+              </Button>
+              <Button className="gradient-primary text-primary-foreground" onClick={submitTemplate} disabled={templateSubmitting}>
+                {templateSubmitting ? "..." : (lang === "bn" ? "নির্বাচিতগুলো যোগ করুন" : "Add selected")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppShell>
   );
