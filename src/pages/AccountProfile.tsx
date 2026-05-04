@@ -216,7 +216,7 @@ export default function AccountProfile() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-foreground truncate">{displayName || user?.email || "—"}</div>
+            <div className="font-semibold text-foreground truncate">{(lang === "bn" ? (displayNameBn || displayName) : (displayName || displayNameBn)) || user?.email || "—"}</div>
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
             <div className="mt-3 flex gap-2 flex-wrap">
               <Button
@@ -247,16 +247,31 @@ export default function AccountProfile() {
         </p>
 
         <div className="mt-6 pt-6 border-t border-border space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="display_name">{lang === "bn" ? "নাম" : "Display name"}</Label>
-            <Input
-              id="display_name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              maxLength={120}
-              disabled={loading || savingInfo}
-              placeholder={lang === "bn" ? "আপনার নাম" : "Your name"}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="display_name_bn">নাম (বাংলা)</Label>
+              <Input
+                id="display_name_bn"
+                value={displayNameBn}
+                onChange={(e) => setDisplayNameBn(e.target.value)}
+                maxLength={120}
+                disabled={loading || savingInfo}
+                placeholder="আপনার নাম"
+                lang="bn"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="display_name">Name (English)</Label>
+              <Input
+                id="display_name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={120}
+                disabled={loading || savingInfo}
+                placeholder="Your name"
+                lang="en"
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="phone">{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
@@ -275,7 +290,7 @@ export default function AccountProfile() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setDisplayName(initial.display_name); setPhone(initial.phone); }}
+                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); setPhone(initial.phone); }}
               >
                 {lang === "bn" ? "বাতিল" : "Reset"}
               </Button>
