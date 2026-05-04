@@ -12,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { downloadReceiptPdf } from "@/lib/receiptPdf";
+import { formatReceiptNo } from "@/lib/receiptNumber";
 
 type PR = {
   id: string;
+  receipt_seq: number | null;
   bill_id: string;
   amount: number;
   method: string;
@@ -42,7 +44,7 @@ export default function OwnerReceipts() {
       setLoading(true);
       const { data, error } = await supabase
         .from("payment_requests")
-        .select("id, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)")
+        .select("id, receipt_seq, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)")
         .eq("flat_id", flat.id)
         .order("created_at", { ascending: false });
       if (error) toast.error(error.message);
@@ -60,7 +62,8 @@ export default function OwnerReceipts() {
         (r.bills?.month ?? "").toLowerCase().includes(s) ||
         (r.reference ?? "").toLowerCase().includes(s) ||
         r.method.toLowerCase().includes(s) ||
-        r.id.toLowerCase().includes(s)
+        r.id.toLowerCase().includes(s) ||
+        formatReceiptNo(r.receipt_seq, r.id).toLowerCase().includes(s)
       );
     });
   }, [requests, q, status]);
@@ -160,7 +163,7 @@ export default function OwnerReceipts() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-foreground truncate">
-                  #{pr.id.slice(0,8).toUpperCase()} · {pr.bills?.month ?? "-"} · <span className="capitalize">{pr.method}</span>
+                  {formatReceiptNo(pr.receipt_seq, pr.id)} · {pr.bills?.month ?? "-"} · <span className="capitalize">{pr.method}</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5 truncate">
                   {pr.reference && <>Ref: {pr.reference} · </>}

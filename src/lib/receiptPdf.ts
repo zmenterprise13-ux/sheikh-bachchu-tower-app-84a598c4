@@ -2,9 +2,11 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { fromDue, noFee } from "@/lib/bkashMath";
 import bkashLogo from "@/assets/bkash-logo.png";
+import { formatReceiptNo } from "@/lib/receiptNumber";
 
 export type ReceiptPR = {
   id: string;
+  receipt_seq?: number | null;
   amount: number;
   method: string;
   reference: string | null;
@@ -46,7 +48,8 @@ export async function downloadReceiptPdf(
   doc.text("PAYMENT RECEIPT", 14, 28);
 
   doc.setFontSize(9);
-  doc.text(`Receipt #: ${pr.id.slice(0, 8).toUpperCase()}`, W - 14, 18, { align: "right" });
+  const receiptNo = formatReceiptNo(pr.receipt_seq ?? null, pr.id);
+  doc.text(`Receipt #: ${receiptNo}`, W - 14, 18, { align: "right" });
   doc.text(`Date: ${new Date(pr.reviewed_at ?? pr.created_at).toLocaleDateString()}`, W - 14, 24, { align: "right" });
 
   // Status badge
@@ -164,5 +167,5 @@ export async function downloadReceiptPdf(
   doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
   doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
 
-  doc.save(`receipt-${pr.id.slice(0, 8)}.pdf`);
+  doc.save(`receipt-${receiptNo}.pdf`);
 }

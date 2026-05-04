@@ -584,6 +584,7 @@ export type Database = {
           id: string
           method: string
           note: string | null
+          receipt_seq: number
           reference: string | null
           review_note: string | null
           reviewed_at: string | null
@@ -600,6 +601,7 @@ export type Database = {
           id?: string
           method?: string
           note?: string | null
+          receipt_seq?: number
           reference?: string | null
           review_note?: string | null
           reviewed_at?: string | null
@@ -616,6 +618,7 @@ export type Database = {
           id?: string
           method?: string
           note?: string | null
+          receipt_seq?: number
           reference?: string | null
           review_note?: string | null
           reviewed_at?: string | null
