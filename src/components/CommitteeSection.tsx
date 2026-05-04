@@ -132,6 +132,7 @@ export function CommitteeSection() {
           {members.map((m, i) => (
             <div
               key={m.id}
+              onClick={() => setSelected(m)}
               className="group relative flex-1 hover:flex-[3] transition-all duration-700 ease-out rounded-3xl overflow-hidden cursor-pointer shadow-soft hover:shadow-elegant animate-fade-in border border-border"
               style={{ animationDelay: `${i * 70}ms`, animationFillMode: "backwards" }}
             >
