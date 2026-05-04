@@ -106,6 +106,8 @@ export function CommitteeSection() {
                     </div>
                   </div>
                 </button>
+              </div>
+            ))}
           </div>
         </div>
 
