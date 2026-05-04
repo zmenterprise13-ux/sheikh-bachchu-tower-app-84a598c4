@@ -28,6 +28,19 @@ export default function Auth() {
 
   const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
+  const [remember, setRemember] = useState<boolean>(() => {
+    const v = localStorage.getItem("auth.remember");
+    return v === null ? true : v === "1";
+  });
+
+  const persistRemember = (val: boolean) => {
+    setRemember(val);
+    localStorage.setItem("auth.remember", val ? "1" : "0");
+    // sessionStorage flag tells the app this tab/session is "alive";
+    // when not remembering, closing the browser clears it and we sign out.
+    if (val) sessionStorage.removeItem("auth.session_only");
+    else sessionStorage.setItem("auth.session_only", "1");
+  };
 
   // owner phone login
   const [ownerPhone, setOwnerPhone] = useState("");
