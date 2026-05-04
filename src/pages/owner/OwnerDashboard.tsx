@@ -53,7 +53,7 @@ const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
-  const { flats, loading: flatsLoading } = useOwnerFlats();
+  const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
   const month = currentMonth();
   const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -132,6 +132,7 @@ export default function OwnerDashboard() {
               photoUrl={flat.owner_photo_url}
               ownerName={flat.owner_name}
               flatId={flat.id}
+              onChanged={refetchFlats}
             />
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
@@ -368,10 +369,12 @@ function OwnerAvatarUpload({
   photoUrl,
   ownerName,
   flatId,
+  onChanged,
 }: {
   photoUrl: string | null;
   ownerName: string | null;
   flatId: string;
+  onChanged?: () => void | Promise<void>;
 }) {
   const { lang } = useLang();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -413,6 +416,7 @@ function OwnerAvatarUpload({
       setLocalUrl(newUrl);
       setCropSrc(null);
       toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
+      await onChanged?.();
     } catch (err: any) {
       toast.error(err.message ?? "Upload failed");
     } finally {
@@ -427,6 +431,7 @@ function OwnerAvatarUpload({
       if (error) throw error;
       setLocalUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
+      await onChanged?.();
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
     } finally {

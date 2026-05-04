@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
@@ -22,20 +22,37 @@ export default function AccountProfile() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
+  const fetchProfile = useCallback(async (showSpinner = true) => {
+    if (!user) return;
+    if (showSpinner) setLoading(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("avatar_url, display_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    setAvatarUrl((data as any)?.avatar_url ?? null);
+    setDisplayName((data as any)?.display_name ?? null);
+    if (showSpinner) setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchProfile(true);
+  }, [fetchProfile]);
+
+  // Re-sync silently when the user revisits the page/tab.
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("profiles")
-        .select("avatar_url, display_name")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setAvatarUrl((data as any)?.avatar_url ?? null);
-      setDisplayName((data as any)?.display_name ?? null);
-      setLoading(false);
-    })();
-  }, [user]);
+    const onFocus = () => fetchProfile(false);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchProfile(false);
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user, fetchProfile]);
 
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
