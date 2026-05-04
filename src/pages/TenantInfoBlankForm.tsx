@@ -160,9 +160,12 @@ export default function TenantInfoBlankForm() {
       <div
         className="form-page print-area"
         style={{
-          padding: 24,
-          maxWidth: 820,
+          padding: "12mm 14mm",
+          width: "210mm",
+          minHeight: "297mm",
+          boxSizing: "border-box",
           margin: "0 auto",
+          background: "#fff",
           fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif",
         }}
       >
@@ -171,13 +174,19 @@ export default function TenantInfoBlankForm() {
             as="h1"
             value={labels.buildingName}
             onChange={(v) => setLabel("buildingName", v)}
-            style={{ fontSize: 20, fontWeight: 700, margin: 0 }}
+            style={{ fontSize: 22, fontWeight: 700, margin: 0 }}
+          />
+          <Editable
+            as="div"
+            value={labels.buildingAddress}
+            onChange={(v) => setLabel("buildingAddress", v)}
+            style={{ fontSize: 12, fontWeight: 500, margin: "2px 0 0", color: "#222" }}
           />
           <Editable
             as="h2"
             value={labels.formTitle}
             onChange={(v) => setLabel("formTitle", v)}
-            style={{ fontSize: 14, fontWeight: 600, margin: 4 }}
+            style={{ fontSize: 14, fontWeight: 600, margin: "6px 0 0" }}
           />
         </div>
 
