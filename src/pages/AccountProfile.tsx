@@ -166,7 +166,7 @@ export default function AccountProfile() {
           {lang === "bn" ? "আমার প্রোফাইল" : "My Profile"}
         </h1>
         <p className="text-sm text-muted-foreground mb-5">
-          {lang === "bn" ? "আপনার নাম, ফোন নম্বর ও প্রোফাইল ছবি আপডেট করুন।" : "Update your name, phone, and profile photo."}
+          {lang === "bn" ? "আপনার নাম ও প্রোফাইল ছবি আপডেট করুন।" : "Update your name and profile photo."}
         </p>
 
         <div className="flex items-center gap-5">
