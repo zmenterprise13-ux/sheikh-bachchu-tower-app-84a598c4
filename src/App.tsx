@@ -33,6 +33,7 @@ import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
+import OwnerFinanceReport from "./pages/owner/OwnerFinanceReport";
 import OwnerLedger from "./pages/owner/OwnerLedger";
 import OwnerReceipts from "./pages/owner/OwnerReceipts";
 import AccountPassword from "./pages/AccountPassword";
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/owner/receipts" element={<ProtectedRoute requireRole="owner"><OwnerReceipts /></ProtectedRoute>} />
               <Route path="/owner/notices" element={<ProtectedRoute requireRole="owner"><OwnerNotices /></ProtectedRoute>} />
               <Route path="/owner/reports" element={<ProtectedRoute requireRole="owner"><OwnerReports /></ProtectedRoute>} />
+              <Route path="/owner/finance-report" element={<ProtectedRoute requireRole="owner"><OwnerFinanceReport /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
 
