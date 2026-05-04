@@ -1086,7 +1086,17 @@ function FlatEditDialog({
               placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
               maxLength={50}
               required
+              aria-invalid={!!holdingError}
+              aria-describedby="edit-holding-error"
+              className={holdingError ? "border-destructive focus-visible:ring-destructive" : undefined}
             />
+            {holdingError ? (
+              <p id="edit-holding-error" className="text-xs text-destructive mt-1">{holdingError}</p>
+            ) : holdingChecking ? (
+              <p className="text-xs text-muted-foreground mt-1">{lang === "bn" ? "যাচাই করা হচ্ছে…" : "Checking…"}</p>
+            ) : (form.holding_no ?? "").trim() ? (
+              <p className="text-xs text-success mt-1">{lang === "bn" ? "ব্যবহারযোগ্য" : "Available"}</p>
+            ) : null}
           </div>
           {/* Owner section */}
           <div className="rounded-lg border border-border p-3 space-y-3">
