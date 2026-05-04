@@ -16,6 +16,7 @@ import { formatReceiptNo } from "@/lib/receiptNumber";
 
 type PR = {
   id: string;
+  receipt_seq: number | null;
   bill_id: string;
   amount: number;
   method: string;
