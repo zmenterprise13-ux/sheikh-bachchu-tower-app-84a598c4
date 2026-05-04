@@ -147,11 +147,10 @@ export default function AccountProfile() {
         .update({
           display_name: name || null,
           display_name_bn: nameBn || null,
-          phone: phone.trim() || null,
         })
         .eq("user_id", user.id);
       if (error) throw error;
-      setInitial({ display_name: name, display_name_bn: nameBn, phone: phone.trim() });
+      setInitial({ display_name: name, display_name_bn: nameBn, phone: initial.phone });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
