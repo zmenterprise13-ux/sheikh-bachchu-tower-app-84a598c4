@@ -134,6 +134,7 @@ export default function AdminCommittee() {
       is_published: form.is_published,
       bio: form.bio.trim() || null,
       bio_bn: form.bio_bn.trim() || null,
+      phone: form.phone.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
