@@ -272,18 +272,19 @@ export default function AdminExpenses() {
       await loadCategories();
     }
 
-    // Insert expenses (use last day of month as date)
-    const [yy, mm] = templateMonth.split("-").map(Number);
-    const lastDay = new Date(yy, mm, 0).getDate();
-    const date = `${templateMonth}-${String(lastDay).padStart(2, "0")}`;
-
-    const expenseRows = selected.map(({ it, row }) => ({
-      date,
-      category: it.name,
-      description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(templateMonth)}` : `${it.name} - ${monthLabel(templateMonth)}`),
-      amount: Number(row.amount),
-      created_by: user?.id ?? null,
-    }));
+    const expenseRows = selected.map(({ it, row }) => {
+      const ym = row.billMonth || templateMonth;
+      const [yy, mm] = ym.split("-").map(Number);
+      const lastDay = new Date(yy, mm, 0).getDate();
+      const date = `${ym}-${String(lastDay).padStart(2, "0")}`;
+      return {
+        date,
+        category: it.name,
+        description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(ym)}` : `${it.name} - ${monthLabel(ym)}`),
+        amount: Number(row.amount),
+        created_by: user?.id ?? null,
+      };
+    });
     const { error } = await supabase.from("expenses").insert(expenseRows);
     setTemplateSubmitting(false);
     if (error) { toast.error(error.message); return; }
