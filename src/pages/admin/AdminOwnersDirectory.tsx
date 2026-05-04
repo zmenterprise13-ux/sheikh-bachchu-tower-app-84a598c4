@@ -51,6 +51,7 @@ export default function AdminOwnersDirectory() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "tenant" | "owner">("all");
+  const [sortBy, setSortBy] = useState<"flat_asc" | "flat_desc" | "tenant_first" | "owner_first">("flat_asc");
 
   useEffect(() => {
     (async () => {
