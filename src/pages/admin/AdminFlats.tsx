@@ -36,6 +36,7 @@ import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 type Flat = {
   id: string;
   flat_no: string;
+  holding_no: string | null;
   floor: number;
   owner_name: string | null;
   owner_name_bn: string | null;
@@ -55,7 +56,7 @@ type Flat = {
 };
 
 const SELECT_COLS =
-  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
+  "id, flat_no, holding_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
 
 export default function AdminFlats() {
   const { t, lang } = useLang();
@@ -347,6 +348,7 @@ export default function AdminFlats() {
 function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
   const { lang } = useLang();
   const [flatNo, setFlatNo] = useState("");
+  const [holdingNo, setHoldingNo] = useState("");
   const [floor, setFloor] = useState<number>(1);
   const [ownerName, setOwnerName] = useState("");
   const [ownerNameBn, setOwnerNameBn] = useState("");
@@ -355,7 +357,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setFlatNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
+    setFlatNo(""); setHoldingNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
   };
 
   const submit = async () => {
@@ -366,6 +368,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
     setSaving(true);
     const { error } = await supabase.from("flats").insert({
       flat_no: flatNo.trim(),
+      holding_no: holdingNo.trim() || null,
       floor: Number(floor) || 1,
       owner_name: ownerName || null,
       owner_name_bn: ownerNameBn || null,
@@ -397,6 +400,10 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
               <Label className="text-xs">{lang === "bn" ? "ফ্লোর" : "Floor"}</Label>
               <Input type="number" value={floor} onChange={(e) => setFloor(Number(e.target.value))} />
             </div>
+          </div>
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} />
           </div>
           <div>
             <Label className="text-xs">Owner Name (EN)</Label>
@@ -920,6 +927,7 @@ function FlatEditDialog({
         owner_name_bn: form.owner_name_bn,
         phone: form.phone,
         size: form.size,
+        holding_no: form.holding_no,
         service_charge: form.service_charge,
         gas_bill: form.gas_bill,
         parking: form.parking,
@@ -952,6 +960,15 @@ function FlatEditDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Flat meta */}
+          <div className="rounded-lg border border-border p-3">
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Input
+              value={form.holding_no ?? ""}
+              onChange={(e) => set("holding_no", e.target.value)}
+              placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+            />
+          </div>
           {/* Owner section */}
           <div className="rounded-lg border border-border p-3 space-y-3">
             <div className="text-sm font-semibold">{t("ownerLabel")}</div>
