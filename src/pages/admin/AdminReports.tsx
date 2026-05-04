@@ -144,6 +144,7 @@ export default function AdminReports() {
       setRepays((repayRes.data ?? []) as RepayRow[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
+      setOtherIncomes((oiRes.data ?? []) as OtherIncomeRow[]);
 
       const feeMap: Record<string, number> = {};
       let feeTotal = 0;
