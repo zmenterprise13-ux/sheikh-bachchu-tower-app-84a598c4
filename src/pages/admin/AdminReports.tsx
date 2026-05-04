@@ -516,6 +516,7 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalOtherIn, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalLoanIn, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalLoanOut, lang)}</td>
