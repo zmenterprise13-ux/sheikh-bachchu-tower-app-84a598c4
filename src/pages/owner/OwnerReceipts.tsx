@@ -62,7 +62,8 @@ export default function OwnerReceipts() {
         (r.bills?.month ?? "").toLowerCase().includes(s) ||
         (r.reference ?? "").toLowerCase().includes(s) ||
         r.method.toLowerCase().includes(s) ||
-        r.id.toLowerCase().includes(s)
+        r.id.toLowerCase().includes(s) ||
+        formatReceiptNo(r.receipt_seq, r.id).toLowerCase().includes(s)
       );
     });
   }, [requests, q, status]);
