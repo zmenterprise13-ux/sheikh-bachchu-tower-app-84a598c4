@@ -118,6 +118,7 @@ export const translations: T = {
   expense: { bn: "ব্যয়", en: "Expense" },
   balance: { bn: "ব্যালেন্স", en: "Balance" },
   monthlyReport: { bn: "মাসিক হিসাব", en: "Monthly Account" },
+  financeReport: { bn: "আয়-ব্যয় রিপোর্ট", en: "Income & Expense" },
 
   // Occupant / shops / parking
   occupantType: { bn: "বর্তমান বাসিন্দা", en: "Current Occupant" },
