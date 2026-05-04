@@ -3,6 +3,7 @@ import { useLang } from "@/i18n/LangContext";
 import { Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 type Member = {
   id: string;
@@ -12,19 +13,22 @@ type Member = {
   role_bn: string;
   photo_url: string | null;
   accent: string;
+  bio: string | null;
+  bio_bn: string | null;
 };
 
 export function CommitteeSection() {
   const { lang } = useLang();
   const isMobile = useIsMobile();
   const [members, setMembers] = useState<Member[]>([]);
+  const [selected, setSelected] = useState<Member | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
@@ -63,6 +67,8 @@ export function CommitteeSection() {
   // ---------- MOBILE VIEW: horizontal snap carousel ----------
   if (isMobile) {
     return (
+      <>
+      <MemberModal m={selected} lang={lang} onClose={() => setSelected(null)} />
       <section className="relative overflow-hidden py-14">
         {Background}
         {Header}
@@ -75,7 +81,7 @@ export function CommitteeSection() {
                 className="snap-center shrink-0 w-[78%] max-w-[300px] animate-fade-in"
                 style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
               >
-                <div className="relative rounded-3xl bg-card border border-border shadow-soft overflow-hidden">
+                <button type="button" onClick={() => setSelected(m)} className="block w-full text-left relative rounded-3xl bg-card border border-border shadow-soft overflow-hidden active:scale-[0.98] transition-transform">
                   <div className={`absolute inset-x-0 top-0 h-32 bg-gradient-to-br ${m.accent} opacity-90`} />
                   <div className="relative pt-8 px-5">
                     <div className="mx-auto w-28 h-28 rounded-full ring-4 ring-card overflow-hidden bg-muted shadow-lg">
@@ -101,7 +107,7 @@ export function CommitteeSection() {
                       {lang === "bn" ? m.role_bn : m.role}
                     </div>
                   </div>
-                </div>
+                </button>
               </div>
             ))}
           </div>
@@ -113,11 +119,13 @@ export function CommitteeSection() {
           ))}
         </div>
       </section>
+      </>
     );
   }
 
-  // ---------- DESKTOP VIEW: hover-expand horizontal panels ----------
   return (
+    <>
+    <MemberModal m={selected} lang={lang} onClose={() => setSelected(null)} />
     <section className="relative overflow-hidden py-20 sm:py-28">
       {Background}
 
@@ -128,10 +136,10 @@ export function CommitteeSection() {
           {members.map((m, i) => (
             <div
               key={m.id}
+              onClick={() => setSelected(m)}
               className="group relative flex-1 hover:flex-[3] transition-all duration-700 ease-out rounded-3xl overflow-hidden cursor-pointer shadow-soft hover:shadow-elegant animate-fade-in border border-border"
               style={{ animationDelay: `${i * 70}ms`, animationFillMode: "backwards" }}
             >
-              {/* Image */}
               <div className="absolute inset-0 bg-muted">
                 {m.photo_url && (
                   <img
@@ -142,19 +150,13 @@ export function CommitteeSection() {
                   />
                 )}
               </div>
-
-              {/* Accent gradient overlay */}
               <div className={`absolute inset-0 bg-gradient-to-t ${m.accent} opacity-60 group-hover:opacity-30 transition-opacity duration-700`} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-              {/* Collapsed: vertical role badge */}
               <div className="absolute inset-x-0 bottom-0 p-4 text-center group-hover:opacity-0 transition-opacity duration-300">
                 <div className="text-white font-bold text-sm [writing-mode:vertical-rl] rotate-180 mx-auto h-32 flex items-center justify-center tracking-wider">
                   {lang === "bn" ? m.name_bn : m.name}
                 </div>
               </div>
-
-              {/* Expanded: full info */}
               <div className="absolute inset-x-0 bottom-0 p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-200 translate-y-4 group-hover:translate-y-0">
                 <div className={`inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-[11px] font-semibold text-white shadow-md mb-2`}>
                   {lang === "bn" ? m.role_bn : m.role}
@@ -163,8 +165,6 @@ export function CommitteeSection() {
                   {lang === "bn" ? m.name_bn : m.name}
                 </div>
               </div>
-
-              {/* Shine */}
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] bg-gradient-to-br from-white/0 via-white/15 to-white/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 group-hover:translate-y-1/4 transition-all duration-1000" />
               </div>
@@ -173,5 +173,51 @@ export function CommitteeSection() {
         </div>
       </div>
     </section>
+    </>
+  );
+}
+
+function MemberModal({ m, lang, onClose }: { m: Member | null; lang: "bn" | "en"; onClose: () => void }) {
+  return (
+    <Dialog open={!!m} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-md p-0 overflow-hidden gap-0">
+        {m && (
+          <>
+            <div className={`relative h-48 bg-gradient-to-br ${m.accent}`}>
+              {m.photo_url && (
+                <img src={m.photo_url} alt={lang === "bn" ? m.name_bn : m.name} className="absolute inset-0 h-full w-full object-cover opacity-90" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+            </div>
+            <div className="px-6 pb-6 -mt-12 relative">
+              <div className="mx-auto w-24 h-24 rounded-full ring-4 ring-background overflow-hidden bg-muted shadow-lg">
+                {m.photo_url ? (
+                  <img src={m.photo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                    <Users className="h-8 w-8" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 text-center">
+                <div className="text-xl font-bold text-foreground">{lang === "bn" ? m.name_bn : m.name}</div>
+                <div className={`mt-2 inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-xs font-semibold text-white shadow-sm`}>
+                  {lang === "bn" ? m.role_bn : m.role}
+                </div>
+              </div>
+              {(lang === "bn" ? m.bio_bn : m.bio) ? (
+                <p className="mt-5 text-sm text-muted-foreground leading-relaxed text-center whitespace-pre-line">
+                  {lang === "bn" ? m.bio_bn : m.bio}
+                </p>
+              ) : (
+                <p className="mt-5 text-sm text-muted-foreground/70 italic text-center">
+                  {lang === "bn" ? "কোনো বায়ো যোগ করা হয়নি" : "No bio added yet"}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

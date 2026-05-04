@@ -12,6 +12,7 @@ import { Plus, Pencil, Trash2, Upload, Users, ArrowUp, ArrowDown } from "lucide-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 
 type Member = {
   id: string;
@@ -23,6 +24,8 @@ type Member = {
   accent: string;
   sort_order: number;
   is_published: boolean;
+  bio: string | null;
+  bio_bn: string | null;
 };
 
 const ACCENTS = [
@@ -47,6 +50,8 @@ const emptyForm = {
   accent: ACCENTS[1].value,
   sort_order: 0,
   is_published: true,
+  bio: "",
+  bio_bn: "",
 };
 
 export default function AdminCommittee() {
@@ -92,6 +97,8 @@ export default function AdminCommittee() {
       accent: m.accent,
       sort_order: m.sort_order,
       is_published: m.is_published,
+      bio: m.bio ?? "",
+      bio_bn: m.bio_bn ?? "",
     });
     setOpen(true);
   };
@@ -122,6 +129,8 @@ export default function AdminCommittee() {
       accent: form.accent,
       sort_order: form.sort_order,
       is_published: form.is_published,
+      bio: form.bio.trim() || null,
+      bio_bn: form.bio_bn.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
@@ -235,6 +244,14 @@ export default function AdminCommittee() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>সংক্ষিপ্ত বায়ো (বাংলা)</Label>
+                  <Textarea rows={3} value={form.bio_bn} onChange={(e) => setForm({ ...form, bio_bn: e.target.value })} placeholder="সদস্য সম্পর্কে সংক্ষিপ্ত বিবরণ..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Short Bio (English)</Label>
+                  <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief description about the member..." />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <span className="text-sm font-medium">{lang === "bn" ? "ফ্রন্ট পেজে দেখান" : "Publish on front page"}</span>
