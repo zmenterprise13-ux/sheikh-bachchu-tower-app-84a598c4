@@ -29,6 +29,7 @@ const COL_KEY = "tenant-blank-form-cols-v1";
 
 const DEFAULT_LABELS = {
   buildingName: "শেখ বাচ্চু টাওয়ার",
+  buildingAddress: "১২৭, পশ্চিম নাখালপাড়া, তেজগাঁও, ঢাকা-১২১৫",
   formTitle: "ভাড়াটিয়া তথ্য হালনাগাদ ফরম",
   flatNo: "ফ্ল্যাট নং",
   date: "তারিখ",
@@ -159,9 +160,12 @@ export default function TenantInfoBlankForm() {
       <div
         className="form-page print-area"
         style={{
-          padding: 24,
-          maxWidth: 820,
+          padding: "12mm 14mm",
+          width: "210mm",
+          minHeight: "297mm",
+          boxSizing: "border-box",
           margin: "0 auto",
+          background: "#fff",
           fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif",
         }}
       >
@@ -170,13 +174,19 @@ export default function TenantInfoBlankForm() {
             as="h1"
             value={labels.buildingName}
             onChange={(v) => setLabel("buildingName", v)}
-            style={{ fontSize: 20, fontWeight: 700, margin: 0 }}
+            style={{ fontSize: 22, fontWeight: 700, margin: 0 }}
+          />
+          <Editable
+            as="div"
+            value={labels.buildingAddress}
+            onChange={(v) => setLabel("buildingAddress", v)}
+            style={{ fontSize: 12, fontWeight: 500, margin: "2px 0 0", color: "#222" }}
           />
           <Editable
             as="h2"
             value={labels.formTitle}
             onChange={(v) => setLabel("formTitle", v)}
-            style={{ fontSize: 14, fontWeight: 600, margin: 4 }}
+            style={{ fontSize: 14, fontWeight: 600, margin: "6px 0 0" }}
           />
         </div>
 
@@ -298,8 +308,11 @@ export default function TenantInfoBlankForm() {
           z-index: 5;
         }
         .col-resizer:hover { background: rgba(59,130,246,.3); }
+        @page { size: A4; margin: 8mm; }
         @media print {
+          html, body { background: #fff !important; }
           .no-print { display: none !important; }
+          .form-page { width: 210mm !important; min-height: auto !important; padding: 0 !important; margin: 0 auto !important; box-shadow: none !important; }
           .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
           .col-resizer { display: none !important; }
         }
@@ -507,10 +520,10 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
       children: [new TextRun({ text, bold: true, size: 24 })],
     });
 
-  // Convert px to DXA roughly (1px ≈ 15 DXA at 96dpi) — and scale to fit US Letter ~9000 DXA
+  // Convert px to DXA — scale to fit A4 content width (~8500 DXA after margins)
   const toDxa = (pxArr: number[]) => {
     const totalPx = pxArr.reduce((a, b) => a + b, 0);
-    const targetDxa = 9000;
+    const targetDxa = 8500;
     return pxArr.map((px) => Math.round((px / totalPx) * targetDxa));
   };
 
@@ -558,10 +571,12 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
     sections: [
       {
         properties: {
-          page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } },
+          // A4: 11906 x 16838 DXA
+          page: { size: { width: 11906, height: 16838 }, margin: { top: 720, right: 720, bottom: 720, left: 720 } },
         },
         children: [
-          p(L.buildingName, { bold: true, size: 32, align: AlignmentType.CENTER, spacing: 60 }),
+          p(L.buildingName, { bold: true, size: 32, align: AlignmentType.CENTER, spacing: 40 }),
+          p(L.buildingAddress, { size: 20, align: AlignmentType.CENTER, spacing: 60 }),
           p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 200 }),
 
           lineRow(L.flatNo),
