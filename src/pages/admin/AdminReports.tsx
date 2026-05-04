@@ -109,7 +109,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes, oiRes, prevOiRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -119,28 +119,21 @@ export default function AdminReports() {
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn")
           .order("flat_no", { ascending: true }),
-        // Prior carry-forward: everything before `from`
-        supabase.from("bills")
-          .select("paid_amount")
-          .lt("month", from),
-        supabase.from("expenses")
-          .select("amount")
-          .lt("date", monthStart),
-        // bKash approved payments in range — for fee metadata only
+        supabase.from("bills").select("paid_amount").lt("month", from),
+        supabase.from("expenses").select("amount").lt("date", monthStart),
         supabase.from("payment_requests")
           .select("amount, method, status, bills!inner(month)")
-          .eq("method", "bkash")
-          .eq("status", "approved")
-          .gte("bills.month", from)
-          .lte("bills.month", to),
-        supabase.from("loans")
-          .select("loan_date, principal")
+          .eq("method", "bkash").eq("status", "approved")
+          .gte("bills.month", from).lte("bills.month", to),
+        supabase.from("loans").select("loan_date, principal")
           .gte("loan_date", monthStart).lt("loan_date", monthEnd),
-        supabase.from("loan_repayments")
-          .select("paid_date, amount")
+        supabase.from("loan_repayments").select("paid_date, amount")
           .gte("paid_date", monthStart).lt("paid_date", monthEnd),
         supabase.from("loans").select("principal").lt("loan_date", monthStart),
         supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
+        supabase.from("other_incomes").select("date, category, amount")
+          .gte("date", monthStart).lt("date", monthEnd),
+        supabase.from("other_incomes").select("amount").lt("date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
