@@ -17,6 +17,7 @@ import { useRef } from "react";
 import { Camera } from "lucide-react";
 import { generateBillPdf } from "@/lib/billPdf";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { compressImage } from "@/lib/imageCompress";
 
 type Bill = {
   id: string;
