@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { compressImage } from "@/lib/imageCompress";
 
 export default function AccountProfile() {
   const { lang } = useLang();
