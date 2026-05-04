@@ -389,11 +389,22 @@ export default function AdminDues() {
               const flat = flats.find((f) => f.id === b.flat_id)!;
               const due = Number(b.total) - Number(b.paid_amount);
               return (
-                <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center hover:bg-secondary/40 transition-base">
+                <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-start hover:bg-secondary/40 transition-base">
                   <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
                   <div className="md:col-span-3 min-w-0">
                     <div className="font-medium text-foreground truncate">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</div>
                     <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
+                      <span className="text-muted-foreground">
+                        {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(Number(b.total), lang)}</span>
+                      </span>
+                      <span className="text-muted-foreground">
+                        {lang === "bn" ? "আদায়" : "Paid"}: <span className="font-semibold text-success">{formatMoney(Number(b.paid_amount), lang)}</span>
+                      </span>
+                      <span className="text-muted-foreground">
+                        {lang === "bn" ? "বাকী" : "Due"}: <span className={cn("font-semibold", due > 0 ? "text-destructive" : "text-foreground")}>{formatMoney(Math.max(0, due), lang)}</span>
+                      </span>
+                    </div>
                   </div>
                   <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
                   <div className="md:col-span-2 md:text-right text-sm">
