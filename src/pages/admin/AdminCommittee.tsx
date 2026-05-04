@@ -131,6 +131,7 @@ export default function AdminCommittee() {
       bio_bn: m.bio_bn ?? "",
       phone: m.phone ?? "",
       flat_id: m.flat_id ?? "",
+      category: (m.category as any) || "committee",
     });
     setOpen(true);
   };
