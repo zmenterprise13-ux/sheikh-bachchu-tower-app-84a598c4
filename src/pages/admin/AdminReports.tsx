@@ -747,9 +747,9 @@ export default function AdminReports() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{lang === "bn" ? "প্রকৃত আদায় (বিল)" : "Actual collected (bills)"}</span>
-                      <span className="font-semibold">{formatMoney(totalIncome, lang)}</span>
+                    <div className="flex items-center justify-between pt-3 border-t-2 border-success/40">
+                      <span className="font-semibold">{lang === "bn" ? "সর্বমোট কালেকশন" : "Total Collection"}</span>
+                      <span className="font-bold text-success text-lg">{formatMoney(totalIncome + totalOtherIn + totalLoanIn, lang)}</span>
                     </div>
 
                     {/* Reference-only breakdown by category */}
