@@ -140,13 +140,13 @@ export default function AdminOwnersDirectory() {
               {g.phone ? (
                 <a
                   href={`tel:${g.phone}`}
-                  className="inline-flex items-center gap-1.5 text-xs text-white/95 hover:text-white hover:underline mt-1 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:underline mt-1 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full"
                 >
                   <Phone className="h-3 w-3" />
                   {g.phone}
                 </a>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] text-white/80 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white/80 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
                   <Phone className="h-3 w-3" />
                   {lang === "bn" ? "ফোন নেই" : "No phone"}
                 </span>
@@ -244,7 +244,7 @@ export default function AdminOwnersDirectory() {
                       {f.occupant_phone ? (
                         <a
                           href={`tel:${f.occupant_phone}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline shrink-0"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline shrink-0"
                         >
                           <Phone className="h-3 w-3" />
                           {f.occupant_phone}
