@@ -15,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AvatarImageWithSkeleton } from "@/components/AvatarImageWithSkeleton";
 import { useRef } from "react";
-import { Camera } from "lucide-react";
+import { Camera, Trash2, ImagePlus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { generateBillPdf } from "@/lib/billPdf";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
@@ -419,6 +420,20 @@ function OwnerAvatarUpload({
     }
   };
 
+  const handleRemove = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("update_my_owner_photo", { _photo_url: null });
+      if (error) throw error;
+      setLocalUrl(null);
+      toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="relative shrink-0 group">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
@@ -436,26 +451,59 @@ function OwnerAvatarUpload({
         ) : null}
         <InitialsFallback name={ownerName} seed={flatId} className="text-2xl ring-2 ring-white/30" />
       </Avatar>
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        aria-label={
-          busy
+      {localUrl ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              disabled={busy}
+              aria-label={busy
+                ? (lang === "bn" ? "প্রক্রিয়াকরণ" : "Working")
+                : (lang === "bn" ? "প্রোফাইল ছবি অপশন" : "Profile photo options")}
+              aria-busy={busy}
+              className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => inputRef.current?.click()} disabled={busy}>
+              <ImagePlus className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "নতুন ছবি আপলোড" : "Upload new photo"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={handleRemove}
+              disabled={busy}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "ছবি সরান" : "Remove photo"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          aria-label={busy
             ? (lang === "bn" ? "ছবি আপলোড হচ্ছে" : "Uploading photo")
-            : (localUrl
-                ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
-                : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo"))
-        }
-        aria-busy={busy}
-        className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        {busy ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-        ) : (
-          <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-        )}
-      </button>
+            : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo")}
+          aria-busy={busy}
+          className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {busy ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+          ) : (
+            <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+        </button>
+      )}
       <input
         ref={inputRef}
         type="file"
