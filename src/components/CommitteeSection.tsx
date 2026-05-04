@@ -67,6 +67,8 @@ export function CommitteeSection() {
   // ---------- MOBILE VIEW: horizontal snap carousel ----------
   if (isMobile) {
     return (
+      <>
+      <MemberModal m={selected} lang={lang} onClose={() => setSelected(null)} />
       <section className="relative overflow-hidden py-14">
         {Background}
         {Header}
