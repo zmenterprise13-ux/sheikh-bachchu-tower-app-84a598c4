@@ -16,6 +16,8 @@ type Member = {
   bio: string | null;
   bio_bn: string | null;
   phone: string | null;
+  flat_id: string | null;
+  flats?: { phone: string | null; owner_photo_url: string | null } | null;
 };
 
 export function CommitteeSection() {
@@ -29,11 +31,19 @@ export function CommitteeSection() {
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone, flat_id, flats(phone, owner_photo_url)")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
-      if (active) setMembers((data ?? []) as Member[]);
+      // Resolve effective phone & photo, then hide members with no phone number
+      const enriched = ((data ?? []) as any[])
+        .map((m) => ({
+          ...m,
+          phone: (m.flats?.phone || m.phone || "").trim() || null,
+          photo_url: m.photo_url || m.flats?.owner_photo_url || null,
+        }))
+        .filter((m) => !!m.phone) as Member[];
+      if (active) setMembers(enriched);
     })();
     return () => { active = false; };
   }, []);
