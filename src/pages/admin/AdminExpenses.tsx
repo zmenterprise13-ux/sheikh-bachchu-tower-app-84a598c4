@@ -47,6 +47,9 @@ export default function AdminExpenses() {
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
 
+  const [viewMode, setViewMode] = useState<"flat" | "grouped">("grouped");
+  const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
+
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     category: "",
