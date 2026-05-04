@@ -22,6 +22,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const [collected, setCollected] = useState(0);
   const [expense, setExpense] = useState(0);
   const [otherIncome, setOtherIncome] = useState(0);
+  const [loanTaken, setLoanTaken] = useState(0);
+  const [loanRepaid, setLoanRepaid] = useState(0);
   const [byCategory, setByCategory] = useState<CatRow[]>([]);
   const [byIncomeCategory, setByIncomeCategory] = useState<CatRow[]>([]);
   const [published, setPublished] = useState(false);
@@ -34,6 +36,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
     if (error || !data) {
       setBilled(0); setCollected(0); setExpense(0); setOtherIncome(0);
+      setLoanTaken(0); setLoanRepaid(0);
       setByCategory([]); setByIncomeCategory([]);
       setPublished(false); setPublishedAt(null);
     } else {
@@ -42,6 +45,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
       setCollected(Number(d.collected) || 0);
       setExpense(Number(d.expense) || 0);
       setOtherIncome(Number(d.other_income) || 0);
+      setLoanTaken(Number(d.loan_taken) || 0);
+      setLoanRepaid(Number(d.loan_repaid) || 0);
       setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setByIncomeCategory(((d.by_income_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setPublished(Boolean(d.published));
