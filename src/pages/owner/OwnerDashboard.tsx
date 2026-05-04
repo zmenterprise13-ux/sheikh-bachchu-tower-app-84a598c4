@@ -21,6 +21,7 @@ import { generateBillPdf } from "@/lib/billPdf";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
 import { InitialsFallback } from "@/components/InitialsFallback";
+import { useAuth } from "@/context/AuthContext";
 
 type Bill = {
   id: string;
@@ -377,6 +378,7 @@ function OwnerAvatarUpload({
   onChanged?: () => void | Promise<void>;
 }) {
   const { lang } = useLang();
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
@@ -404,7 +406,7 @@ function OwnerAvatarUpload({
     setBusy(true);
     try {
       const compressed = await compressImage(blob, { maxDim: 512, quality: 0.82 });
-      const path = `owner/${flatId}/${crypto.randomUUID()}.jpg`;
+      const path = `user/${user?.id ?? flatId}/${crypto.randomUUID()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("occupant-photos")
         .upload(path, compressed, { upsert: false, contentType: "image/jpeg" });
