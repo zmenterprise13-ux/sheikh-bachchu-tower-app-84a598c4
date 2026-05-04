@@ -15,11 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
-import jsPDF from "jspdf";
-import QRCode from "qrcode";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
-import { fromDue, noFee } from "@/lib/bkashMath";
-import bkashLogo from "@/assets/bkash-logo.png";
+import { fromDue } from "@/lib/bkashMath";
+import { downloadReceiptPdf } from "@/lib/receiptPdf";
 
 type Bill = {
   id: string;
