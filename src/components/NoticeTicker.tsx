@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
-import { Megaphone, AlertTriangle } from "lucide-react";
+import { Megaphone, AlertTriangle, Pause, Play } from "lucide-react";
 import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 
 type Notice = {
@@ -17,6 +17,7 @@ type Notice = {
 export function NoticeTicker() {
   const { lang } = useLang();
   const [items, setItems] = useState<Notice[]>([]);
+  const [paused, setPaused] = useState(false);
   const { speed } = useTickerSpeed();
 
   useEffect(() => {
@@ -38,6 +39,10 @@ export function NoticeTicker() {
   // duplicate for seamless marquee
   const loop = [...items, ...items];
 
+  const pauseLabel = paused
+    ? (lang === "bn" ? "চালু করুন" : "Play notices")
+    : (lang === "bn" ? "বিরতি দিন" : "Pause notices");
+
   return (
     <div className="relative z-10 border-y border-border bg-card/85 backdrop-blur supports-[backdrop-filter]:bg-card/65 shadow-soft">
       <div className="container flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-1.5 sm:py-2.5">
@@ -45,10 +50,17 @@ export function NoticeTicker() {
           <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span className="hidden xs:inline sm:inline">{lang === "bn" ? "নোটিশ" : "Notices"}</span>
         </div>
-        <div className="relative flex-1 min-w-0 overflow-hidden">
+        <div
+          className="relative flex-1 min-w-0 overflow-hidden"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
           <div
             className="flex gap-6 sm:gap-10 animate-marquee whitespace-nowrap"
-            style={{ animationDuration: `${speed}s` }}
+            style={{
+              animationDuration: `${speed}s`,
+              animationPlayState: paused ? "paused" : "running",
+            }}
           >
             {loop.map((n, idx) => {
               const title = lang === "bn" ? n.title_bn : n.title;
@@ -64,6 +76,18 @@ export function NoticeTicker() {
             })}
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setPaused((p) => !p)}
+          aria-label={pauseLabel}
+          aria-pressed={paused}
+          title={pauseLabel}
+          className="shrink-0 inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-border bg-background/60 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+        >
+          {paused
+            ? <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            : <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+        </button>
       </div>
     </div>
   );
