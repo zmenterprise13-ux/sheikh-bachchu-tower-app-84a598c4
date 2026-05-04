@@ -290,6 +290,12 @@ export default function TenantInfoPage() {
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
+            {tenant && (
+              <Button onClick={save} disabled={saving} size="sm">
+                {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                সংরক্ষণ / Update
+              </Button>
+            )}
           </div>
         </div>
 
@@ -475,10 +481,13 @@ export default function TenantInfoPage() {
               </CardContent>
             </Card>
 
-            <div className="flex justify-end gap-2 print:hidden sticky bottom-2">
-              <Button onClick={save} disabled={saving} size="lg">
+            <div className="sticky bottom-0 -mx-2 px-2 py-3 bg-background/95 backdrop-blur border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 print:hidden z-10">
+              <p className="text-xs text-muted-foreground">
+                পরিবর্তন সংরক্ষণ করতে নিচের বাটনে ক্লিক করুন। ভাড়াটিয়ার তথ্য ও সকল ফ্যামিলি মেম্বার একসাথে সেভ হবে।
+              </p>
+              <Button onClick={save} disabled={saving} size="lg" className="w-full sm:w-auto">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                সংরক্ষণ করুন
+                সংরক্ষণ করুন / Update
               </Button>
             </div>
           </div>
