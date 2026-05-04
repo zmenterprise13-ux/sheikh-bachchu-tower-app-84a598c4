@@ -271,49 +271,158 @@ export default function AdminExpenses() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
-          <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
-            <div className="col-span-2">{t("date")}</div>
-            <div className="col-span-3">{t("category")}</div>
-            <div className="col-span-4">{t("description")}</div>
-            <div className="col-span-2 text-right">{t("amount")}</div>
-            <div className="col-span-1 text-right"></div>
+        {/* View mode toggle */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex rounded-lg border border-border bg-card p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setViewMode("grouped")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-base ${viewMode === "grouped" ? "gradient-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              {lang === "bn" ? "মাস অনুযায়ী" : "By month"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("flat")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-base ${viewMode === "flat" ? "gradient-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <List className="h-3.5 w-3.5" />
+              {lang === "bn" ? "সব একসাথে" : "All together"}
+            </button>
           </div>
-          <div className="divide-y divide-border">
-            {loading && (
-              <div className="p-5 space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
-              </div>
-            )}
-            {!loading && items.length === 0 && (
-              <div className="p-12 text-center text-muted-foreground">{t("noData")}</div>
-            )}
-            {!loading && items.map((e) => (
-              <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center">
-                <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
-                <div className="md:col-span-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
-                    <Wallet className="h-3 w-3" /> {labelByName(e.category)}
-                  </span>
-                </div>
-                <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
-                <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
-                <div className="md:col-span-1 flex justify-end gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between items-center px-5 py-4 border-t border-border bg-secondary/40">
-            <div className="text-sm font-semibold text-foreground">{t("total")}</div>
-            <div className="text-lg font-bold text-primary">{formatMoney(total, lang)}</div>
-          </div>
+          {viewMode === "grouped" && sortedMonths.length > 0 && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapsedMonths({})}>
+                {lang === "bn" ? "সব খুলুন" : "Expand all"}
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapsedMonths(Object.fromEntries(sortedMonths.map((m) => [m, true])))}>
+                {lang === "bn" ? "সব বন্ধ" : "Collapse all"}
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* GROUPED VIEW */}
+        {viewMode === "grouped" && (
+          <div className="space-y-4">
+            {loading && (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+              </div>
+            )}
+            {!loading && sortedMonths.length === 0 && (
+              <div className="rounded-2xl bg-card border border-border p-12 text-center text-muted-foreground">{t("noData")}</div>
+            )}
+            {!loading && sortedMonths.map((ym) => {
+              const monthItems = grouped[ym];
+              const monthTotal = monthItems.reduce((s, e) => s + Number(e.amount), 0);
+              const collapsed = !!collapsedMonths[ym];
+              return (
+                <div key={ym} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => toggleMonth(ym)}
+                    className="w-full flex items-center justify-between gap-3 px-5 py-3.5 bg-gradient-to-r from-secondary/60 to-secondary/20 border-b border-border hover:from-secondary/80 transition-base text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {collapsed ? <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                      <Calendar className="h-4 w-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-foreground truncate">{monthLabel(ym)}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {monthItems.length} {lang === "bn" ? "টি খরচ" : "expenses"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("total")}</div>
+                      <div className="text-base font-bold text-primary">{formatMoney(monthTotal, lang)}</div>
+                    </div>
+                  </button>
+                  {!collapsed && (
+                    <div className="divide-y divide-border">
+                      {monthItems.map((e) => (
+                        <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center hover:bg-secondary/30 transition-base">
+                          <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
+                          <div className="md:col-span-3">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+                              <Wallet className="h-3 w-3" /> {labelByName(e.category)}
+                            </span>
+                          </div>
+                          <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
+                          <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                          <div className="md:col-span-1 flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {!loading && sortedMonths.length > 0 && (
+              <div className="rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 border border-border px-5 py-4 flex justify-between items-center">
+                <div className="text-sm font-semibold text-foreground">{lang === "bn" ? "সর্বমোট" : "Grand Total"}</div>
+                <div className="text-xl font-bold text-primary">{formatMoney(total, lang)}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* FLAT VIEW */}
+        {viewMode === "flat" && (
+          <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
+            <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
+              <div className="col-span-2">{t("date")}</div>
+              <div className="col-span-3">{t("category")}</div>
+              <div className="col-span-4">{t("description")}</div>
+              <div className="col-span-2 text-right">{t("amount")}</div>
+              <div className="col-span-1 text-right"></div>
+            </div>
+            <div className="divide-y divide-border">
+              {loading && (
+                <div className="p-5 space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
+                </div>
+              )}
+              {!loading && items.length === 0 && (
+                <div className="p-12 text-center text-muted-foreground">{t("noData")}</div>
+              )}
+              {!loading && items.map((e) => (
+                <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center">
+                  <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
+                  <div className="md:col-span-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+                      <Wallet className="h-3 w-3" /> {labelByName(e.category)}
+                    </span>
+                  </div>
+                  <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
+                  <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                  <div className="md:col-span-1 flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between items-center px-5 py-4 border-t border-border bg-secondary/40">
+              <div className="text-sm font-semibold text-foreground">{t("total")}</div>
+              <div className="text-lg font-bold text-primary">{formatMoney(total, lang)}</div>
+            </div>
+          </div>
+        )}
 
         <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
           <AlertDialogContent>
