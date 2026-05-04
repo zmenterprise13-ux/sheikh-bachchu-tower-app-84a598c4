@@ -402,6 +402,10 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
             </div>
           </div>
           <div>
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} />
+          </div>
+          <div>
             <Label className="text-xs">Owner Name (EN)</Label>
             <Input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
           </div>
