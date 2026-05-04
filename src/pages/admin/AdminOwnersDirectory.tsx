@@ -51,6 +51,7 @@ export default function AdminOwnersDirectory() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "tenant" | "owner">("all");
+  const [sortBy, setSortBy] = useState<"flat_asc" | "flat_desc" | "tenant_first" | "owner_first">("flat_asc");
 
   useEffect(() => {
     (async () => {
@@ -269,12 +270,42 @@ export default function AdminOwnersDirectory() {
     Boolean(f.occupant_name && f.occupant_name.trim()) ||
     (f.occupant_type === "tenant" && Boolean(f.occupant_phone));
 
+  const flatNoNum = (s: string) => {
+    const n = parseInt(s.replace(/\D/g, ""), 10);
+    return isNaN(n) ? 0 : n;
+  };
+  const sortFlats = (arr: Flat[]) => {
+    const copy = [...arr];
+    copy.sort((a, b) => {
+      switch (sortBy) {
+        case "flat_desc":
+          return flatNoNum(b.flat_no) - flatNoNum(a.flat_no) || b.flat_no.localeCompare(a.flat_no);
+        case "tenant_first": {
+          const at = isTenantFlat(a) ? 0 : 1;
+          const bt = isTenantFlat(b) ? 0 : 1;
+          if (at !== bt) return at - bt;
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no);
+        }
+        case "owner_first": {
+          const at = isTenantFlat(a) ? 1 : 0;
+          const bt = isTenantFlat(b) ? 1 : 0;
+          if (at !== bt) return at - bt;
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no);
+        }
+        case "flat_asc":
+        default:
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no) || a.flat_no.localeCompare(b.flat_no);
+      }
+    });
+    return copy;
+  };
+
   const renderList = (groups: OwnerGroup[]) => {
     const visible = groups
       .map((g) => {
-        if (filter === "all") return g;
+        if (filter === "all") return { ...g, flats: sortFlats(g.flats) };
         const flats = g.flats.filter((f) => (filter === "tenant" ? isTenantFlat(f) : !isTenantFlat(f)));
-        return flats.length ? { ...g, flats } : null;
+        return flats.length ? { ...g, flats: sortFlats(flats) } : null;
       })
       .filter((g): g is OwnerGroup => g !== null)
       .filter(matches);
@@ -329,7 +360,7 @@ export default function AdminOwnersDirectory() {
                 <Badge variant="secondary" className="ml-1">{west.length}</Badge>
               </TabsTrigger>
             </TabsList>
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
               <ToggleGroup
                 type="single"
                 value={filter}
@@ -344,6 +375,25 @@ export default function AdminOwnersDirectory() {
                 </ToggleGroupItem>
                 <ToggleGroupItem value="tenant" className="text-xs px-3">
                   {lang === "bn" ? "ভাড়াটিয়া" : "Tenant"}
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <ToggleGroup
+                type="single"
+                value={sortBy}
+                onValueChange={(v) => v && setSortBy(v as any)}
+                className="bg-muted rounded-md p-1"
+              >
+                <ToggleGroupItem value="flat_asc" className="text-xs px-3">
+                  {lang === "bn" ? "ফ্ল্যাট ↑" : "Flat ↑"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="flat_desc" className="text-xs px-3">
+                  {lang === "bn" ? "ফ্ল্যাট ↓" : "Flat ↓"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="tenant_first" className="text-xs px-3">
+                  {lang === "bn" ? "ভাড়াটিয়া আগে" : "Tenant first"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="owner_first" className="text-xs px-3">
+                  {lang === "bn" ? "মালিক আগে" : "Owner first"}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
