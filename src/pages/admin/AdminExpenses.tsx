@@ -798,7 +798,11 @@ export default function AdminExpenses() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        </TabsContent>
+        <TabsContent value="other-income">
+          <OtherIncomeSection />
+        </TabsContent>
+      </Tabs>
     </AppShell>
   );
 }
