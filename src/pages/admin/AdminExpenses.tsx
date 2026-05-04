@@ -240,6 +240,7 @@ export default function AdminExpenses() {
         checked: !monthSet.has(it.name),
         amount: "",
         description: "",
+        billMonth: ym,
       }))
     );
     setTemplateOpen(true);
