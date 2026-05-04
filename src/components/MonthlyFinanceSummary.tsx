@@ -16,29 +16,31 @@ type Props = {
   title?: string;
 };
 
-type Bill = { total: number; paid_amount: number };
-type Expense = { category: string; amount: number; description: string };
+type CatRow = { category: string; amount: number };
 
 export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props) {
   const { t, lang } = useLang();
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [billed, setBilled] = useState(0);
+  const [collected, setCollected] = useState(0);
+  const [expense, setExpense] = useState(0);
+  const [byCategory, setByCategory] = useState<CatRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [y, m] = month.split("-").map(Number);
-      const start = `${month}-01`;
-      const next = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
-      const [bRes, eRes] = await Promise.all([
-        supabase.from("bills").select("total, paid_amount").eq("month", month),
-        supabase.from("expenses").select("category, amount, description").gte("date", start).lt("date", next),
-      ]);
+      const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
       if (cancelled) return;
-      setBills((bRes.data ?? []) as Bill[]);
-      setExpenses((eRes.data ?? []) as Expense[]);
+      if (error || !data) {
+        setBilled(0); setCollected(0); setExpense(0); setByCategory([]);
+      } else {
+        const d = data as any;
+        setBilled(Number(d.billed) || 0);
+        setCollected(Number(d.collected) || 0);
+        setExpense(Number(d.expense) || 0);
+        setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
+      }
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -49,18 +51,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     [month, lang],
   );
 
-  const billed = bills.reduce((s, b) => s + Number(b.total), 0);
-  const collected = bills.reduce((s, b) => s + Number(b.paid_amount), 0);
-  const expense = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const net = collected - expense;
-
-  const byCategory = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const e of expenses) {
-      map.set(e.category, (map.get(e.category) || 0) + Number(e.amount));
-    }
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [expenses]);
+  const sortedByCategory = byCategory;
 
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
@@ -121,15 +113,15 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
                 </div>
               </div>
               <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
-                {byCategory.map(([cat, amt]) => {
-                  const pct = expense > 0 ? Math.round((amt / expense) * 100) : 0;
-                  const label = (t(cat as TKey) as string) || cat;
+                {byCategory.map(({ category, amount }) => {
+                  const pct = expense > 0 ? Math.round((amount / expense) * 100) : 0;
+                  const label = (t(category as TKey) as string) || category;
                   return (
-                    <li key={cat} className="flex items-center gap-3 px-3 py-2 text-sm">
+                    <li key={category} className="flex items-center gap-3 px-3 py-2 text-sm">
                       <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <span className="flex-1 min-w-0 truncate">{label}</span>
                       <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                      <span className="font-semibold tabular-nums">{formatMoney(amt, lang)}</span>
+                      <span className="font-semibold tabular-nums">{formatMoney(amount, lang)}</span>
                     </li>
                   );
                 })}
