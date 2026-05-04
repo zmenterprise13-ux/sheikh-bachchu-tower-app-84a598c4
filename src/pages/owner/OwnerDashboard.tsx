@@ -406,7 +406,7 @@ function OwnerAvatarUpload({
     setBusy(true);
     try {
       const compressed = await compressImage(blob, { maxDim: 512, quality: 0.82 });
-      const path = `owner/${flatId}/${crypto.randomUUID()}.jpg`;
+      const path = `user/${user?.id ?? flatId}/${crypto.randomUUID()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("occupant-photos")
         .upload(path, compressed, { upsert: false, contentType: "image/jpeg" });
