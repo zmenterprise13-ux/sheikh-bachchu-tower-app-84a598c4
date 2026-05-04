@@ -229,6 +229,68 @@ export default function AdminExpenses() {
     setDeleteCatId(null);
   };
 
+  const openTemplate = (ym: string) => {
+    setTemplateMonth(ym);
+    // Pre-fill: check which template items already exist for that month
+    const monthSet = new Set(
+      items.filter((e) => (e.date || "").slice(0, 7) === ym).map((e) => e.category)
+    );
+    setTemplateRows(
+      TEMPLATE_ITEMS.map((it) => ({
+        checked: !monthSet.has(it.name),
+        amount: "",
+        description: "",
+      }))
+    );
+    setTemplateOpen(true);
+  };
+
+  const submitTemplate = async () => {
+    const selected = TEMPLATE_ITEMS
+      .map((it, i) => ({ it, row: templateRows[i] }))
+      .filter(({ row }) => row.checked && Number(row.amount) > 0);
+    if (selected.length === 0) {
+      toast.error(lang === "bn" ? "অন্তত একটি খরচ যোগ করুন" : "Add at least one expense");
+      return;
+    }
+    setTemplateSubmitting(true);
+
+    // Ensure all template categories exist
+    const existingNames = new Set(categories.map((c) => c.name));
+    const toCreate = TEMPLATE_ITEMS.filter((it) => !existingNames.has(it.name));
+    if (toCreate.length > 0) {
+      let maxOrder = categories.reduce((m, c) => Math.max(m, c.sort_order), 0);
+      const rows = toCreate.map((it) => ({
+        name: it.name,
+        name_bn: it.name_bn,
+        sort_order: ++maxOrder,
+        created_by: user?.id ?? null,
+      }));
+      const { error } = await supabase.from("expense_categories").insert(rows);
+      if (error) { setTemplateSubmitting(false); toast.error(error.message); return; }
+      await loadCategories();
+    }
+
+    // Insert expenses (use last day of month as date)
+    const [yy, mm] = templateMonth.split("-").map(Number);
+    const lastDay = new Date(yy, mm, 0).getDate();
+    const date = `${templateMonth}-${String(lastDay).padStart(2, "0")}`;
+
+    const expenseRows = selected.map(({ it, row }) => ({
+      date,
+      category: it.name,
+      description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(templateMonth)}` : `${it.name} - ${monthLabel(templateMonth)}`),
+      amount: Number(row.amount),
+      created_by: user?.id ?? null,
+    }));
+    const { error } = await supabase.from("expenses").insert(expenseRows);
+    setTemplateSubmitting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? `${selected.length} টি খরচ যোগ হয়েছে` : `${selected.length} expenses added`);
+    setTemplateOpen(false);
+    load();
+  };
+
   return (
     <AppShell>
       <div className="space-y-6">
