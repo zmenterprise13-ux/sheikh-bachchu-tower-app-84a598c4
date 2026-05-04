@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
+import { Building2, LogIn, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 import { NoticeTicker } from "@/components/NoticeTicker";
 import { CommitteeSection } from "@/components/CommitteeSection";
@@ -20,14 +20,6 @@ export default function Index() {
       navigate(role === "admin" ? "/admin" : "/owner", { replace: true });
     }
   }, [user, role, loading, navigate]);
-
-  const features = [
-    { icon: Building2, key: "flats" as const, desc: { bn: "৬০টি ফ্ল্যাট, পার্কিং ও ওনারের তথ্য", en: "60 flats, parking & owner records" } },
-    { icon: Receipt,   key: "dues" as const,  desc: { bn: "প্রতি ১ তারিখে অটো বিল জেনারেশন", en: "Auto bill generation on the 1st" } },
-    { icon: Wallet,    key: "expenses" as const, desc: { bn: "খাত ভিত্তিক মাসিক খরচ", en: "Category-wise monthly expenses" } },
-    { icon: FileBarChart, key: "reports" as const, desc: { bn: "মাসিক আয়-ব্যায়ের পূর্ণ হিসাব", en: "Full monthly income–expense report" } },
-    { icon: Megaphone, key: "notices" as const, desc: { bn: "ওনারদের জন্য জরুরি নোটিশ", en: "Important notices for owners" } },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,6 +40,11 @@ export default function Index() {
           </div>
         </div>
       </header>
+
+      {/* Notice ticker pinned just under the header */}
+      <div className="absolute top-16 inset-x-0 z-20">
+        <NoticeTicker />
+      </div>
 
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[100svh] flex items-center">
@@ -132,34 +129,6 @@ export default function Index() {
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-      </section>
-
-      <NoticeTicker />
-
-      {/* Features */}
-      <section className="container py-16 sm:py-24">
-        <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-            {lang === "bn" ? "যা যা আছে" : "Everything you need"}
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            {lang === "bn"
-              ? "বিল্ডিং পরিচালনার সব দিক একটি প্ল্যাটফর্মে।"
-              : "Every aspect of building management on a single platform."}
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, key, desc }) => (
-            <div key={key} className="group rounded-2xl gradient-card border border-border p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-smooth">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-glow group-hover:scale-110 transition-base">
-                <Icon className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{t(key)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{desc[lang]}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       <CommitteeSection />
