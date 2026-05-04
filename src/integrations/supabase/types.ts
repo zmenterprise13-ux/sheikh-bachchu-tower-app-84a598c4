@@ -825,6 +825,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_published_committee: {
+        Args: never
+        Returns: {
+          accent: string
+          bio: string
+          bio_bn: string
+          category: string
+          created_at: string
+          flat_id: string
+          id: string
+          name: string
+          name_bn: string
+          phone: string
+          photo_url: string
+          role: string
+          role_bn: string
+          sort_order: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
