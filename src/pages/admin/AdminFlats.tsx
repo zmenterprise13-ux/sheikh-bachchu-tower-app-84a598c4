@@ -60,12 +60,51 @@ const SELECT_COLS =
 export default function AdminFlats() {
   const { t, lang } = useLang();
   const [q, setQ] = useState("");
-  const [flats, setFlats] = useState<Flat[]>([]);
+  const [flats, setFlats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Flat | null>(null);
   const [ledgerFlat, setLedgerFlat] = useState<Flat | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [bulkLoginBusy, setBulkLoginBusy] = useState(false);
+  const { enabled: signupEnabled } = useSignupEnabled();
+
+  const missingLogins = (flats as any[]).filter(
+    (f) => !f.owner_user_id && /^\d{11}$/.test((f.phone ?? "").trim()),
+  );
+
+  const createMissingLogins = async () => {
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বর্তমানে বন্ধ আছে" : "Sign up is currently disabled");
+      return;
+    }
+    if (missingLogins.length === 0) {
+      toast.info(lang === "bn" ? "সব ফ্ল্যাটের লগইন তৈরি আছে" : "All flats already have logins");
+      return;
+    }
+    setBulkLoginBusy(true);
+    // dedupe by phone
+    const seen = new Set<string>();
+    const targets = missingLogins.filter((f) => {
+      const p = (f.phone as string).trim();
+      if (seen.has(p)) return false;
+      seen.add(p);
+      return true;
+    });
+    let ok = 0;
+    let fail = 0;
+    for (const f of targets) {
+      const { data, error } = await supabase.functions.invoke("owner-create-account", {
+        body: { phone: (f.phone as string).trim(), flat_id: f.id },
+      });
+      if (error || (data as any)?.error) fail++;
+      else ok++;
+    }
+    setBulkLoginBusy(false);
+    if (ok) toast.success(lang === "bn" ? `${ok} টি লগইন তৈরি (পাসওয়ার্ড: 12345678)` : `Created ${ok} logins (password: 12345678)`);
+    if (fail) toast.error(lang === "bn" ? `${fail} টি ব্যর্থ` : `${fail} failed`);
+    await load();
+  };
 
   const load = async () => {
     setLoading(true);
