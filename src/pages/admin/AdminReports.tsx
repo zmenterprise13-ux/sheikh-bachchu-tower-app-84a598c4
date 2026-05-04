@@ -469,6 +469,9 @@ export default function AdminReports() {
                   {lang === "bn" ? `বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%)` : `bKash Fee (${(bkash.fee_pct*100).toFixed(2)}%)`}
                   <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
                 </th>
+                <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "অনুদান/পাওনা/অন্যান্য" : "Donation/recovery/other"}>
+                  {lang === "bn" ? "অন্যান্য আয়" : "Other Income"}
+                </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "লোন গ্রহণ — ক্যাশ ইন" : "Loan taken — cash in"}>
                   {lang === "bn" ? "লোন (ইন)" : "Loan In"}
