@@ -197,6 +197,41 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             />
           </div>
 
+          {(loanTaken > 0 || loanRepaid > 0) && (
+            <div className="mt-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                {lang === "bn" ? "ক্যাশ ফ্লো (লোন)" : "Cash Flow (Loans)"}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <Tile
+                  icon={Landmark}
+                  label={lang === "bn" ? "লোন গৃহীত (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
+                  value={formatMoney(loanTaken, lang)}
+                  hint={lang === "bn" ? "দায় বাড়ে, হাতের ক্যাশ বাড়ে" : "Liability ↑, cash on hand ↑"}
+                  tone="success"
+                />
+                <Tile
+                  icon={HandCoins}
+                  label={lang === "bn" ? "লোন পরিশোধ (ক্যাশ আউট)" : "Loan Repaid (Cash Out)"}
+                  value={formatMoney(loanRepaid, lang)}
+                  hint={lang === "bn" ? "দায় কমে, হাতের ক্যাশ কমে" : "Liability ↓, cash on hand ↓"}
+                  tone="warning"
+                />
+                <Tile
+                  icon={Banknote}
+                  label={lang === "bn" ? "নিট ক্যাশ পজিশন" : "Net Cash Position"}
+                  value={formatMoney(netCash, lang)}
+                  hint={
+                    (lang === "bn"
+                      ? "নিট ব্যালেন্স + লোন − পরিশোধ"
+                      : "Net balance + loan − repayment")
+                  }
+                  tone={netCash >= 0 ? "success" : "destructive"}
+                />
+              </div>
+            </div>
+          )}
+
           {byIncomeCategory.length > 0 && (
             <div className="mt-5">
               <div className="flex items-center justify-between mb-2">
