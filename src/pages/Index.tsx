@@ -21,14 +21,6 @@ export default function Index() {
     }
   }, [user, role, loading, navigate]);
 
-  const features = [
-    { icon: Building2, key: "flats" as const, desc: { bn: "৬০টি ফ্ল্যাট, পার্কিং ও ওনারের তথ্য", en: "60 flats, parking & owner records" } },
-    { icon: Receipt,   key: "dues" as const,  desc: { bn: "প্রতি ১ তারিখে অটো বিল জেনারেশন", en: "Auto bill generation on the 1st" } },
-    { icon: Wallet,    key: "expenses" as const, desc: { bn: "খাত ভিত্তিক মাসিক খরচ", en: "Category-wise monthly expenses" } },
-    { icon: FileBarChart, key: "reports" as const, desc: { bn: "মাসিক আয়-ব্যায়ের পূর্ণ হিসাব", en: "Full monthly income–expense report" } },
-    { icon: Megaphone, key: "notices" as const, desc: { bn: "ওনারদের জন্য জরুরি নোটিশ", en: "Important notices for owners" } },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar (lite) */}
