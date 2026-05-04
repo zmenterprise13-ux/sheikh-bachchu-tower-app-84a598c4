@@ -419,6 +419,9 @@ export default function AdminCommittee() {
                   <div className="font-semibold text-foreground truncate">{lang === "bn" ? m.name_bn : m.name}</div>
                   <div className="text-sm text-muted-foreground truncate">{lang === "bn" ? m.role_bn : m.role}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className={`text-[10px] font-bold rounded-full px-2 py-0.5 ${m.category === "advisor" ? "bg-fuchsia-100 text-fuchsia-700" : "bg-sky-100 text-sky-700"}`}>
+                      {m.category === "advisor" ? (lang === "bn" ? "উপদেষ্টা" : "Advisor") : (lang === "bn" ? "কমিটি" : "Committee")}
+                    </span>
                     {f && (
                       <span className="text-[10px] font-bold bg-primary/10 text-primary rounded-full px-2 py-0.5">
                         {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
