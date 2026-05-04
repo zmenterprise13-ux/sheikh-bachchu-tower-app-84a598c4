@@ -34,6 +34,7 @@ import OwnerPayments from "./pages/owner/OwnerPayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
 import OwnerLedger from "./pages/owner/OwnerLedger";
+import OwnerReceipts from "./pages/owner/OwnerReceipts";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 
