@@ -167,5 +167,5 @@ export async function downloadReceiptPdf(
   doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
   doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
 
-  doc.save(`receipt-${pr.id.slice(0, 8)}.pdf`);
+  doc.save(`receipt-${receiptNo}.pdf`);
 }
