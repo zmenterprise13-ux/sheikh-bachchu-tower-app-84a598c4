@@ -266,27 +266,86 @@ export default function AdminCommittee() {
                     {lang === "bn" ? "ফ্ল্যাট ওনার নির্বাচন করুন" : "Link to flat owner"}
                     <span className="text-destructive">*</span>
                   </Label>
-                  <Select value={form.flat_id || undefined} onValueChange={onPickFlat}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={lang === "bn" ? "ফ্ল্যাট নির্বাচন করুন" : "Select a flat"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eligibleFlats.length === 0 ? (
-                        <div className="px-3 py-4 text-xs text-muted-foreground text-center">
-                          {lang === "bn" ? "কোনো ফ্ল্যাটে ফোন নম্বর সেট নেই" : "No flat has a phone number set"}
-                        </div>
-                      ) : (
-                        eligibleFlats.map((f) => (
-                          <SelectItem key={f.id} value={f.id}>
-                            <span className="font-semibold">{f.flat_no}</span>
+                  <Popover open={flatPickerOpen} onOpenChange={setFlatPickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={flatPickerOpen}
+                        className="w-full justify-between font-normal"
+                        disabled={eligibleFlats.length === 0}
+                      >
+                        {linkedFlat ? (
+                          <span className="truncate">
+                            <span className="font-semibold">{linkedFlat.flat_no}</span>
                             {" — "}
-                            <span>{lang === "bn" ? (f.owner_name_bn || f.owner_name) : (f.owner_name || f.owner_name_bn) || "—"}</span>
-                            <span className="text-muted-foreground ml-1.5">({f.phone})</span>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                            {lang === "bn"
+                              ? (linkedFlat.owner_name_bn || linkedFlat.owner_name)
+                              : (linkedFlat.owner_name || linkedFlat.owner_name_bn) || "—"}
+                            <span className="text-muted-foreground ml-1.5">({linkedFlat.phone})</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {eligibleFlats.length === 0
+                              ? (lang === "bn" ? "কোনো ফ্ল্যাটে ফোন নম্বর সেট নেই" : "No flat has a phone number set")
+                              : (lang === "bn" ? "ফ্ল্যাট নির্বাচন করুন" : "Select a flat")}
+                          </span>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="p-0 w-[--radix-popover-trigger-width] max-w-[calc(100vw-2rem)]"
+                      align="start"
+                    >
+                      <Command
+                        filter={(value, search) => {
+                          if (!search) return 1;
+                          return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+                        }}
+                      >
+                        <CommandInput
+                          placeholder={lang === "bn" ? "ফ্ল্যাট নং, নাম বা ফোন দিয়ে খুঁজুন..." : "Search by flat no, name or phone..."}
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            {lang === "bn" ? "কোনো ফ্ল্যাট পাওয়া যায়নি" : "No flat found"}
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {eligibleFlats.map((f) => {
+                              const ownerBn = f.owner_name_bn || "";
+                              const ownerEn = f.owner_name || "";
+                              const value = `${f.flat_no} ${ownerBn} ${ownerEn} ${f.phone ?? ""}`;
+                              return (
+                                <CommandItem
+                                  key={f.id}
+                                  value={value}
+                                  onSelect={() => {
+                                    onPickFlat(f.id);
+                                    setFlatPickerOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      form.flat_id === f.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <span className="font-semibold">{f.flat_no}</span>
+                                  <span className="mx-1.5">—</span>
+                                  <span className="truncate">
+                                    {lang === "bn" ? (ownerBn || ownerEn) : (ownerEn || ownerBn) || "—"}
+                                  </span>
+                                  <span className="text-muted-foreground ml-1.5 shrink-0">({f.phone})</span>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <p className="text-[11px] text-muted-foreground">
                     {lang === "bn" ? "শুধু যাদের ফোন নম্বর আছে তারাই তালিকায় আসবে" : "Only flats with a phone number are listed"}
                   </p>
