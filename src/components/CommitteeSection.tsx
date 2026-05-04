@@ -119,6 +119,7 @@ export function CommitteeSection() {
           ))}
         </div>
       </section>
+      </>
     );
   }
 
