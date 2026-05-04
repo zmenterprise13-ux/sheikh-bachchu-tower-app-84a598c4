@@ -257,6 +257,10 @@ export default function AdminCommittee() {
                   <Label>Short Bio (English)</Label>
                   <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief description about the member..." />
                 </div>
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
+                  <Input type="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01XXXXXXXXX" />
+                </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <span className="text-sm font-medium">{lang === "bn" ? "ফ্রন্ট পেজে দেখান" : "Publish on front page"}</span>
                   <Switch checked={form.is_published} onCheckedChange={(v) => setForm({ ...form, is_published: v })} />
