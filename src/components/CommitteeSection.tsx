@@ -15,6 +15,7 @@ type Member = {
   accent: string;
   bio: string | null;
   bio_bn: string | null;
+  phone: string | null;
 };
 
 export function CommitteeSection() {
