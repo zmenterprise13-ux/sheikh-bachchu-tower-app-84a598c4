@@ -369,6 +369,54 @@ export default function AdminDues() {
           </div>
         </div>
 
+        {(() => {
+          const totalBilled = visible.reduce((s, b) => s + Number(b.total), 0);
+          const totalPaid = visible.reduce((s, b) => s + Number(b.paid_amount), 0);
+          const totalDue = visible.reduce((s, b) => s + Math.max(0, Number(b.total) - Number(b.paid_amount)), 0);
+          const pct = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 0;
+          const scopeLabel = filter === "all"
+            ? (lang === "bn" ? "সকল ফ্ল্যাট" : "All flats")
+            : (lang === "bn" ? "ফিল্টার" : "Filtered");
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "মোট বিল (লক্ষ্য)" : "Total billed (target)"}
+                </div>
+                <div className="mt-1 text-xl font-bold text-foreground tabular-nums">{formatMoney(totalBilled, lang)}</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">{scopeLabel} · {visible.length} {lang === "bn" ? "টি" : "bills"}</div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "আদায়কৃত" : "Collected"}
+                </div>
+                <div className="mt-1 text-xl font-bold text-success tabular-nums">{formatMoney(totalPaid, lang)}</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">{pct}% {lang === "bn" ? "আদায়" : "collected"}</div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "বাকী" : "Outstanding"}
+                </div>
+                <div className={cn("mt-1 text-xl font-bold tabular-nums", totalDue > 0 ? "text-destructive" : "text-foreground")}>{formatMoney(totalDue, lang)}</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {visible.filter((b) => Number(b.total) - Number(b.paid_amount) > 0).length} {lang === "bn" ? "টি বিল বাকী" : "bills due"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "অগ্রগতি" : "Progress"}
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full gradient-primary transition-all" style={{ width: `${Math.min(100, pct)}%` }} />
+                </div>
+                <div className="mt-1.5 text-[10px] text-muted-foreground">
+                  {formatMoney(totalPaid, lang)} / {formatMoney(totalBilled, lang)}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
           <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
             <div className="col-span-1">{t("flatNo")}</div>
