@@ -71,6 +71,22 @@ export function useOwnerFlats() {
     return () => sub.subscription.unsubscribe();
   }, [refetch]);
 
+  // Auto re-sync when the user revisits the tab/page so the dashboard
+  // always shows the latest profile photo and flat data.
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => refetch();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetch();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user, refetch]);
+
   return { flats, loading, refetch };
 }
 
