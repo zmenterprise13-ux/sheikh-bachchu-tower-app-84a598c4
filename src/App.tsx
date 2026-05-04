@@ -26,6 +26,8 @@ import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
 import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
+import TenantInfoPage from "./pages/TenantInfo";
+import TenantInfoBlankForm from "./pages/TenantInfoBlankForm";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -86,6 +88,10 @@ const App = () => (
               <Route path="/owner/finance-report" element={<ProtectedRoute requireRole="owner"><OwnerFinanceReport /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
+
+              {/* Tenant info — accessible to admin and flat owners */}
+              <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />
+              <Route path="/tenant-info/blank-form" element={<TenantInfoBlankForm />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
