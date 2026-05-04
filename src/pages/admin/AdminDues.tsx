@@ -187,6 +187,8 @@ export default function AdminDues() {
         arrears?: number;
         other_note?: string | null;
         other_due_date?: string | null;
+        total?: number;
+        status?: FlatStatus;
       } = { [bulkType]: newVal };
       if (bulkType === "other_charge") {
         if (newVal > 0) {
