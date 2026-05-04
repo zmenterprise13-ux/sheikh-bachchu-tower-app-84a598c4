@@ -49,6 +49,11 @@ export default function Index() {
         </div>
       </header>
 
+      {/* Notice ticker pinned just under the header */}
+      <div className="absolute top-16 inset-x-0 z-20">
+        <NoticeTicker />
+      </div>
+
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[100svh] flex items-center">
         {/* Background image with parallax-style scaling */}
