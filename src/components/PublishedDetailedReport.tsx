@@ -4,7 +4,7 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock, FileBarChart } from "lucide-react";
+import { Lock, FileBarChart, CheckCircle2 } from "lucide-react";
 
 type Snapshot = {
   billed: number;
