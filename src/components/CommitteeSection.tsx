@@ -3,6 +3,7 @@ import { useLang } from "@/i18n/LangContext";
 import { Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 type Member = {
   id: string;
@@ -12,19 +13,22 @@ type Member = {
   role_bn: string;
   photo_url: string | null;
   accent: string;
+  bio: string | null;
+  bio_bn: string | null;
 };
 
 export function CommitteeSection() {
   const { lang } = useLang();
   const isMobile = useIsMobile();
   const [members, setMembers] = useState<Member[]>([]);
+  const [selected, setSelected] = useState<Member | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
