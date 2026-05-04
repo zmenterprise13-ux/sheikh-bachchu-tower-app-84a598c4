@@ -12,6 +12,7 @@ import { InitialsFallback } from "@/components/InitialsFallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Flat = {
   id: string;
@@ -148,25 +149,43 @@ export default function AdminOwnersDirectory() {
               key={f.id}
               className="rounded-lg border border-border/60 bg-background/40 p-2.5 flex flex-wrap items-center gap-3"
             >
-              <span
-                className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center select-none"
-                aria-label={`Flat ${f.flat_no}`}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute inset-0 rotate-45 rounded-md bg-gradient-to-br shadow-soft",
-                    getAvatarGradient(`flat:${f.flat_no}`)
-                  )}
-                />
-                <span
-                  aria-hidden
-                  className="absolute inset-0 rotate-45 rounded-md bg-gradient-to-b from-white/25 to-transparent pointer-events-none"
-                />
-                <span className="relative text-white font-semibold text-[11px] tracking-wide drop-shadow-sm">
-                  {f.flat_no}
-                </span>
-              </span>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center select-none cursor-help"
+                      aria-label={`Flat ${f.flat_no}`}
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "absolute inset-0 rotate-45 rounded-md bg-gradient-to-br shadow-soft",
+                          getAvatarGradient(`flat:${f.flat_no}`)
+                        )}
+                      />
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 rotate-45 rounded-md bg-gradient-to-b from-white/25 to-transparent pointer-events-none"
+                      />
+                      <span className="relative text-white font-semibold text-[11px] tracking-wide drop-shadow-sm">
+                        {f.flat_no}
+                      </span>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">
+                        {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {isTenant
+                          ? lang === "bn" ? "ভাড়াটিয়া" : "Tenant"
+                          : lang === "bn" ? "মালিক নিজে থাকেন" : "Owner-occupied"}
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               {isTenant ? (
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Avatar className="h-7 w-7">
