@@ -178,14 +178,16 @@ export default function AdminReports() {
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
+      const mo = otherIncomes.filter((o) => (o.date || "").slice(0, 7) === m);
       const billed = mb.reduce((s, b) => s + Number(b.total), 0);
       const collected = mb.reduce((s, b) => s + Number(b.paid_amount), 0);
       const expense = me.reduce((s, e) => s + Number(e.amount), 0);
       const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
       const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
-      return { month: m, billed, collected, expense, loanIn, loanOut, balance: collected - expense + loanIn - loanOut };
+      const otherIn = mo.reduce((s, o) => s + Number(o.amount), 0);
+      return { month: m, billed, collected, otherIn, expense, loanIn, loanOut, balance: collected + otherIn - expense + loanIn - loanOut };
     });
-  }, [months, bills, expenses, loans, repays]);
+  }, [months, bills, expenses, loans, repays, otherIncomes]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
@@ -198,11 +200,12 @@ export default function AdminReports() {
   }, [perMonth, openingCash]);
 
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
+  const totalOtherIn = perMonth.reduce((s, r) => s + r.otherIn, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
   const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
   const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
-  const operatingNet = totalIncome - totalExpense;
+  const operatingNet = totalIncome + totalOtherIn - totalExpense;
   const balance = operatingNet + totalLoanIn - totalLoanOut;
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
