@@ -270,12 +270,42 @@ export default function AdminOwnersDirectory() {
     Boolean(f.occupant_name && f.occupant_name.trim()) ||
     (f.occupant_type === "tenant" && Boolean(f.occupant_phone));
 
+  const flatNoNum = (s: string) => {
+    const n = parseInt(s.replace(/\D/g, ""), 10);
+    return isNaN(n) ? 0 : n;
+  };
+  const sortFlats = (arr: Flat[]) => {
+    const copy = [...arr];
+    copy.sort((a, b) => {
+      switch (sortBy) {
+        case "flat_desc":
+          return flatNoNum(b.flat_no) - flatNoNum(a.flat_no) || b.flat_no.localeCompare(a.flat_no);
+        case "tenant_first": {
+          const at = isTenantFlat(a) ? 0 : 1;
+          const bt = isTenantFlat(b) ? 0 : 1;
+          if (at !== bt) return at - bt;
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no);
+        }
+        case "owner_first": {
+          const at = isTenantFlat(a) ? 1 : 0;
+          const bt = isTenantFlat(b) ? 1 : 0;
+          if (at !== bt) return at - bt;
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no);
+        }
+        case "flat_asc":
+        default:
+          return flatNoNum(a.flat_no) - flatNoNum(b.flat_no) || a.flat_no.localeCompare(b.flat_no);
+      }
+    });
+    return copy;
+  };
+
   const renderList = (groups: OwnerGroup[]) => {
     const visible = groups
       .map((g) => {
-        if (filter === "all") return g;
+        if (filter === "all") return { ...g, flats: sortFlats(g.flats) };
         const flats = g.flats.filter((f) => (filter === "tenant" ? isTenantFlat(f) : !isTenantFlat(f)));
-        return flats.length ? { ...g, flats } : null;
+        return flats.length ? { ...g, flats: sortFlats(flats) } : null;
       })
       .filter((g): g is OwnerGroup => g !== null)
       .filter(matches);
