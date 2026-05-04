@@ -29,7 +29,7 @@ export function CommitteeSection() {
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
