@@ -470,7 +470,13 @@ export default function AdminReports() {
                   <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
                 </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
-                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
+                <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "লোন গ্রহণ — ক্যাশ ইন" : "Loan taken — cash in"}>
+                  {lang === "bn" ? "লোন (ইন)" : "Loan In"}
+                </th>
+                <th className="py-2 pr-3 text-right text-warning" title={lang === "bn" ? "লোন পরিশোধ — ক্যাশ আউট" : "Loan repaid — cash out"}>
+                  {lang === "bn" ? "পরিশোধ (আউট)" : "Loan Out"}
+                </th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "নিট ক্যাশ ফ্লো" : "Net Cash Flow"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
                 <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
               </tr>
@@ -484,6 +490,8 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-success">{r.loanIn > 0 ? formatMoney(r.loanIn, lang) : "—"}</td>
+                  <td className="py-2 pr-3 text-right text-warning">{r.loanOut > 0 ? formatMoney(r.loanOut, lang) : "—"}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
@@ -494,7 +502,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={11} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -505,6 +513,8 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalLoanIn, lang)}</td>
+                <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalLoanOut, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
