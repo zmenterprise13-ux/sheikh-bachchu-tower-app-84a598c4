@@ -296,7 +296,7 @@ export default function AccountProfile() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); setPhone(initial.phone); }}
+                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); }}
               >
                 {lang === "bn" ? "বাতিল" : "Reset"}
               </Button>
