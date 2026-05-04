@@ -66,6 +66,7 @@ const emptyForm = {
   bio_bn: "",
   phone: "",
   flat_id: "" as string,
+  category: "committee" as "committee" | "advisor",
 };
 
 export default function AdminCommittee() {
