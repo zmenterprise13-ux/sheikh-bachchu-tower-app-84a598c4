@@ -322,7 +322,7 @@ export default function TenantInfoPage() {
         {loading ? (
           <Skeleton className="h-96" />
         ) : tenant ? (
-          <div ref={printRef} className="space-y-4">
+          <div ref={printRef} className="space-y-4 print-area">
             {/* Print header */}
             <div className="hidden print:block text-center mb-4">
               <h1 className="text-xl font-bold">শেখ বাচ্চু টাওয়ার</h1>
