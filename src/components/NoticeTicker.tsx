@@ -19,22 +19,81 @@ export function NoticeTicker() {
   const [items, setItems] = useState<Notice[]>([]);
   const [paused, setPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const { speed } = useTickerSpeed();
   const regionRef = useRef<HTMLElement>(null);
+  const seenIdsRef = useRef<Set<string> | null>(null);
+  const announceTimerRef = useRef<number | null>(null);
+
+  const announceNewNotices = (incoming: Notice[]) => {
+    const seen = seenIdsRef.current;
+    // First load — record ids but don't announce (avoid noise on page open).
+    if (!seen) {
+      seenIdsRef.current = new Set(incoming.map((n) => n.id));
+      return;
+    }
+    const fresh = incoming.filter((n) => !seen.has(n.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((n) => seen.add(n.id));
+
+    const importantLabel = lang === "bn" ? "জরুরি" : "Important";
+    const newLabel =
+      lang === "bn"
+        ? fresh.length === 1
+          ? "নতুন নোটিশ"
+          : `${fresh.length}টি নতুন নোটিশ`
+        : fresh.length === 1
+          ? "New notice"
+          : `${fresh.length} new notices`;
+    const lines = fresh.map((n) => {
+      const title = lang === "bn" ? n.title_bn : n.title;
+      const body = lang === "bn" ? n.body_bn : n.body;
+      return `${n.important ? `${importantLabel}: ` : ""}${title} — ${body}`;
+    });
+    const message = `${newLabel}. ${lines.join(". ")}`;
+
+    // Toggle to empty first so AT re-announces when text repeats.
+    setAnnouncement("");
+    if (announceTimerRef.current) window.clearTimeout(announceTimerRef.current);
+    announceTimerRef.current = window.setTimeout(() => setAnnouncement(message), 60);
+  };
+
+  const fetchNotices = async () => {
+    const { data } = await supabase
+      .from("notices")
+      .select("id, title, title_bn, body, body_bn, important, date")
+      .order("important", { ascending: false })
+      .order("date", { ascending: false })
+      .limit(15);
+    const next = (data ?? []) as Notice[];
+    setItems(next);
+    announceNewNotices(next);
+  };
 
   useEffect(() => {
     let active = true;
     (async () => {
-      const { data } = await supabase
-        .from("notices")
-        .select("id, title, title_bn, body, body_bn, important, date")
-        .order("important", { ascending: false })
-        .order("date", { ascending: false })
-        .limit(15);
-      if (active) setItems((data ?? []) as Notice[]);
+      if (!active) return;
+      await fetchNotices();
     })();
-    return () => { active = false; };
-  }, []);
+
+    // Realtime: re-fetch whenever notices change so new entries are announced.
+    const channel = supabase
+      .channel("notice-ticker")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notices" },
+        () => { if (active) fetchNotices(); },
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+      if (announceTimerRef.current) window.clearTimeout(announceTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   // Respect prefers-reduced-motion: pause by default for those users.
   useEffect(() => {
