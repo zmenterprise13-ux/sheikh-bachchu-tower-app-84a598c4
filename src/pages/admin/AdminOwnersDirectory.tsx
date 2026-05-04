@@ -119,53 +119,58 @@ export default function AdminOwnersDirectory() {
         key={g.key}
         className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:shadow-elevated hover:-translate-y-0.5"
       >
-        {/* Gradient header strip */}
+        {/* Gradient header */}
         <div
           className={cn(
-            "h-16 bg-gradient-to-br relative",
+            "relative px-4 pt-4 pb-12 bg-gradient-to-br",
             getAvatarGradient(g.key),
           )}
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.35),transparent_60%)]" />
-        </div>
-
-        <div className="px-4 pb-4 -mt-8 relative">
-          <div className="flex items-end gap-3">
-            <Avatar className="h-16 w-16 ring-4 ring-card shadow-lg shrink-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.4),transparent_55%)] pointer-events-none" />
+          <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="relative flex items-start gap-3">
+            <Avatar className="h-14 w-14 ring-4 ring-white/40 shadow-lg shrink-0">
               {g.owner_photo_url ? <AvatarImage src={g.owner_photo_url} /> : null}
               <InitialsFallback name={g.owner_name} seed={g.key} className="text-base" />
             </Avatar>
-            <div className="flex-1 min-w-0 pb-1">
-              <h3 className="font-semibold text-foreground truncate leading-tight">{g.owner_name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-white truncate leading-tight drop-shadow-sm">
+                {g.owner_name}
+              </h3>
               {g.phone ? (
                 <a
                   href={`tel:${g.phone}`}
-                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-0.5"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/95 hover:text-white hover:underline mt-1 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full"
                 >
                   <Phone className="h-3 w-3" />
                   {g.phone}
                 </a>
               ) : (
-                <p className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/80 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
                   <Phone className="h-3 w-3" />
                   {lang === "bn" ? "ফোন নেই" : "No phone"}
-                </p>
+                </span>
               )}
             </div>
           </div>
+        </div>
 
-          <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="px-4 pb-4">
+          {/* Stats bar overlapping header */}
+          <div className="-mt-7 mb-3 flex flex-wrap gap-1.5 rounded-xl border border-border bg-card/95 backdrop-blur shadow-sm px-2.5 py-2">
             <Badge variant="secondary" className="gap-1 text-[10px] py-0.5">
               <Home className="h-2.5 w-2.5" />
               {g.flats.length} {lang === "bn" ? "টি ফ্ল্যাট" : "flats"}
             </Badge>
             {ownerOccCount > 0 && (
               <Badge variant="outline" className="gap-1 text-[10px] py-0.5 border-success/40 text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 {ownerOccCount} {lang === "bn" ? "নিজে" : "self"}
               </Badge>
             )}
             {tenantCount > 0 && (
               <Badge variant="outline" className="gap-1 text-[10px] py-0.5 border-accent/40 text-accent">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 {tenantCount} {lang === "bn" ? "ভাড়াটিয়া" : "tenant"}
               </Badge>
             )}
