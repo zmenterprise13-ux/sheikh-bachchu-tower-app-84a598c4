@@ -4,7 +4,7 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock, FileBarChart } from "lucide-react";
+import { Lock, FileBarChart, CheckCircle2 } from "lucide-react";
 
 type Snapshot = {
   billed: number;
@@ -20,6 +20,7 @@ type Snapshot = {
   loan_by_lender?: { lender: string; lender_bn: string | null; amount: number }[];
   opening_cash?: number;
   published?: boolean;
+  published_at?: string | null;
 };
 
 const oiCatLabel: Record<string, { bn: string; en: string }> = {
@@ -79,10 +80,23 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const totalCollection = grandBilled + (Number(snap.loan_taken) || 0) + (Number(snap.other_income) || 0);
   const totalExpense = (Number(snap.expense) || 0) + (Number(snap.loan_repaid) || 0);
 
+  const publishedAtLabel = snap.published_at
+    ? new Date(snap.published_at).toLocaleString(lang === "bn" ? "bn-BD" : "en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
+    : null;
+
   return (
     <div className="space-y-6">
       <div className="text-center text-destructive font-bold text-lg">
         {lang === "bn" ? `বিল মাস: ${monthLabel}` : `Bill month: ${monthLabel}`}
+      </div>
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-2 rounded-full bg-success/10 border border-success/30 px-3 py-1 text-xs font-medium text-success">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          {lang === "bn" ? "প্রকাশিত" : "Published"}
+          {publishedAtLabel && <span className="text-muted-foreground">· {publishedAtLabel}</span>}
+        </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Income */}

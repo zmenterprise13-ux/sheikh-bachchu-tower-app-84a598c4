@@ -124,7 +124,10 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
           <p className="text-xs text-muted-foreground mt-0.5">
             {monthLabel}
             {published && publishedAt && (
-              <> · {lang === "bn" ? "প্রকাশিত" : "Published"} {new Date(publishedAt).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}</>
+              <> · {lang === "bn" ? "প্রকাশিত" : "Published on"} {new Date(publishedAt).toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</>
+            )}
+            {isAdmin && !published && (
+              <> · <span className="text-warning">{lang === "bn" ? "অপ্রকাশিত" : "Not published yet"}</span></>
             )}
           </p>
         </div>
