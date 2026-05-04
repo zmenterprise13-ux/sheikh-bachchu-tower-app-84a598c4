@@ -422,17 +422,38 @@ function OwnerAvatarUpload({
     <div className="relative shrink-0 group">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
       <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30">
-        {localUrl ? <AvatarImage src={localUrl} alt={ownerName ?? "Owner"} className="object-cover" /> : null}
+        {localUrl ? (
+          <AvatarImage
+            src={localUrl}
+            alt={
+              ownerName
+                ? (lang === "bn" ? `${ownerName}-এর প্রোফাইল ছবি` : `Profile photo of ${ownerName}`)
+                : (lang === "bn" ? "মালিকের প্রোফাইল ছবি" : "Owner profile photo")
+            }
+            className="object-cover"
+          />
+        ) : null}
         <InitialsFallback name={ownerName} seed={flatId} className="text-2xl ring-2 ring-white/30" />
       </Avatar>
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
-        aria-label={lang === "bn" ? "ছবি পরিবর্তন" : "Change photo"}
-        className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60"
+        aria-label={
+          busy
+            ? (lang === "bn" ? "ছবি আপলোড হচ্ছে" : "Uploading photo")
+            : (localUrl
+                ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
+                : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo"))
+        }
+        aria-busy={busy}
+        className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+        {busy ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        ) : (
+          <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+        )}
       </button>
       <input
         ref={inputRef}
@@ -440,6 +461,8 @@ function OwnerAvatarUpload({
         accept="image/*"
         className="hidden"
         onChange={handleFile}
+        aria-label={lang === "bn" ? "প্রোফাইল ছবি ফাইল নির্বাচন" : "Choose profile photo file"}
+        tabIndex={-1}
       />
       <ImageCropDialog
         open={!!cropSrc}
