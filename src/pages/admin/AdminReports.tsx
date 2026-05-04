@@ -809,9 +809,17 @@ export default function AdminReports() {
                   </div>
                 );
               })}
+              {totalLoanOut > 0 && (
+                <div className="pt-2 border-t border-dashed border-border">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{lang === "bn" ? "লোন পরিশোধ (ক্যাশ আউট)" : "Loan Repaid (Cash Out)"}</span>
+                    <span className="font-semibold text-foreground">{formatMoney(totalLoanOut, lang)}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
-                <span className="font-semibold">{t("total")}</span>
-                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense, lang)}</span>
+                <span className="font-semibold">{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</span>
+                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense + totalLoanOut, lang)}</span>
               </div>
             </div>
           </div>
