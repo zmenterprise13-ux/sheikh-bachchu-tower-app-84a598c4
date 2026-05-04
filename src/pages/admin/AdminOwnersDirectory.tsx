@@ -176,7 +176,7 @@ export default function AdminOwnersDirectory() {
             )}
           </div>
 
-          <div className="mt-3 space-y-1.5">
+          <div className="space-y-1.5">
             {g.flats.map((f) => {
               const isTenant = isTenantFlat(f);
               return (
