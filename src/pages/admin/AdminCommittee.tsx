@@ -37,6 +37,7 @@ type Member = {
   bio_bn: string | null;
   phone: string | null;
   flat_id: string | null;
+  category: string;
 };
 
 const ACCENTS = [
