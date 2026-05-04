@@ -40,7 +40,7 @@ export function CommitteeSection() {
         .map((m) => ({
           ...m,
           phone: (m.flats?.phone || m.phone || "").trim() || null,
-          photo_url: m.photo_url || m.flats?.owner_photo_url || null,
+          photo_url: m.flats?.owner_photo_url || m.photo_url || null,
         }))
         .filter((m) => !!m.phone) as Member[];
       if (active) setMembers(enriched);
