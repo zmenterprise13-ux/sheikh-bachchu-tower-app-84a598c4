@@ -352,6 +352,16 @@ export default function AdminCommittee() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "ক্যাটাগরি" : "Category"}</Label>
+                  <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as "committee" | "advisor" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="committee">{lang === "bn" ? "কার্যকরী কমিটি" : "Executive Committee"}</SelectItem>
+                      <SelectItem value="advisor">{lang === "bn" ? "উপদেষ্টা পরিষদ" : "Advisory Council"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "রঙ" : "Accent color"}</Label>
                   <Select value={form.accent} onValueChange={(v) => setForm({ ...form, accent: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
