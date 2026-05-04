@@ -22,8 +22,9 @@ export default function AccountProfile() {
   const [busy, setBusy] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
+  const [displayNameBn, setDisplayNameBn] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
-  const [initial, setInitial] = useState<{ display_name: string; phone: string }>({ display_name: "", phone: "" });
+  const [initial, setInitial] = useState<{ display_name: string; display_name_bn: string; phone: string }>({ display_name: "", display_name_bn: "", phone: "" });
   const [savingInfo, setSavingInfo] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
@@ -32,15 +33,17 @@ export default function AccountProfile() {
     if (showSpinner) setLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("avatar_url, display_name, phone")
+      .select("avatar_url, display_name, display_name_bn, phone")
       .eq("user_id", user.id)
       .maybeSingle();
     setAvatarUrl((data as any)?.avatar_url ?? null);
     const dn = (data as any)?.display_name ?? "";
+    const dnBn = (data as any)?.display_name_bn ?? "";
     const ph = (data as any)?.phone ?? "";
     setDisplayName(dn);
+    setDisplayNameBn(dnBn);
     setPhone(ph);
-    setInitial({ display_name: dn, phone: ph });
+    setInitial({ display_name: dn, display_name_bn: dnBn, phone: ph });
     if (showSpinner) setLoading(false);
   }, [user]);
 
@@ -122,23 +125,31 @@ export default function AccountProfile() {
     }
   };
 
-  const dirty = displayName.trim() !== initial.display_name.trim() || phone.trim() !== initial.phone.trim();
+  const dirty =
+    displayName.trim() !== initial.display_name.trim() ||
+    displayNameBn.trim() !== initial.display_name_bn.trim() ||
+    phone.trim() !== initial.phone.trim();
 
   const saveInfo = async () => {
     if (!user) return;
     const name = displayName.trim();
-    if (!name) {
-      toast.error(lang === "bn" ? "নাম দিন" : "Name is required");
+    const nameBn = displayNameBn.trim();
+    if (!name && !nameBn) {
+      toast.error(lang === "bn" ? "অন্তত একটি নাম দিন" : "Enter at least one name");
       return;
     }
     setSavingInfo(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: name, phone: phone.trim() || null })
+        .update({
+          display_name: name || null,
+          display_name_bn: nameBn || null,
+          phone: phone.trim() || null,
+        })
         .eq("user_id", user.id);
       if (error) throw error;
-      setInitial({ display_name: name, phone: phone.trim() });
+      setInitial({ display_name: name, display_name_bn: nameBn, phone: phone.trim() });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
@@ -205,7 +216,7 @@ export default function AccountProfile() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-foreground truncate">{displayName || user?.email || "—"}</div>
+            <div className="font-semibold text-foreground truncate">{(lang === "bn" ? (displayNameBn || displayName) : (displayName || displayNameBn)) || user?.email || "—"}</div>
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
             <div className="mt-3 flex gap-2 flex-wrap">
               <Button
@@ -236,16 +247,31 @@ export default function AccountProfile() {
         </p>
 
         <div className="mt-6 pt-6 border-t border-border space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="display_name">{lang === "bn" ? "নাম" : "Display name"}</Label>
-            <Input
-              id="display_name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              maxLength={120}
-              disabled={loading || savingInfo}
-              placeholder={lang === "bn" ? "আপনার নাম" : "Your name"}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="display_name_bn">নাম (বাংলা)</Label>
+              <Input
+                id="display_name_bn"
+                value={displayNameBn}
+                onChange={(e) => setDisplayNameBn(e.target.value)}
+                maxLength={120}
+                disabled={loading || savingInfo}
+                placeholder="আপনার নাম"
+                lang="bn"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="display_name">Name (English)</Label>
+              <Input
+                id="display_name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={120}
+                disabled={loading || savingInfo}
+                placeholder="Your name"
+                lang="en"
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="phone">{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
@@ -264,7 +290,7 @@ export default function AccountProfile() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setDisplayName(initial.display_name); setPhone(initial.phone); }}
+                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); setPhone(initial.phone); }}
               >
                 {lang === "bn" ? "বাতিল" : "Reset"}
               </Button>
