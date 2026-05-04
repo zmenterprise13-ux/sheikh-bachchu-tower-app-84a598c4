@@ -78,6 +78,7 @@ export default function Auth() {
       return;
     }
     setSubmitting(true);
+    persistRemember(remember);
     const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPass });
     setSubmitting(false);
     if (error) {
@@ -101,6 +102,7 @@ export default function Auth() {
       return;
     }
     setSubmitting(true);
+    persistRemember(remember);
     const { data, error } = await supabase.functions.invoke("owner-phone-login", {
       body: { phone: ownerPhone, password: ownerPass },
     });
