@@ -96,6 +96,8 @@ export default function AdminCommittee() {
       accent: m.accent,
       sort_order: m.sort_order,
       is_published: m.is_published,
+      bio: m.bio ?? "",
+      bio_bn: m.bio_bn ?? "",
     });
     setOpen(true);
   };
