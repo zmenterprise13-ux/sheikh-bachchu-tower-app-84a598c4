@@ -45,10 +45,17 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
     }
   };
 
+  const altText = value
+    ? (label ? `Profile photo for ${label}` : "Profile photo")
+    : (label ? `No photo uploaded for ${label}` : "No photo uploaded");
+  const uploadLabel = value
+    ? (label ? `Replace photo for ${label}` : "Replace photo")
+    : (label ? `Upload photo for ${label}` : "Upload photo");
+
   return (
     <div className="flex items-center gap-3">
       <Avatar className="h-16 w-16 border border-border">
-        {value ? <AvatarImage src={value} alt={label} /> : null}
+        {value ? <AvatarImage src={value} alt={altText} /> : null}
         <InitialsFallback name={label} seed={label} className="text-xs" />
       </Avatar>
       <div className="flex flex-col gap-1">
@@ -60,9 +67,16 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
             variant="outline"
             disabled={busy}
             onClick={() => inputRef.current?.click()}
+            aria-label={uploadLabel}
+            aria-busy={busy}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-            <span className="ml-1 text-xs">Upload</span>
+            {busy ? (
+              <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+            ) : (
+              <Upload className="h-3 w-3" aria-hidden="true" />
+            )}
+            <span className="ml-1 text-xs">{busy ? "Uploading…" : "Upload"}</span>
           </Button>
           {value && (
             <Button
@@ -71,8 +85,10 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
               variant="ghost"
               onClick={() => onChange(null)}
               disabled={busy}
+              aria-label={label ? `Remove photo for ${label}` : "Remove photo"}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -82,6 +98,8 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
           accept="image/*"
           className="hidden"
           onChange={handleFile}
+          aria-label={uploadLabel}
+          tabIndex={-1}
         />
       </div>
     </div>
