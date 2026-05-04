@@ -495,7 +495,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
           <Button variant="outline" onClick={() => { reset(); onClose(); }} disabled={saving}>
             {lang === "bn" ? "বাতিল" : "Cancel"}
           </Button>
-          <Button onClick={submit} disabled={saving}>
+          <Button onClick={submit} disabled={saving || !!holdingError || holdingChecking}>
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             {lang === "bn" ? "যোগ করুন" : "Add"}
           </Button>
