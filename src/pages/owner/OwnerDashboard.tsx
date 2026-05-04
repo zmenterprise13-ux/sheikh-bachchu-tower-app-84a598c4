@@ -58,13 +58,13 @@ export default function OwnerDashboard() {
   const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
   const month = currentMonth();
-  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null }>({ en: null, bn: null });
+  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null; avatar: string | null }>({ en: null, bn: null, avatar: null });
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("display_name, display_name_bn").eq("user_id", user.id).maybeSingle()
+    supabase.from("profiles").select("display_name, display_name_bn, avatar_url").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
-        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn });
+        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn, avatar: (data as any).avatar_url });
       });
   }, [user]);
   const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
