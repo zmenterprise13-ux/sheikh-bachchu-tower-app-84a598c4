@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlats, OwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarImageWithSkeleton } from "@/components/AvatarImageWithSkeleton";
 import { useRef } from "react";
 import { Camera } from "lucide-react";
 import { generateBillPdf } from "@/lib/billPdf";
