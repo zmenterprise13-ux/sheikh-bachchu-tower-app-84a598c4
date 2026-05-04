@@ -179,8 +179,12 @@ export default function AdminDues() {
       const currentVal = Number(b[bulkType] ?? 0);
       const newVal = bulkMode === "add" ? currentVal + amount : amount;
       const patch: {
+        service_charge?: number;
+        gas_bill?: number;
+        parking?: number;
         eid_bonus?: number;
         other_charge?: number;
+        arrears?: number;
         other_note?: string | null;
         other_due_date?: string | null;
       } = { [bulkType]: newVal };
