@@ -805,7 +805,8 @@ export default function AdminReports() {
                 <div className="text-sm text-muted-foreground">{t("noData")}</div>
               )}
               {Object.entries(byCategory).map(([cat, amt]) => {
-                const label = (t(cat as TKey) as string) || cat;
+                const cd = expenseCats.find((c) => c.name === cat);
+                const label = lang === "bn" ? (cd?.name_bn || cd?.name || (t(cat as TKey) as string) || cat) : (cd?.name || (t(cat as TKey) as string) || cat);
                 return (
                   <div key={cat}>
                     <div className="flex items-center justify-between text-sm mb-1">
