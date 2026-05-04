@@ -118,6 +118,7 @@ export default function AccountProfile() {
         .update({ avatar_url: null })
         .eq("user_id", user.id);
       if (error) throw error;
+      await supabase.rpc("update_my_owner_photo", { _photo_url: null });
       setAvatarUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
     } catch (err: any) {
