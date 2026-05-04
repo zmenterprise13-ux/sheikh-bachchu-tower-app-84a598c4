@@ -36,6 +36,7 @@ import { CombinedBillStatus } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 
 type Flat = {
   id: string;
@@ -707,6 +708,8 @@ export default function AdminDashboard() {
             </div>
           );
         })()}
+        <MonthlyFinanceSummary month={month} variant="admin" />
+
         <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
