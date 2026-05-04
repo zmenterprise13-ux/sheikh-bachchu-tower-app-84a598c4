@@ -713,27 +713,17 @@ export default function AdminReports() {
                       <span className="font-bold text-success text-lg">{formatMoney(grandBilled, lang)}</span>
                     </div>
 
-                    {/* Loan taken */}
-                    <div className="pt-3 border-t border-dashed border-border">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-foreground">
-                          {lang === "bn" ? "লোন নেয়া (কার কাছ থেকে)" : "Loan Taken (Lenders)"}
-                        </span>
-                        <span className="text-sm font-bold text-success">{formatMoney(totalLoanIn, lang)}</span>
-                      </div>
-                      {loanLenderRows.length === 0 ? (
-                        <div className="text-xs text-muted-foreground pl-2">—</div>
-                      ) : (
-                        <div className="space-y-1 pl-2 border-l-2 border-success/40">
-                          {loanLenderRows.map(([name, amt]) => (
-                            <div key={name} className="flex items-center justify-between text-xs pl-3">
-                              <span className="text-muted-foreground truncate">{name}</span>
-                              <span className="text-foreground tabular-nums font-semibold">{formatMoney(amt, lang)}</span>
-                            </div>
-                          ))}
+                    {/* Loan taken (cash in) */}
+                    {totalLoanIn > 0 && (
+                      <div className="pt-3 border-t border-dashed border-border">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-foreground">
+                            {lang === "bn" ? "লোন নেয়া (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
+                          </span>
+                          <span className="text-sm font-bold text-success">{formatMoney(totalLoanIn, lang)}</span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Other income by category */}
                     <div className="pt-3 border-t border-dashed border-border">
