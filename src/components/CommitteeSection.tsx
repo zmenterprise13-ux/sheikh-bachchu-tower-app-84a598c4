@@ -17,6 +17,7 @@ type Member = {
   bio_bn: string | null;
   phone: string | null;
   flat_id: string | null;
+  category?: string;
   flats?: { phone: string | null; owner_photo_url: string | null } | null;
 };
 
