@@ -571,10 +571,12 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
     sections: [
       {
         properties: {
-          page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } },
+          // A4: 11906 x 16838 DXA
+          page: { size: { width: 11906, height: 16838 }, margin: { top: 720, right: 720, bottom: 720, left: 720 } },
         },
         children: [
-          p(L.buildingName, { bold: true, size: 32, align: AlignmentType.CENTER, spacing: 60 }),
+          p(L.buildingName, { bold: true, size: 32, align: AlignmentType.CENTER, spacing: 40 }),
+          p(L.buildingAddress, { size: 20, align: AlignmentType.CENTER, spacing: 60 }),
           p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 200 }),
 
           lineRow(L.flatNo),
