@@ -163,6 +163,23 @@ export default function AdminFlats() {
               <Wallet className="h-4 w-4 mr-2" />
               {lang === "bn" ? "বাল্ক সার্ভিস চার্জ" : "Bulk Service Charge"}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createMissingLogins}
+              disabled={bulkLoginBusy || loading}
+              className="shrink-0"
+              title={lang === "bn" ? "যাদের ফোন আছে কিন্তু লগইন নেই" : "Flats with phone but no login"}
+            >
+              {bulkLoginBusy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <KeyRound className="h-4 w-4 mr-2" />
+              )}
+              {lang === "bn"
+                ? `ওনার লগইন তৈরি (${formatNumber(missingLogins.length, lang)})`
+                : `Create Owner Logins (${missingLogins.length})`}
+            </Button>
             <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
