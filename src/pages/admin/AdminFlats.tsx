@@ -368,6 +368,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
     setSaving(true);
     const { error } = await supabase.from("flats").insert({
       flat_no: flatNo.trim(),
+      holding_no: holdingNo.trim() || null,
       floor: Number(floor) || 1,
       owner_name: ownerName || null,
       owner_name_bn: ownerNameBn || null,
