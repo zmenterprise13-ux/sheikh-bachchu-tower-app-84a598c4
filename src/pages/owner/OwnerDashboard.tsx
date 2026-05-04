@@ -21,6 +21,7 @@ import { generateBillPdf } from "@/lib/billPdf";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
 import { InitialsFallback } from "@/components/InitialsFallback";
+import { useAuth } from "@/context/AuthContext";
 
 type Bill = {
   id: string;
