@@ -1,0 +1,1 @@
+INSERT INTO public.app_settings(key, value) VALUES ('building_address', '{"bn":"১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।","en":"14/2, Mokterbari Road, Auchpara, Tongi, Gazipur"}'::jsonb) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();

@@ -24,7 +24,7 @@ import {
  * - Download as Word (.docx)
  */
 
-const STORAGE_KEY = "tenant-blank-form-labels-v1";
+const STORAGE_KEY = "tenant-blank-form-labels-v2";
 const COL_KEY = "tenant-blank-form-cols-v1";
 
 const DEFAULT_LABELS = {
