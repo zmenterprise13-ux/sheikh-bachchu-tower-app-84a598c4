@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -27,6 +28,19 @@ export default function Auth() {
 
   const [tab, setTab] = useState<"phone" | "login" | "signup">("phone");
   const [submitting, setSubmitting] = useState(false);
+  const [remember, setRemember] = useState<boolean>(() => {
+    const v = localStorage.getItem("auth.remember");
+    return v === null ? true : v === "1";
+  });
+
+  const persistRemember = (val: boolean) => {
+    setRemember(val);
+    localStorage.setItem("auth.remember", val ? "1" : "0");
+    // sessionStorage flag tells the app this tab/session is "alive";
+    // when not remembering, closing the browser clears it and we sign out.
+    if (val) sessionStorage.removeItem("auth.session_only");
+    else sessionStorage.setItem("auth.session_only", "1");
+  };
 
   // owner phone login
   const [ownerPhone, setOwnerPhone] = useState("");
@@ -64,6 +78,7 @@ export default function Auth() {
       return;
     }
     setSubmitting(true);
+    persistRemember(remember);
     const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPass });
     setSubmitting(false);
     if (error) {
@@ -87,6 +102,7 @@ export default function Auth() {
       return;
     }
     setSubmitting(true);
+    persistRemember(remember);
     const { data, error } = await supabase.functions.invoke("owner-phone-login", {
       body: { phone: ownerPhone, password: ownerPass },
     });
@@ -196,6 +212,7 @@ export default function Auth() {
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                   <PasswordInput value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
+                <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-phone" />
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {lang === "bn" ? "লগইন করুন" : "Log in"}
@@ -218,6 +235,7 @@ export default function Auth() {
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                   <PasswordInput value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
+                <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-email" />
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {lang === "bn" ? "লগইন করুন" : "Log in"}
@@ -258,5 +276,18 @@ export default function Auth() {
         </div>
       </main>
     </div>
+  );
+}
+
+function RememberMe({
+  value, onChange, lang, id,
+}: { value: boolean; onChange: (v: boolean) => void; lang: "en" | "bn"; id: string }) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-2 cursor-pointer select-none">
+      <Checkbox id={id} checked={value} onCheckedChange={(v) => onChange(v === true)} />
+      <span className="text-sm text-foreground">
+        {lang === "bn" ? "আমাকে মনে রাখুন" : "Remember me"}
+      </span>
+    </label>
   );
 }
