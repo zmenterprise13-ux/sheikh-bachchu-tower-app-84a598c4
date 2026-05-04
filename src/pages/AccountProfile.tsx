@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { AvatarImageWithSkeleton } from "@/components/AvatarImageWithSkeleton";
 import { InitialsFallback } from "@/components/InitialsFallback";
-import { Camera, Loader2, User, Trash2 } from "lucide-react";
+import { Camera, Loader2, User, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AccountProfile() {
   const { lang } = useLang();
@@ -19,7 +21,10 @@ export default function AccountProfile() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [initial, setInitial] = useState<{ display_name: string; phone: string }>({ display_name: "", phone: "" });
+  const [savingInfo, setSavingInfo] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async (showSpinner = true) => {
@@ -27,11 +32,15 @@ export default function AccountProfile() {
     if (showSpinner) setLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("avatar_url, display_name")
+      .select("avatar_url, display_name, phone")
       .eq("user_id", user.id)
       .maybeSingle();
     setAvatarUrl((data as any)?.avatar_url ?? null);
-    setDisplayName((data as any)?.display_name ?? null);
+    const dn = (data as any)?.display_name ?? "";
+    const ph = (data as any)?.phone ?? "";
+    setDisplayName(dn);
+    setPhone(ph);
+    setInitial({ display_name: dn, phone: ph });
     if (showSpinner) setLoading(false);
   }, [user]);
 
@@ -113,6 +122,30 @@ export default function AccountProfile() {
     }
   };
 
+  const dirty = displayName.trim() !== initial.display_name.trim() || phone.trim() !== initial.phone.trim();
+
+  const saveInfo = async () => {
+    if (!user) return;
+    const name = displayName.trim();
+    if (!name) {
+      toast.error(lang === "bn" ? "নাম দিন" : "Name is required");
+      return;
+    }
+    setSavingInfo(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: name, phone: phone.trim() || null })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setInitial({ display_name: name, phone: phone.trim() });
+      toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed");
+    } finally {
+      setSavingInfo(false);
+    }
+  };
   return (
     <AppShell>
       <div className="rounded-2xl bg-card border border-border p-6 shadow-soft max-w-xl">
@@ -121,7 +154,7 @@ export default function AccountProfile() {
           {lang === "bn" ? "আমার প্রোফাইল" : "My Profile"}
         </h1>
         <p className="text-sm text-muted-foreground mb-5">
-          {lang === "bn" ? "আপনার প্রোফাইল ছবি আপলোড ও পরিবর্তন করুন।" : "Upload or change your profile photo."}
+          {lang === "bn" ? "আপনার নাম, ফোন নম্বর ও প্রোফাইল ছবি আপডেট করুন।" : "Update your name, phone, and profile photo."}
         </p>
 
         <div className="flex items-center gap-5">
@@ -172,7 +205,7 @@ export default function AccountProfile() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-foreground truncate">{displayName ?? user?.email ?? "—"}</div>
+            <div className="font-semibold text-foreground truncate">{displayName || user?.email || "—"}</div>
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
             <div className="mt-3 flex gap-2 flex-wrap">
               <Button
@@ -180,12 +213,6 @@ export default function AccountProfile() {
                 variant="outline"
                 onClick={() => inputRef.current?.click()}
                 disabled={busy || loading}
-                aria-label={
-                  avatarUrl
-                    ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
-                    : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo")
-                }
-                className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Camera className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                 {lang === "bn" ? "ছবি আপলোড" : "Upload photo"}
@@ -196,8 +223,6 @@ export default function AccountProfile() {
                   variant="ghost"
                   onClick={removePhoto}
                   disabled={busy}
-                  aria-label={lang === "bn" ? "প্রোফাইল ছবি সরান" : "Remove profile photo"}
-                  className="focus-visible:ring-2 focus-visible:ring-destructive/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                   {lang === "bn" ? "সরান" : "Remove"}
@@ -209,6 +234,47 @@ export default function AccountProfile() {
         <p className="text-[11px] text-muted-foreground mt-4">
           {lang === "bn" ? "JPG/PNG, সর্বোচ্চ ৫MB। আপলোডের আগে ক্রপ করতে পারবেন।" : "JPG/PNG, up to 5MB. You can crop before saving."}
         </p>
+
+        <div className="mt-6 pt-6 border-t border-border space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="display_name">{lang === "bn" ? "নাম" : "Display name"}</Label>
+            <Input
+              id="display_name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              maxLength={120}
+              disabled={loading || savingInfo}
+              placeholder={lang === "bn" ? "আপনার নাম" : "Your name"}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="phone">{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              maxLength={32}
+              disabled={loading || savingInfo}
+              placeholder={lang === "bn" ? "যেমন: 01XXXXXXXXX" : "e.g. 01XXXXXXXXX"}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            {dirty && !savingInfo && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setDisplayName(initial.display_name); setPhone(initial.phone); }}
+              >
+                {lang === "bn" ? "বাতিল" : "Reset"}
+              </Button>
+            )}
+            <Button onClick={saveInfo} disabled={!dirty || savingInfo || loading} className="gap-2">
+              {savingInfo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {lang === "bn" ? "সংরক্ষণ" : "Save changes"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       <ImageCropDialog
