@@ -50,45 +50,88 @@ export default function Index() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden min-h-[100svh] flex items-center">
+        {/* Background image with parallax-style scaling */}
         <div className="absolute inset-0">
-          <img src={heroImg} alt="" width={1600} height={900} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 gradient-hero opacity-90" />
+          <img
+            src={heroImg}
+            alt=""
+            width={1600}
+            height={900}
+            className="h-full w-full object-cover scale-110 animate-[fade-in_1.2s_ease-out]"
+          />
+          {/* Layered gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/60 to-accent/70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent" />
+          {/* Decorative orbs */}
+          <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-accent/30 blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 -right-32 h-96 w-96 rounded-full bg-primary-glow/30 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
 
-        <div className="relative container py-24 sm:py-32 lg:py-40 text-primary-foreground">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur border border-white/20 px-3 py-1 text-xs font-medium">
-              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+        {/* Subtle grid texture */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+
+        <div className="relative container py-20 sm:py-28 lg:py-32 text-primary-foreground w-full">
+          <div className="max-w-3xl mx-auto text-center animate-fade-in">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/30 px-4 py-1.5 text-xs font-medium shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
               {lang === "bn" ? "নতুন ম্যানেজমেন্ট ড্যাশবোর্ড" : "New management dashboard"}
             </div>
 
-            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
-              {t("appName")}
+            <h1 className="mt-6 text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] drop-shadow-2xl">
+              <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
+                {t("appName")}
+              </span>
             </h1>
-            <p className="mt-3 text-lg sm:text-xl opacity-90 max-w-xl">
+
+            <p className="mt-5 text-base sm:text-xl opacity-95 max-w-2xl mx-auto leading-relaxed">
               {lang === "bn"
-                ? "সার্ভিস চার্জ আদায়, খরচের হিসাব ও মাসিক রিপোর্ট — এক জায়গায়।"
-                : "Service charge collection, expense tracking and monthly reports — all in one place."}
+                ? "সার্ভিস চার্জ আদায়, খরচের হিসাব ও মাসিক রিপোর্ট — এক জায়গায়, এক প্ল্যাটফর্মে।"
+                : "Service charge collection, expense tracking and monthly reports — all in one platform."}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap gap-3 justify-center">
               <Link to="/auth">
-                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2">
-                  <LogIn className="h-4 w-4" />
+                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2 px-7 h-12 text-base font-semibold">
+                  <LogIn className="h-5 w-5" />
                   {lang === "bn" ? "লগইন / সাইন আপ" : "Log in / Sign up"}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-90">
-              <span>🏢 {lang === "bn" ? "৬০টি ফ্ল্যাট" : "60 Flats"}</span>
-              <span>🅿️ {lang === "bn" ? "পার্কিং ম্যানেজমেন্ট" : "Parking Management"}</span>
-              <span>📊 {lang === "bn" ? "মাসিক রিপোর্ট" : "Monthly Reports"}</span>
+            {/* Stats pills */}
+            <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto">
+              {[
+                { icon: "🏢", label: lang === "bn" ? "ফ্ল্যাট" : "Flats", value: "৬০+" },
+                { icon: "🅿️", label: lang === "bn" ? "পার্কিং" : "Parking", value: "✓" },
+                { icon: "📊", label: lang === "bn" ? "রিপোর্ট" : "Reports", value: lang === "bn" ? "মাসিক" : "Monthly" },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 px-3 py-3 sm:px-4 sm:py-4 hover:bg-white/15 transition-all hover:-translate-y-0.5"
+                >
+                  <div className="text-2xl sm:text-3xl mb-1">{s.icon}</div>
+                  <div className="text-base sm:text-lg font-bold">{s.value}</div>
+                  <div className="text-[10px] sm:text-xs opacity-80">{s.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
       </section>
 
       <NoticeTicker />
