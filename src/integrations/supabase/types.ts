@@ -220,6 +220,7 @@ export type Database = {
           bio: string | null
           bio_bn: string | null
           created_at: string
+          flat_id: string | null
           id: string
           is_published: boolean
           name: string
@@ -236,6 +237,7 @@ export type Database = {
           bio?: string | null
           bio_bn?: string | null
           created_at?: string
+          flat_id?: string | null
           id?: string
           is_published?: boolean
           name: string
@@ -252,6 +254,7 @@ export type Database = {
           bio?: string | null
           bio_bn?: string | null
           created_at?: string
+          flat_id?: string | null
           id?: string
           is_published?: boolean
           name?: string
@@ -263,7 +266,15 @@ export type Database = {
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "committee_members_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expense_categories: {
         Row: {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,20 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Upload, Users, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, Users, ArrowUp, ArrowDown, Phone, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+
+type Flat = {
+  id: string;
+  flat_no: string;
+  owner_name: string | null;
+  owner_name_bn: string | null;
+  phone: string | null;
+  owner_photo_url: string | null;
+};
 
 type Member = {
   id: string;
@@ -27,6 +36,7 @@ type Member = {
   bio: string | null;
   bio_bn: string | null;
   phone: string | null;
+  flat_id: string | null;
 };
 
 const ACCENTS = [
@@ -54,11 +64,13 @@ const emptyForm = {
   bio: "",
   bio_bn: "",
   phone: "",
+  flat_id: "" as string,
 };
 
 export default function AdminCommittee() {
   const { t, lang } = useLang();
   const [items, setItems] = useState<Member[]>([]);
+  const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,17 +82,31 @@ export default function AdminCommittee() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("committee_members")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
+    const [{ data: m, error }, { data: f }] = await Promise.all([
+      supabase
+        .from("committee_members")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("flats")
+        .select("id, flat_no, owner_name, owner_name_bn, phone, owner_photo_url")
+        .order("flat_no", { ascending: true }),
+    ]);
     if (error) toast.error(error.message);
-    setItems((data ?? []) as Member[]);
+    setItems((m ?? []) as Member[]);
+    setFlats((f ?? []) as Flat[]);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
+
+  // Only flats that have a phone number can be selected (phone is mandatory for visibility)
+  const eligibleFlats = useMemo(
+    () => flats.filter((f) => f.phone && f.phone.trim().length > 0),
+    [flats]
+  );
+  const flatById = (id: string | null) => flats.find((f) => f.id === id) || null;
 
   const openCreate = () => {
     setEditingId(null);
@@ -102,8 +128,23 @@ export default function AdminCommittee() {
       bio: m.bio ?? "",
       bio_bn: m.bio_bn ?? "",
       phone: m.phone ?? "",
+      flat_id: m.flat_id ?? "",
     });
     setOpen(true);
+  };
+
+  const onPickFlat = (flatId: string) => {
+    const f = flatById(flatId);
+    if (!f) { setForm((s) => ({ ...s, flat_id: "" })); return; }
+    setForm((s) => ({
+      ...s,
+      flat_id: f.id,
+      // Auto-prefill name fields if empty
+      name_bn: s.name_bn.trim() || f.owner_name_bn || f.owner_name || "",
+      name: s.name.trim() || f.owner_name || f.owner_name_bn || "",
+      // Phone always synced from flat
+      phone: f.phone ?? "",
+    }));
   };
 
   const onPhoto = async (file: File) => {
@@ -118,8 +159,17 @@ export default function AdminCommittee() {
   };
 
   const submit = async () => {
+    if (!form.flat_id) {
+      toast.error(lang === "bn" ? "ফ্ল্যাট নির্বাচন করুন" : "Select a flat");
+      return;
+    }
     if (!form.name_bn.trim() || !form.role_bn.trim()) {
       toast.error(lang === "bn" ? "নাম ও পদবি দিন" : "Name & role required");
+      return;
+    }
+    const f = flatById(form.flat_id);
+    if (!f || !f.phone || !f.phone.trim()) {
+      toast.error(lang === "bn" ? "এই ফ্ল্যাটের ফোন নম্বর নেই" : "Selected flat has no phone number");
       return;
     }
     setSubmitting(true);
@@ -134,7 +184,8 @@ export default function AdminCommittee() {
       is_published: form.is_published,
       bio: form.bio.trim() || null,
       bio_bn: form.bio_bn.trim() || null,
-      phone: form.phone.trim() || null,
+      phone: f.phone.trim(),
+      flat_id: form.flat_id,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
@@ -171,6 +222,9 @@ export default function AdminCommittee() {
     setDeleteId(null);
   };
 
+  const linkedFlat = flatById(form.flat_id);
+  const effectivePhoto = form.photo_url || linkedFlat?.owner_photo_url || "";
+
   return (
     <AppShell>
       <div className="space-y-6">
@@ -181,7 +235,7 @@ export default function AdminCommittee() {
               {lang === "bn" ? "কার্যকরী কমিটি" : "Executive Committee"}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {lang === "bn" ? "ফ্রন্ট পেজে দেখানো কমিটি সদস্যদের পরিচালনা করুন" : "Manage members shown on the front page"}
+              {lang === "bn" ? "কমিটির সদস্য একজন ফ্ল্যাট ওনার — ফোন নম্বর ও ছবি অটো ফ্ল্যাট থেকে নেওয়া হবে" : "Each member is linked to a flat owner — phone & photo are auto from the flat"}
             </p>
           </div>
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingId(null); setForm(emptyForm); } }}>
@@ -197,11 +251,45 @@ export default function AdminCommittee() {
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
+                {/* Flat selector */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <Link2 className="h-3.5 w-3.5 text-primary" />
+                    {lang === "bn" ? "ফ্ল্যাট ওনার নির্বাচন করুন" : "Link to flat owner"}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={form.flat_id || undefined} onValueChange={onPickFlat}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={lang === "bn" ? "ফ্ল্যাট নির্বাচন করুন" : "Select a flat"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eligibleFlats.length === 0 ? (
+                        <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+                          {lang === "bn" ? "কোনো ফ্ল্যাটে ফোন নম্বর সেট নেই" : "No flat has a phone number set"}
+                        </div>
+                      ) : (
+                        eligibleFlats.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            <span className="font-semibold">{f.flat_no}</span>
+                            {" — "}
+                            <span>{lang === "bn" ? (f.owner_name_bn || f.owner_name) : (f.owner_name || f.owner_name_bn) || "—"}</span>
+                            <span className="text-muted-foreground ml-1.5">({f.phone})</span>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    {lang === "bn" ? "শুধু যাদের ফোন নম্বর আছে তারাই তালিকায় আসবে" : "Only flats with a phone number are listed"}
+                  </p>
+                </div>
+
+                {/* Photo (auto from flat or manual override) */}
                 <div className="flex items-center gap-3">
-                  <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden border border-border shrink-0">
-                    {form.photo_url ? <img src={form.photo_url} alt="" className="h-full w-full object-cover" /> : null}
+                  <div className={`h-20 w-20 rounded-xl bg-muted overflow-hidden border border-border shrink-0 bg-gradient-to-br ${form.accent}`}>
+                    {effectivePhoto ? <img src={effectivePhoto} alt="" className="h-full w-full object-cover" /> : null}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-1">
                     <input
                       ref={fileRef}
                       type="file"
@@ -211,10 +299,36 @@ export default function AdminCommittee() {
                     />
                     <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-2">
                       <Upload className="h-4 w-4" />
-                      {uploading ? "..." : (lang === "bn" ? "ছবি আপলোড" : "Upload photo")}
+                      {uploading ? "..." : (lang === "bn" ? "ছবি আপলোড / পরিবর্তন" : "Upload / change photo")}
                     </Button>
+                    <p className="text-[11px] text-muted-foreground">
+                      {form.photo_url
+                        ? (lang === "bn" ? "কাস্টম ছবি ব্যবহার হচ্ছে" : "Using custom photo")
+                        : linkedFlat?.owner_photo_url
+                          ? (lang === "bn" ? "ফ্ল্যাট ওনারের ছবি অটো দেখানো হচ্ছে" : "Auto from flat owner photo")
+                          : (lang === "bn" ? "ছবি পরে আপলোড করতে পারবেন" : "You can add a photo later")}
+                    </p>
+                    {form.photo_url && (
+                      <button
+                        type="button"
+                        className="text-[11px] text-primary hover:underline"
+                        onClick={() => setForm((s) => ({ ...s, photo_url: "" }))}
+                      >
+                        {lang === "bn" ? "কাস্টম ছবি সরান (ফ্ল্যাট ওনারের ছবিতে ফিরে যান)" : "Remove custom photo (use flat owner photo)"}
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {/* Phone - readonly, from flat */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-primary" />
+                    {lang === "bn" ? "ফোন নম্বর (অটো)" : "Phone (auto)"}
+                  </Label>
+                  <Input value={linkedFlat?.phone || form.phone} readOnly disabled placeholder="—" />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>নাম (বাংলা)</Label>
@@ -257,10 +371,6 @@ export default function AdminCommittee() {
                   <Label>Short Bio (English)</Label>
                   <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief description about the member..." />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
-                  <Input type="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01XXXXXXXXX" />
-                </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <span className="text-sm font-medium">{lang === "bn" ? "ফ্রন্ট পেজে দেখান" : "Publish on front page"}</span>
                   <Switch checked={form.is_published} onCheckedChange={(v) => setForm({ ...form, is_published: v })} />
@@ -281,29 +391,52 @@ export default function AdminCommittee() {
           {!loading && items.length === 0 && (
             <div className="rounded-2xl bg-card border border-border p-12 text-center text-muted-foreground">{t("noData")}</div>
           )}
-          {!loading && items.map((m, i) => (
-            <div key={m.id} className="rounded-2xl bg-card border border-border p-4 shadow-soft flex items-center gap-4">
-              <div className={`h-16 w-16 rounded-xl overflow-hidden border-2 bg-muted shrink-0 bg-gradient-to-br ${m.accent}`}>
-                {m.photo_url && <img src={m.photo_url} alt="" className="h-full w-full object-cover" />}
+          {!loading && items.map((m, i) => {
+            const f = flatById(m.flat_id);
+            const photo = m.photo_url || f?.owner_photo_url || null;
+            const phone = f?.phone || m.phone;
+            const noPhone = !phone || !phone.trim();
+            return (
+              <div key={m.id} className={`rounded-2xl bg-card border ${noPhone ? "border-amber-300" : "border-border"} p-4 shadow-soft flex items-center gap-4`}>
+                <div className={`h-16 w-16 rounded-xl overflow-hidden border-2 bg-muted shrink-0 bg-gradient-to-br ${m.accent}`}>
+                  {photo && <img src={photo} alt="" className="h-full w-full object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground truncate">{lang === "bn" ? m.name_bn : m.name}</div>
+                  <div className="text-sm text-muted-foreground truncate">{lang === "bn" ? m.role_bn : m.role}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {f && (
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                        {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+                      </span>
+                    )}
+                    {phone && (
+                      <span className="text-[10px] font-mono bg-muted text-muted-foreground rounded-full px-2 py-0.5">
+                        {phone}
+                      </span>
+                    )}
+                    {noPhone && (
+                      <span className="text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                        {lang === "bn" ? "ফোন নেই — সামনে দেখাবে না" : "No phone — hidden on front"}
+                      </span>
+                    )}
+                    {!m.is_published && (
+                      <span className="text-[10px] font-bold bg-muted text-muted-foreground rounded-full px-2 py-0.5">
+                        {lang === "bn" ? "অপ্রকাশিত" : "UNPUBLISHED"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" onClick={() => move(m, -1)} disabled={i === 0} aria-label="Up"><ArrowUp className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => move(m, 1)} disabled={i === items.length - 1} aria-label="Down"><ArrowDown className="h-4 w-4" /></Button>
+                  <Switch checked={m.is_published} onCheckedChange={() => togglePublish(m)} />
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(m)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(m.id)} aria-label="Delete" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-foreground truncate">{lang === "bn" ? m.name_bn : m.name}</div>
-                <div className="text-sm text-muted-foreground truncate">{lang === "bn" ? m.role_bn : m.role}</div>
-                {!m.is_published && (
-                  <span className="inline-block mt-1 text-[10px] font-bold bg-muted text-muted-foreground rounded-full px-2 py-0.5">
-                    {lang === "bn" ? "অপ্রকাশিত" : "UNPUBLISHED"}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="icon" onClick={() => move(m, -1)} disabled={i === 0} aria-label="Up"><ArrowUp className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => move(m, 1)} disabled={i === items.length - 1} aria-label="Down"><ArrowDown className="h-4 w-4" /></Button>
-                <Switch checked={m.is_published} onCheckedChange={() => togglePublish(m)} />
-                <Button variant="ghost" size="icon" onClick={() => openEdit(m)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => setDeleteId(m.id)} aria-label="Delete" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
