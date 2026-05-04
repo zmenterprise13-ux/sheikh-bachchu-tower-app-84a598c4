@@ -113,15 +113,15 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
                 </div>
               </div>
               <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
-                {byCategory.map(([cat, amt]) => {
-                  const pct = expense > 0 ? Math.round((amt / expense) * 100) : 0;
-                  const label = (t(cat as TKey) as string) || cat;
+                {byCategory.map(({ category, amount }) => {
+                  const pct = expense > 0 ? Math.round((amount / expense) * 100) : 0;
+                  const label = (t(category as TKey) as string) || category;
                   return (
-                    <li key={cat} className="flex items-center gap-3 px-3 py-2 text-sm">
+                    <li key={category} className="flex items-center gap-3 px-3 py-2 text-sm">
                       <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <span className="flex-1 min-w-0 truncate">{label}</span>
                       <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                      <span className="font-semibold tabular-nums">{formatMoney(amt, lang)}</span>
+                      <span className="font-semibold tabular-nums">{formatMoney(amount, lang)}</span>
                     </li>
                   );
                 })}
