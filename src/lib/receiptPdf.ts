@@ -48,7 +48,8 @@ export async function downloadReceiptPdf(
   doc.text("PAYMENT RECEIPT", 14, 28);
 
   doc.setFontSize(9);
-  doc.text(`Receipt #: ${pr.id.slice(0, 8).toUpperCase()}`, W - 14, 18, { align: "right" });
+  const receiptNo = formatReceiptNo(pr.receipt_seq ?? null, pr.id);
+  doc.text(`Receipt #: ${receiptNo}`, W - 14, 18, { align: "right" });
   doc.text(`Date: ${new Date(pr.reviewed_at ?? pr.created_at).toLocaleDateString()}`, W - 14, 24, { align: "right" });
 
   // Status badge
