@@ -6,6 +6,8 @@ import { Search, Phone, Home, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { getAvatarGradient } from "@/lib/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -146,9 +148,19 @@ export default function AdminOwnersDirectory() {
               key={f.id}
               className="rounded-lg border border-border/60 bg-background/40 p-2.5 flex flex-wrap items-center gap-3"
             >
-              <Badge variant="outline" className="font-semibold">
-                {f.flat_no}
-              </Badge>
+              <span
+                className={cn(
+                  "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white font-semibold text-xs tracking-wide select-none shadow-soft",
+                  getAvatarGradient(`flat:${f.flat_no}`)
+                )}
+                aria-label={`Flat ${f.flat_no}`}
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/25 to-transparent"
+                />
+                <span className="relative drop-shadow-sm">{f.flat_no}</span>
+              </span>
               {isTenant ? (
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Avatar className="h-7 w-7">
