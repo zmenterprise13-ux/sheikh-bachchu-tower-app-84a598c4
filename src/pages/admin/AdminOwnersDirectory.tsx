@@ -360,7 +360,7 @@ export default function AdminOwnersDirectory() {
                 <Badge variant="secondary" className="ml-1">{west.length}</Badge>
               </TabsTrigger>
             </TabsList>
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
               <ToggleGroup
                 type="single"
                 value={filter}
@@ -375,6 +375,25 @@ export default function AdminOwnersDirectory() {
                 </ToggleGroupItem>
                 <ToggleGroupItem value="tenant" className="text-xs px-3">
                   {lang === "bn" ? "ভাড়াটিয়া" : "Tenant"}
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <ToggleGroup
+                type="single"
+                value={sortBy}
+                onValueChange={(v) => v && setSortBy(v as any)}
+                className="bg-muted rounded-md p-1"
+              >
+                <ToggleGroupItem value="flat_asc" className="text-xs px-3">
+                  {lang === "bn" ? "ফ্ল্যাট ↑" : "Flat ↑"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="flat_desc" className="text-xs px-3">
+                  {lang === "bn" ? "ফ্ল্যাট ↓" : "Flat ↓"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="tenant_first" className="text-xs px-3">
+                  {lang === "bn" ? "ভাড়াটিয়া আগে" : "Tenant first"}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="owner_first" className="text-xs px-3">
+                  {lang === "bn" ? "মালিক আগে" : "Owner first"}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
