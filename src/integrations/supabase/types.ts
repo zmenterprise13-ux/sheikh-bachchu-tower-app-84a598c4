@@ -217,6 +217,8 @@ export type Database = {
       committee_members: {
         Row: {
           accent: string
+          bio: string | null
+          bio_bn: string | null
           created_at: string
           id: string
           is_published: boolean
@@ -230,6 +232,8 @@ export type Database = {
         }
         Insert: {
           accent?: string
+          bio?: string | null
+          bio_bn?: string | null
           created_at?: string
           id?: string
           is_published?: boolean
@@ -243,6 +247,8 @@ export type Database = {
         }
         Update: {
           accent?: string
+          bio?: string | null
+          bio_bn?: string | null
           created_at?: string
           id?: string
           is_published?: boolean
