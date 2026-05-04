@@ -152,6 +152,17 @@ export function NoticeTicker() {
       {/* Keyboard usage hint for screen readers */}
       <span className="sr-only">{labels.keyboardHint}.</span>
 
+      {/* Live region: announces new notices to screen readers */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-relevant="additions text"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
+
       {/* Accessible, static list of notices for assistive tech */}
       <ul className="sr-only" aria-label={labels.region}>
         {items.map((n) => {
