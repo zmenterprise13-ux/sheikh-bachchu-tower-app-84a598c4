@@ -128,6 +128,8 @@ export default function AdminCommittee() {
       accent: form.accent,
       sort_order: form.sort_order,
       is_published: form.is_published,
+      bio: form.bio.trim() || null,
+      bio_bn: form.bio_bn.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
