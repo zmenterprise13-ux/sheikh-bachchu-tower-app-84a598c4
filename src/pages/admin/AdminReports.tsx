@@ -125,7 +125,7 @@ export default function AdminReports() {
           .select("amount, method, status, bills!inner(month)")
           .eq("method", "bkash").eq("status", "approved")
           .gte("bills.month", from).lte("bills.month", to),
-        supabase.from("loans").select("loan_date, principal")
+        supabase.from("loans").select("loan_date, principal, lender_name, lender_name_bn")
           .gte("loan_date", monthStart).lt("loan_date", monthEnd),
         supabase.from("loan_repayments").select("paid_date, amount")
           .gte("paid_date", monthStart).lt("paid_date", monthEnd),
