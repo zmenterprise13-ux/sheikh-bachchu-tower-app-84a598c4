@@ -240,7 +240,7 @@ export default function OwnerPayments() {
     row += 8;
 
     // Total row
-    doc.setFillColor(15, 23, 42);
+    doc.setFillColor(22, 163, 74);
     doc.rect(14, row - 6, W - 28, 11, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
