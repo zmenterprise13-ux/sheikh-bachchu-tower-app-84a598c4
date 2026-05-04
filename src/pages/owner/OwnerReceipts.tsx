@@ -44,7 +44,7 @@ export default function OwnerReceipts() {
       setLoading(true);
       const { data, error } = await supabase
         .from("payment_requests")
-        .select("id, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)")
+        .select("id, receipt_seq, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)")
         .eq("flat_id", flat.id)
         .order("created_at", { ascending: false });
       if (error) toast.error(error.message);
