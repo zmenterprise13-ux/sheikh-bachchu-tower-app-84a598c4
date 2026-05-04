@@ -251,7 +251,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             </div>
           )}
 
-          {billed === 0 && expense === 0 && (
+          {billed === 0 && expense === 0 && otherIncome === 0 && (
             <div className="mt-3 text-xs text-muted-foreground text-center">
               {lang === "bn" ? "এ মাসের কোনো ডেটা নেই।" : "No data for this month."}
             </div>
