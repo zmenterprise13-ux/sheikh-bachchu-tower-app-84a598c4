@@ -22,8 +22,9 @@ export default function AccountProfile() {
   const [busy, setBusy] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
+  const [displayNameBn, setDisplayNameBn] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
-  const [initial, setInitial] = useState<{ display_name: string; phone: string }>({ display_name: "", phone: "" });
+  const [initial, setInitial] = useState<{ display_name: string; display_name_bn: string; phone: string }>({ display_name: "", display_name_bn: "", phone: "" });
   const [savingInfo, setSavingInfo] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
@@ -32,15 +33,17 @@ export default function AccountProfile() {
     if (showSpinner) setLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("avatar_url, display_name, phone")
+      .select("avatar_url, display_name, display_name_bn, phone")
       .eq("user_id", user.id)
       .maybeSingle();
     setAvatarUrl((data as any)?.avatar_url ?? null);
     const dn = (data as any)?.display_name ?? "";
+    const dnBn = (data as any)?.display_name_bn ?? "";
     const ph = (data as any)?.phone ?? "";
     setDisplayName(dn);
+    setDisplayNameBn(dnBn);
     setPhone(ph);
-    setInitial({ display_name: dn, phone: ph });
+    setInitial({ display_name: dn, display_name_bn: dnBn, phone: ph });
     if (showSpinner) setLoading(false);
   }, [user]);
 
