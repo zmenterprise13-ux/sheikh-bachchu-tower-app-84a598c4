@@ -153,7 +153,7 @@ export default function AdminOwnersDirectory() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span
-                      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center select-none cursor-help"
+                      className="relative inline-flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 shrink-0 items-center justify-center select-none cursor-help"
                       aria-label={`Flat ${f.flat_no}`}
                     >
                       <span
@@ -167,7 +167,7 @@ export default function AdminOwnersDirectory() {
                         aria-hidden
                         className="absolute inset-0 rotate-45 rounded-md bg-gradient-to-b from-white/25 to-transparent pointer-events-none"
                       />
-                      <span className="relative text-white font-semibold text-[11px] tracking-wide drop-shadow-sm">
+                      <span className="relative text-white font-semibold text-[10px] sm:text-[11px] md:text-xs leading-none tracking-tight drop-shadow-sm">
                         {f.flat_no}
                       </span>
                     </span>
