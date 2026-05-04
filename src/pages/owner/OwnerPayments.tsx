@@ -196,7 +196,7 @@ export default function OwnerPayments() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     if (isBkash) {
-      try { doc.addImage(bkashLogo, "PNG", 14, 84, 12, 12); } catch {}
+      try { doc.addImage(bkashLogo, "PNG", 14, 84, 12, 12, undefined, "FAST"); } catch {}
       doc.setTextColor(226, 19, 110);
       doc.text("bKash", 30, 92);
       doc.setTextColor(15, 23, 42);
