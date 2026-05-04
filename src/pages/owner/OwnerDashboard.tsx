@@ -424,7 +424,7 @@ function OwnerAvatarUpload({
       <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
       <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30">
         {localUrl ? (
-          <AvatarImage
+          <AvatarImageWithSkeleton
             src={localUrl}
             alt={
               ownerName
