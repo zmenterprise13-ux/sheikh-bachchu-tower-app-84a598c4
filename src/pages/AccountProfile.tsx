@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { AvatarImageWithSkeleton } from "@/components/AvatarImageWithSkeleton";
 import { InitialsFallback } from "@/components/InitialsFallback";
-import { Camera, Loader2, User, Trash2 } from "lucide-react";
+import { Camera, Loader2, User, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AccountProfile() {
   const { lang } = useLang();
@@ -19,7 +21,10 @@ export default function AccountProfile() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [initial, setInitial] = useState<{ display_name: string; phone: string }>({ display_name: "", phone: "" });
+  const [savingInfo, setSavingInfo] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async (showSpinner = true) => {
@@ -27,11 +32,15 @@ export default function AccountProfile() {
     if (showSpinner) setLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("avatar_url, display_name")
+      .select("avatar_url, display_name, phone")
       .eq("user_id", user.id)
       .maybeSingle();
     setAvatarUrl((data as any)?.avatar_url ?? null);
-    setDisplayName((data as any)?.display_name ?? null);
+    const dn = (data as any)?.display_name ?? "";
+    const ph = (data as any)?.phone ?? "";
+    setDisplayName(dn);
+    setPhone(ph);
+    setInitial({ display_name: dn, phone: ph });
     if (showSpinner) setLoading(false);
   }, [user]);
 
