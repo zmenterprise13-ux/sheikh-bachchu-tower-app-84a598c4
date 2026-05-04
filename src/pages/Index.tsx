@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Building2, LogIn, Receipt, Wallet, FileBarChart, Megaphone, ArrowRight } from "lucide-react";
+import { Building2, LogIn, ArrowRight } from "lucide-react";
 import heroImg from "@/assets/tower-hero.jpg";
 import { NoticeTicker } from "@/components/NoticeTicker";
 import { CommitteeSection } from "@/components/CommitteeSection";
