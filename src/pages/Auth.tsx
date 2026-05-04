@@ -278,3 +278,16 @@ export default function Auth() {
     </div>
   );
 }
+
+function RememberMe({
+  value, onChange, lang, id,
+}: { value: boolean; onChange: (v: boolean) => void; lang: "en" | "bn"; id: string }) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-2 cursor-pointer select-none">
+      <Checkbox id={id} checked={value} onCheckedChange={(v) => onChange(v === true)} />
+      <span className="text-sm text-foreground">
+        {lang === "bn" ? "আমাকে মনে রাখুন" : "Remember me"}
+      </span>
+    </label>
+  );
+}
