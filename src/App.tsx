@@ -35,6 +35,7 @@ import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
 import OwnerLedger from "./pages/owner/OwnerLedger";
 import AccountPassword from "./pages/AccountPassword";
+import AccountProfile from "./pages/AccountProfile";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="/owner/ledger" element={<ProtectedRoute requireRole="owner"><OwnerLedger /></ProtectedRoute>} />
               <Route path="/owner/notices" element={<ProtectedRoute requireRole="owner"><OwnerNotices /></ProtectedRoute>} />
               <Route path="/owner/reports" element={<ProtectedRoute requireRole="owner"><OwnerReports /></ProtectedRoute>} />
+              <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
