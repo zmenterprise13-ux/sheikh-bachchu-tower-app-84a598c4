@@ -125,23 +125,31 @@ export default function AccountProfile() {
     }
   };
 
-  const dirty = displayName.trim() !== initial.display_name.trim() || phone.trim() !== initial.phone.trim();
+  const dirty =
+    displayName.trim() !== initial.display_name.trim() ||
+    displayNameBn.trim() !== initial.display_name_bn.trim() ||
+    phone.trim() !== initial.phone.trim();
 
   const saveInfo = async () => {
     if (!user) return;
     const name = displayName.trim();
-    if (!name) {
-      toast.error(lang === "bn" ? "নাম দিন" : "Name is required");
+    const nameBn = displayNameBn.trim();
+    if (!name && !nameBn) {
+      toast.error(lang === "bn" ? "অন্তত একটি নাম দিন" : "Enter at least one name");
       return;
     }
     setSavingInfo(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: name, phone: phone.trim() || null })
+        .update({
+          display_name: name || null,
+          display_name_bn: nameBn || null,
+          phone: phone.trim() || null,
+        })
         .eq("user_id", user.id);
       if (error) throw error;
-      setInitial({ display_name: name, phone: phone.trim() });
+      setInitial({ display_name: name, display_name_bn: nameBn, phone: phone.trim() });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
