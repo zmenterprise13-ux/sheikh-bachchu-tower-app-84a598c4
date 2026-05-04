@@ -163,7 +163,7 @@ export default function OwnerReceipts() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-foreground truncate">
-                  #{pr.id.slice(0,8).toUpperCase()} · {pr.bills?.month ?? "-"} · <span className="capitalize">{pr.method}</span>
+                  {formatReceiptNo(pr.receipt_seq, pr.id)} · {pr.bills?.month ?? "-"} · <span className="capitalize">{pr.method}</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5 truncate">
                   {pr.reference && <>Ref: {pr.reference} · </>}
