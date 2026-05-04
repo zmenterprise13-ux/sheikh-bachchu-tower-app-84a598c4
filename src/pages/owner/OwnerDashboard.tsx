@@ -378,6 +378,7 @@ function OwnerAvatarUpload({
   onChanged?: () => void | Promise<void>;
 }) {
   const { lang } = useLang();
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
