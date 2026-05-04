@@ -64,8 +64,8 @@ export default function AdminExpenses() {
   const currentYM = new Date().toISOString().slice(0, 7);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [templateMonth, setTemplateMonth] = useState(currentYM);
-  const [templateRows, setTemplateRows] = useState<{ checked: boolean; amount: string; description: string }[]>(
-    TEMPLATE_ITEMS.map(() => ({ checked: false, amount: "", description: "" }))
+  const [templateRows, setTemplateRows] = useState<{ checked: boolean; amount: string; description: string; billMonth: string }[]>(
+    TEMPLATE_ITEMS.map(() => ({ checked: false, amount: "", description: "", billMonth: currentYM }))
   );
   const [templateSubmitting, setTemplateSubmitting] = useState(false);
 
