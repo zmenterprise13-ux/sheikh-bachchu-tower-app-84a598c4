@@ -416,6 +416,7 @@ function OwnerAvatarUpload({
       setLocalUrl(newUrl);
       setCropSrc(null);
       toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
+      await onChanged?.();
     } catch (err: any) {
       toast.error(err.message ?? "Upload failed");
     } finally {
@@ -430,6 +431,7 @@ function OwnerAvatarUpload({
       if (error) throw error;
       setLocalUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
+      await onChanged?.();
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
     } finally {
