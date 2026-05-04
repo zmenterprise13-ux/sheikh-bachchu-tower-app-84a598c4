@@ -36,6 +36,7 @@ import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 type Flat = {
   id: string;
   flat_no: string;
+  holding_no: string | null;
   floor: number;
   owner_name: string | null;
   owner_name_bn: string | null;
@@ -55,7 +56,7 @@ type Flat = {
 };
 
 const SELECT_COLS =
-  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
+  "id, flat_no, holding_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
 
 export default function AdminFlats() {
   const { t, lang } = useLang();
