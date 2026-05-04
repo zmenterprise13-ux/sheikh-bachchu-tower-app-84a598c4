@@ -164,7 +164,9 @@ export default function AdminReports() {
 
       const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
       const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
-      setAutoOpening(prevIncome - prevExpense);
+      const prevLoanIn = (prevLoansRes.data ?? []).reduce((s, l: any) => s + Number(l.principal), 0);
+      const prevLoanOut = (prevRepayRes.data ?? []).reduce((s, r: any) => s + Number(r.amount), 0);
+      setAutoOpening(prevIncome - prevExpense + prevLoanIn - prevLoanOut);
 
       setLoading(false);
     })();
