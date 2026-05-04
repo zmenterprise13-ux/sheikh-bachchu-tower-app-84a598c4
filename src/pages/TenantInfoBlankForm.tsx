@@ -520,10 +520,10 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
       children: [new TextRun({ text, bold: true, size: 24 })],
     });
 
-  // Convert px to DXA roughly (1px ≈ 15 DXA at 96dpi) — and scale to fit US Letter ~9000 DXA
+  // Convert px to DXA — scale to fit A4 content width (~8500 DXA after margins)
   const toDxa = (pxArr: number[]) => {
     const totalPx = pxArr.reduce((a, b) => a + b, 0);
-    const targetDxa = 9000;
+    const targetDxa = 8500;
     return pxArr.map((px) => Math.round((px / totalPx) * targetDxa));
   };
 
