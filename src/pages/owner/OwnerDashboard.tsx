@@ -55,8 +55,18 @@ const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
   const month = currentMonth();
+  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null }>({ en: null, bn: null });
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("display_name, display_name_bn").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn });
+      });
+  }, [user]);
   const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return window.localStorage.getItem(SELECTED_FLAT_KEY);
