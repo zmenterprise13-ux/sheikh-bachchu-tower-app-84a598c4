@@ -20,6 +20,7 @@ import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 import { Slider } from "@/components/ui/slider";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
+import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -360,6 +361,8 @@ export default function AdminSettings() {
             {/* Notice ticker speed */}
             <TickerSpeedCard />
 
+            <OwnerReportStyleCard />
+
             <BkashSettingsCard />
 
             <BillGenerationTester />
@@ -471,6 +474,72 @@ function BkashSettingsCard() {
         <Button size="sm" onClick={onSave} disabled={saving || loading} className="gap-2">
           <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+function OwnerReportStyleCard() {
+  const { lang } = useLang();
+  const { style, loading, save } = useOwnerReportStyle();
+  const [saving, setSaving] = useState(false);
+
+  const setStyle = async (next: "detailed" | "summary") => {
+    if (next === style) return;
+    setSaving(true);
+    const { error } = await save(next);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
+  };
+
+  return (
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+      <div className="font-semibold text-foreground">
+        {lang === "bn" ? "ওনারদের রিপোর্ট স্টাইল" : "Owner Report Style"}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {lang === "bn"
+          ? "ওনাররা কোন স্টাইলের মাসিক রিপোর্ট দেখবেন তা নির্বাচন করুন।"
+          : "Choose which monthly report style owners will see."}
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          type="button"
+          disabled={loading || saving}
+          onClick={() => setStyle("detailed")}
+          className={cn(
+            "rounded-xl border p-4 text-left transition-all",
+            style === "detailed" ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/50",
+          )}
+        >
+          <div className="font-semibold text-foreground text-sm">
+            {lang === "bn" ? "বিস্তারিত (বিল × ফ্ল্যাট)" : "Detailed (Bill × Flat)"}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {lang === "bn"
+              ? "মোট বিল × ফ্ল্যাট সংখ্যা ভিত্তিক হিসাব, পূর্বের ক্যাশ, লোন, খাতওয়ারি ব্যয়।"
+              : "Bill × flat breakdown, opening cash, loans, expenses by category."}
+          </div>
+        </button>
+        <button
+          type="button"
+          disabled={loading || saving}
+          onClick={() => setStyle("summary")}
+          className={cn(
+            "rounded-xl border p-4 text-left transition-all",
+            style === "summary" ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/50",
+          )}
+        >
+          <div className="font-semibold text-foreground text-sm">
+            {lang === "bn" ? "সারসংক্ষেপ (পুরো আয়)" : "Summary (Full Income)"}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {lang === "bn"
+              ? "মোট বিল ও আদায় আলাদা, অন্যান্য আয়, নিট ব্যালেন্স, ক্যাশ ফ্লো।"
+              : "Billed & collected, other income, net balance, cash flow."}
+          </div>
+        </button>
       </div>
     </div>
   );

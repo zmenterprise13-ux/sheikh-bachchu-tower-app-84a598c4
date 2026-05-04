@@ -159,12 +159,19 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
         </div>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <Tile
+              icon={Receipt}
+              label={lang === "bn" ? "মোট বিল" : "Billed"}
+              value={formatMoney(billed, lang)}
+              hint={lang === "bn" ? "এ মাসে চার্জ" : "Charged this month"}
+              tone="success"
+            />
             <Tile
               icon={TrendingUp}
-              label={lang === "bn" ? "আদায় (বিল)" : "Collected (Bills)"}
+              label={lang === "bn" ? "আদায়" : "Collected"}
               value={formatMoney(collected, lang)}
-              hint={billed > 0 ? `${lang === "bn" ? "বিল" : "Billed"}: ${formatMoney(billed, lang)}` : undefined}
+              hint={billed > 0 ? `${Math.round((collected/billed)*100)}% ${lang === "bn" ? "আদায়" : "collected"}` : undefined}
               tone="success"
             />
             <Tile
