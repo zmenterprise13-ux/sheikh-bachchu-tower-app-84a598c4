@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
 import { Camera } from "lucide-react";
 import { generateBillPdf } from "@/lib/billPdf";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 
 type Bill = {
   id: string;
