@@ -28,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
@@ -165,9 +166,7 @@ export default function AdminFlats() {
                           {f.occupant_photo_url ? (
                             <AvatarImage src={f.occupant_photo_url} />
                           ) : null}
-                          <AvatarFallback className="text-[10px]">
-                            {(occName ?? ownName ?? "?").slice(0, 2)}
-                          </AvatarFallback>
+                          <InitialsFallback name={occName ?? ownName ?? "?"} seed={f.id} className="text-[10px]" />
                         </Avatar>
                         <div className="font-semibold text-foreground truncate">
                           {occName || ownName || "—"}

@@ -7,7 +7,8 @@ import { Search, Save, Loader2, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Flat = {
@@ -149,7 +150,7 @@ export default function AdminFlatsTable() {
       <div className="flex items-center gap-1">
         <Avatar className="h-9 w-9">
           {url ? <AvatarImage src={url} /> : null}
-          <AvatarFallback className="text-[10px]">{row.flat_no}</AvatarFallback>
+          <InitialsFallback name={row.flat_no} seed={row.id ?? row.flat_no} className="text-[10px]" />
         </Avatar>
         <label htmlFor={inputId}>
           <Button asChild size="icon" variant="ghost" className="h-7 w-7" disabled={busy}>

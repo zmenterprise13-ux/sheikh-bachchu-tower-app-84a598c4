@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 import { Upload, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
@@ -48,9 +49,7 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
     <div className="flex items-center gap-3">
       <Avatar className="h-16 w-16 border border-border">
         {value ? <AvatarImage src={value} alt={label} /> : null}
-        <AvatarFallback className="text-xs text-muted-foreground">
-          {label?.slice(0, 2) ?? "?"}
-        </AvatarFallback>
+        <InitialsFallback name={label} seed={label} className="text-xs" />
       </Avatar>
       <div className="flex flex-col gap-1">
         {label && <span className="text-xs text-muted-foreground">{label}</span>}
