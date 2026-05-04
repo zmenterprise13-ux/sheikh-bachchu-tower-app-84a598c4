@@ -1014,11 +1014,13 @@ function FlatEditDialog({
         <div className="space-y-4">
           {/* Flat meta */}
           <div className="rounded-lg border border-border p-3">
-            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"} <span className="text-destructive">*</span></Label>
             <Input
               value={form.holding_no ?? ""}
               onChange={(e) => set("holding_no", e.target.value)}
               placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+              maxLength={50}
+              required
             />
           </div>
           {/* Owner section */}
