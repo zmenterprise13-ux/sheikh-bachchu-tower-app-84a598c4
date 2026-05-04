@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, TKey } from "@/i18n/translations";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart, CheckCircle2, Send, Loader2, Lock } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart, CheckCircle2, Send, Loader2, Lock, Landmark, HandCoins, Banknote } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
