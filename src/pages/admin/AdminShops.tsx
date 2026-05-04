@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 import { PhotoUpload } from "@/components/PhotoUpload";
 
 type Shop = {
@@ -117,9 +118,7 @@ export default function AdminShops() {
                       {s.occupant_photo_url ? (
                         <AvatarImage src={s.occupant_photo_url} />
                       ) : null}
-                      <AvatarFallback className="text-[10px]">
-                        {(occ ?? own ?? "?").slice(0, 2)}
-                      </AvatarFallback>
+                      <InitialsFallback name={occ ?? own ?? "?"} seed={s.id} className="text-[10px]" />
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{occ || own || "—"}</div>
