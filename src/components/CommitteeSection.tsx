@@ -57,8 +57,7 @@ export function CommitteeSection() {
             phone: (flat?.phone || m.phone || "").trim() || null,
             photo_url: flat?.owner_photo_url || m.photo_url || null,
           };
-        })
-        .filter((m) => !!m.phone) as Member[];
+        }) as Member[];
       if (active) setMembers(enriched);
     })();
     return () => { active = false; };
