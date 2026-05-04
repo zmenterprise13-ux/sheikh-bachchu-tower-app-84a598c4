@@ -149,17 +149,23 @@ export default function AdminOwnersDirectory() {
               className="rounded-lg border border-border/60 bg-background/40 p-2.5 flex flex-wrap items-center gap-3"
             >
               <span
-                className={cn(
-                  "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white font-semibold text-xs tracking-wide select-none shadow-soft",
-                  getAvatarGradient(`flat:${f.flat_no}`)
-                )}
+                className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center select-none"
                 aria-label={`Flat ${f.flat_no}`}
               >
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/25 to-transparent"
+                  className={cn(
+                    "absolute inset-0 rotate-45 rounded-md bg-gradient-to-br shadow-soft",
+                    getAvatarGradient(`flat:${f.flat_no}`)
+                  )}
                 />
-                <span className="relative drop-shadow-sm">{f.flat_no}</span>
+                <span
+                  aria-hidden
+                  className="absolute inset-0 rotate-45 rounded-md bg-gradient-to-b from-white/25 to-transparent pointer-events-none"
+                />
+                <span className="relative text-white font-semibold text-[11px] tracking-wide drop-shadow-sm">
+                  {f.flat_no}
+                </span>
               </span>
               {isTenant ? (
                 <div className="flex items-center gap-2 flex-1 min-w-0">
