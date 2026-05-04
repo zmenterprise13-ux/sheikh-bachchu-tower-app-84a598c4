@@ -2,9 +2,11 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { fromDue, noFee } from "@/lib/bkashMath";
 import bkashLogo from "@/assets/bkash-logo.png";
+import { formatReceiptNo } from "@/lib/receiptNumber";
 
 export type ReceiptPR = {
   id: string;
+  receipt_seq?: number | null;
   amount: number;
   method: string;
   reference: string | null;
