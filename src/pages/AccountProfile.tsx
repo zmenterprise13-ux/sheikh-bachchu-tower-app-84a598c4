@@ -130,8 +130,7 @@ export default function AccountProfile() {
 
   const dirty =
     displayName.trim() !== initial.display_name.trim() ||
-    displayNameBn.trim() !== initial.display_name_bn.trim() ||
-    phone.trim() !== initial.phone.trim();
+    displayNameBn.trim() !== initial.display_name_bn.trim();
 
   const saveInfo = async () => {
     if (!user) return;
