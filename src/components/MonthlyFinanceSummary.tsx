@@ -57,7 +57,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     [month, lang],
   );
 
-  const net = collected - expense;
+  const totalIncome = collected + otherIncome;
+  const net = totalIncome - expense;
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
   const isAdmin = variant === "admin";
