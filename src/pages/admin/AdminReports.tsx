@@ -506,7 +506,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={11} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={12} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
