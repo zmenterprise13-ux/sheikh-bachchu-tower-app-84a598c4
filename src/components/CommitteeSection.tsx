@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLang } from "@/i18n/LangContext";
-import { Users, Sparkles } from "lucide-react";
+import { Users, Sparkles, Phone, MessageCircle, Quote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
