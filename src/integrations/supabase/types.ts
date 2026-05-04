@@ -553,6 +553,36 @@ export type Database = {
         }
         Relationships: []
       }
+      opening_cash_overrides: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          month: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       other_incomes: {
         Row: {
           amount: number

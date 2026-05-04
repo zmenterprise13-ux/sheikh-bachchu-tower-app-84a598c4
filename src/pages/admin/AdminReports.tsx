@@ -93,9 +93,12 @@ export default function AdminReports() {
   const [loading, setLoading] = useState(true);
   const { settings: bkash } = useBkashSettings();
 
-  // Opening cash (carry-forward from before `from`)
+  // Opening cash (carry-forward from before `from`) — backed by DB overrides
   const [autoOpening, setAutoOpening] = useState(0);
   const [openingOverride, setOpeningOverride] = useState<string>("");
+  const [savedOverride, setSavedOverride] = useState<{ month: string; amount: number } | null>(null);
+  const [anchorOverride, setAnchorOverride] = useState<{ month: string; amount: number } | null>(null);
+  const [savingOpening, setSavingOpening] = useState(false);
   const openingCash = openingOverride.trim() === "" ? autoOpening : Number(openingOverride) || 0;
 
   // validate range
@@ -110,6 +113,26 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
+      // Find the latest opening-cash override at-or-before `from`
+      const ocAnchorRes = await supabase
+        .from("opening_cash_overrides")
+        .select("month, amount")
+        .lte("month", from)
+        .order("month", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const anchor = (ocAnchorRes.data ?? null) as { month: string; amount: number } | null;
+      const anchorMonth = anchor?.month ?? null;
+      const anchorAmount = anchor ? Number(anchor.amount) : 0;
+      const exact = anchor && anchor.month === from ? anchor : null;
+      setAnchorOverride(anchor);
+      setSavedOverride(exact);
+      setOpeningOverride(exact ? String(exact.amount) : "");
+
+      // Auto opening = (anchor amount) + sum of activity strictly between anchor month start and `from`
+      // If no anchor, fall back to sum of all activity strictly before `from`.
+      const autoFromDate = anchorMonth ? `${anchorMonth}-01` : "1900-01-01";
+
       const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes, oiRes, prevOiRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
@@ -120,8 +143,12 @@ export default function AdminReports() {
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn")
           .order("flat_no", { ascending: true }),
-        supabase.from("bills").select("paid_amount").lt("month", from),
-        supabase.from("expenses").select("amount").lt("date", monthStart),
+        anchorMonth
+          ? supabase.from("bills").select("paid_amount").gte("month", anchorMonth).lt("month", from)
+          : supabase.from("bills").select("paid_amount").lt("month", from),
+        anchorMonth
+          ? supabase.from("expenses").select("amount").gte("date", autoFromDate).lt("date", monthStart)
+          : supabase.from("expenses").select("amount").lt("date", monthStart),
         supabase.from("payment_requests")
           .select("amount, method, status, bills!inner(month)")
           .eq("method", "bkash").eq("status", "approved")
@@ -130,11 +157,17 @@ export default function AdminReports() {
           .gte("loan_date", monthStart).lt("loan_date", monthEnd),
         supabase.from("loan_repayments").select("paid_date, amount")
           .gte("paid_date", monthStart).lt("paid_date", monthEnd),
-        supabase.from("loans").select("principal").lt("loan_date", monthStart),
-        supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
+        anchorMonth
+          ? supabase.from("loans").select("principal").gte("loan_date", autoFromDate).lt("loan_date", monthStart)
+          : supabase.from("loans").select("principal").lt("loan_date", monthStart),
+        anchorMonth
+          ? supabase.from("loan_repayments").select("amount").gte("paid_date", autoFromDate).lt("paid_date", monthStart)
+          : supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
         supabase.from("other_incomes").select("date, category, amount")
           .gte("date", monthStart).lt("date", monthEnd),
-        supabase.from("other_incomes").select("amount").lt("date", monthStart),
+        anchorMonth
+          ? supabase.from("other_incomes").select("amount").gte("date", autoFromDate).lt("date", monthStart)
+          : supabase.from("other_incomes").select("amount").lt("date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -167,7 +200,7 @@ export default function AdminReports() {
       const prevLoanIn = (prevLoansRes.data ?? []).reduce((s, l: any) => s + Number(l.principal), 0);
       const prevLoanOut = (prevRepayRes.data ?? []).reduce((s, r: any) => s + Number(r.amount), 0);
       const prevOther = (prevOiRes.data ?? []).reduce((s, o: any) => s + Number(o.amount), 0);
-      setAutoOpening(prevIncome + prevOther - prevExpense + prevLoanIn - prevLoanOut);
+      setAutoOpening(anchorAmount + prevIncome + prevOther - prevExpense + prevLoanIn - prevLoanOut);
 
       setLoading(false);
     })();
@@ -419,28 +452,87 @@ export default function AdminReports() {
           )}
 
           {/* Opening cash override */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end border-t border-border pt-4">
-            <div>
-              <Label className="text-xs">
-                {lang === "bn" ? "আগের ক্যাশ (opening balance)" : "Opening cash (previous balance)"}
-              </Label>
-              <Input
-                type="number"
-                placeholder={`${lang === "bn" ? "অটো" : "Auto"}: ${formatMoney(autoOpening, lang)}`}
-                value={openingOverride}
-                onChange={(e) => setOpeningOverride(e.target.value)}
-              />
-              <p className="text-[11px] text-muted-foreground mt-1">
+          <div className="mt-4 border-t border-border pt-4 space-y-2">
+            {anchorOverride && anchorOverride.month < from && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs px-3 py-2">
                 {lang === "bn"
-                  ? `${from} এর আগের সব আয় − ব্যয় = ${formatMoney(autoOpening, lang)} (চাইলে নিজে বসাতে পারেন)`
-                  : `Auto-calculated from all income − expenses before ${from} = ${formatMoney(autoOpening, lang)}. Override if needed.`}
-              </p>
-            </div>
-            {openingOverride.trim() !== "" && (
-              <Button size="sm" variant="outline" onClick={() => setOpeningOverride("")}>
-                {lang === "bn" ? "অটোতে রিসেট" : "Reset to auto"}
-              </Button>
+                  ? `⚠️ পূর্বের ${anchorOverride.month} মাসে আগের ক্যাশ ম্যানুয়ালি সেভ করা আছে (${formatMoney(Number(anchorOverride.amount), lang)})। অটো ক্যাশ ঐ ভিত্তি থেকে হিসাব হচ্ছে। যদি ${from} থেকে আগের ডাটা ঢোকান, তাহলে আগে ${anchorOverride.month} মাসের সেভড ক্যাশ ডিলিট করুন — না হলে অটো ডাটা সঠিক হবে না।`
+                  : `⚠️ A saved opening cash exists for ${anchorOverride.month} (${formatMoney(Number(anchorOverride.amount), lang)}). Auto is anchored from that month. If you add older data before ${from}, delete the saved entry for ${anchorOverride.month} first — otherwise auto won't pull that data.`}
+              </div>
             )}
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] items-end">
+              <div>
+                <Label className="text-xs">
+                  {lang === "bn" ? `আগের ক্যাশ (${from})` : `Opening cash (${from})`}
+                </Label>
+                <Input
+                  type="number"
+                  placeholder={`${lang === "bn" ? "অটো" : "Auto"}: ${formatMoney(autoOpening, lang)}`}
+                  value={openingOverride}
+                  onChange={(e) => setOpeningOverride(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {savedOverride
+                    ? (lang === "bn"
+                        ? `✅ ${from} এর জন্য সেভড: ${formatMoney(savedOverride.amount, lang)}`
+                        : `✅ Saved for ${from}: ${formatMoney(savedOverride.amount, lang)}`)
+                    : (lang === "bn"
+                        ? `অটো হিসাব: ${formatMoney(autoOpening, lang)} (চাইলে নিজে বসিয়ে সেভ করুন)`
+                        : `Auto: ${formatMoney(autoOpening, lang)}. Override and save if needed.`)}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={savingOpening || openingOverride.trim() === ""}
+                  onClick={async () => {
+                    setSavingOpening(true);
+                    const amount = Number(openingOverride);
+                    const uid = (await supabase.auth.getUser()).data.user?.id ?? null;
+                    const { error } = await supabase
+                      .from("opening_cash_overrides")
+                      .upsert({ month: from, amount, created_by: uid }, { onConflict: "month" });
+                    setSavingOpening(false);
+                    if (error) toast.error(error.message);
+                    else {
+                      toast.success(lang === "bn" ? "সেভ হয়েছে" : "Saved");
+                      setSavedOverride({ month: from, amount });
+                      setAnchorOverride({ month: from, amount });
+                    }
+                  }}
+                >
+                  {savedOverride ? (lang === "bn" ? "আপডেট" : "Update") : (lang === "bn" ? "সেভ" : "Save")}
+                </Button>
+                {savedOverride && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={savingOpening}
+                    onClick={async () => {
+                      if (!confirm(lang === "bn" ? `${from} এর সেভড ক্যাশ ডিলিট করবেন?` : `Delete saved opening cash for ${from}?`)) return;
+                      setSavingOpening(true);
+                      const { error } = await supabase.from("opening_cash_overrides").delete().eq("month", from);
+                      setSavingOpening(false);
+                      if (error) toast.error(error.message);
+                      else {
+                        toast.success(lang === "bn" ? "ডিলিট হয়েছে" : "Deleted");
+                        setSavedOverride(null);
+                        setOpeningOverride("");
+                        setFrom((m) => m + "");
+                      }
+                    }}
+                  >
+                    {lang === "bn" ? "সেভড ডিলিট" : "Delete saved"}
+                  </Button>
+                )}
+                {openingOverride.trim() !== "" && !savedOverride && (
+                  <Button size="sm" variant="ghost" onClick={() => setOpeningOverride("")}>
+                    {lang === "bn" ? "অটোতে রিসেট" : "Reset to auto"}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
