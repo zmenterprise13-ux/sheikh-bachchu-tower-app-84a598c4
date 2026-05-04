@@ -50,6 +50,25 @@ export default function AdminExpenses() {
   const [viewMode, setViewMode] = useState<"flat" | "grouped">("grouped");
   const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
 
+  // Monthly template
+  const TEMPLATE_ITEMS: { name: string; name_bn: string }[] = [
+    { name: "Gas Bill", name_bn: "গ্যাস বিল" },
+    { name: "Electricity", name_bn: "বিদ্যুৎ" },
+    { name: "Water", name_bn: "পানি" },
+    { name: "Garbage Bill", name_bn: "ময়লা বিল" },
+    { name: "Security Guard", name_bn: "সিকিউরিটি গার্ড বিল" },
+    { name: "Lift & Generator Service", name_bn: "লিফট ও জেনারেটর সার্ভিস চার্জ" },
+    { name: "Night Guard", name_bn: "নাইট গার্ড" },
+    { name: "Miscellaneous", name_bn: "বিবিধ" },
+  ];
+  const currentYM = new Date().toISOString().slice(0, 7);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [templateMonth, setTemplateMonth] = useState(currentYM);
+  const [templateRows, setTemplateRows] = useState<{ checked: boolean; amount: string; description: string }[]>(
+    TEMPLATE_ITEMS.map(() => ({ checked: false, amount: "", description: "" }))
+  );
+  const [templateSubmitting, setTemplateSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     category: "",
