@@ -6,6 +6,8 @@ import { Search, Phone, Home, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { getAvatarGradient } from "@/lib/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
