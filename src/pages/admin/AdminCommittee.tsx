@@ -189,6 +189,7 @@ export default function AdminCommittee() {
       bio_bn: form.bio_bn.trim() || null,
       phone: f.phone.trim(),
       flat_id: form.flat_id,
+      category: form.category,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
