@@ -197,6 +197,21 @@ export default function AdminDues() {
           patch.other_note = null;
         }
       }
+      // Recompute total since bills.total is stored, not generated
+      const components = {
+        service_charge: Number(b.service_charge),
+        gas_bill: Number(b.gas_bill),
+        parking: Number(b.parking),
+        eid_bonus: Number(b.eid_bonus),
+        other_charge: Number(b.other_charge),
+        arrears: Number(b.arrears ?? 0),
+        [bulkType]: newVal,
+      };
+      patch.total = components.service_charge + components.gas_bill + components.parking + components.eid_bonus + components.other_charge + components.arrears;
+      // Recompute status based on new total vs paid_amount
+      const paid = Number(b.paid_amount);
+      patch.status = paid >= patch.total ? "paid" : paid > 0 ? "partial" : "unpaid";
+
       const { data, error } = await supabase
         .from("bills")
         .update(patch)
