@@ -663,53 +663,106 @@ export default function AdminExpenses() {
                     (e) => (e.date || "").slice(0, 7) === templateMonth && e.category === it.name
                   );
                   return (
-                    <div key={it.name} className={`p-3 grid grid-cols-12 gap-2 items-center ${row.checked ? "bg-primary/5" : ""}`}>
-                      <label className="col-span-12 sm:col-span-5 flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 accent-primary"
-                          checked={row.checked}
+                    <div key={it.name} className={`p-3 space-y-2 ${row.checked ? "bg-primary/5" : ""}`}>
+                      <div className="grid grid-cols-12 gap-2 items-center">
+                        <label className="col-span-12 sm:col-span-5 flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-primary"
+                            checked={row.checked}
+                            onChange={(e) => {
+                              const next = [...templateRows];
+                              next[i] = { ...row, checked: e.target.checked };
+                              setTemplateRows(next);
+                            }}
+                          />
+                          <div className="min-w-0">
+                            <div className="font-semibold text-sm text-foreground">
+                              {lang === "bn" ? it.name_bn : it.name}
+                            </div>
+                            {alreadyExists && (
+                              <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <Check className="h-3 w-3" /> {lang === "bn" ? "এই মাসে যোগ করা আছে" : "Already added this month"}
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder={lang === "bn" ? "টাকা" : "Amount"}
+                          className="col-span-5 sm:col-span-3"
+                          value={row.amount}
+                          disabled={!row.checked}
                           onChange={(e) => {
                             const next = [...templateRows];
-                            next[i] = { ...row, checked: e.target.checked };
+                            next[i] = { ...row, amount: e.target.value };
                             setTemplateRows(next);
                           }}
                         />
-                        <div className="min-w-0">
-                          <div className="font-semibold text-sm text-foreground">
-                            {lang === "bn" ? it.name_bn : it.name}
+                        <Input
+                          placeholder={lang === "bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
+                          className="col-span-7 sm:col-span-4"
+                          value={row.description}
+                          disabled={!row.checked}
+                          onChange={(e) => {
+                            const next = [...templateRows];
+                            next[i] = { ...row, description: e.target.value };
+                            setTemplateRows(next);
+                          }}
+                        />
+                      </div>
+                      {row.checked && (() => {
+                        const [ry, rm] = (row.billMonth || templateMonth).split("-").map(Number);
+                        const monthNamesR = lang === "bn"
+                          ? ["জানু","ফেব্রু","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্ট","অক্টো","নভে","ডিসে"]
+                          : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                        const thisYearR = new Date().getFullYear();
+                        const yearsR = Array.from({ length: 7 }, (_, k) => thisYearR - 3 + k);
+                        const isDifferent = (row.billMonth || templateMonth) !== templateMonth;
+                        return (
+                          <div className="flex flex-wrap items-center gap-2 pl-6 text-xs">
+                            <span className="text-muted-foreground font-semibold">
+                              {lang === "bn" ? "কোন মাসের বিল:" : "Bill month:"}
+                            </span>
+                            <Select
+                              value={String(rm)}
+                              onValueChange={(v) => {
+                                const next = [...templateRows];
+                                next[i] = { ...row, billMonth: `${ry}-${String(Number(v)).padStart(2, "0")}` };
+                                setTemplateRows(next);
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-[110px] text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {monthNamesR.map((mn, idx) => (
+                                  <SelectItem key={idx} value={String(idx + 1)}>{mn}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={String(ry)}
+                              onValueChange={(v) => {
+                                const next = [...templateRows];
+                                next[i] = { ...row, billMonth: `${v}-${String(rm).padStart(2, "0")}` };
+                                setTemplateRows(next);
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {yearsR.map((y) => (
+                                  <SelectItem key={y} value={String(y)}>{lang === "bn" ? y.toString().replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]) : y}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {isDifferent && (
+                              <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[10px] font-bold">
+                                {lang === "bn" ? "পুরাতন মাস" : "Past month"}
+                              </span>
+                            )}
                           </div>
-                          {alreadyExists && (
-                            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                              <Check className="h-3 w-3" /> {lang === "bn" ? "এই মাসে যোগ করা আছে" : "Already added this month"}
-                            </div>
-                          )}
-                        </div>
-                      </label>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder={lang === "bn" ? "টাকা" : "Amount"}
-                        className="col-span-5 sm:col-span-3"
-                        value={row.amount}
-                        disabled={!row.checked}
-                        onChange={(e) => {
-                          const next = [...templateRows];
-                          next[i] = { ...row, amount: e.target.value };
-                          setTemplateRows(next);
-                        }}
-                      />
-                      <Input
-                        placeholder={lang === "bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
-                        className="col-span-7 sm:col-span-4"
-                        value={row.description}
-                        disabled={!row.checked}
-                        onChange={(e) => {
-                          const next = [...templateRows];
-                          next[i] = { ...row, description: e.target.value };
-                          setTemplateRows(next);
-                        }}
-                      />
+                        );
+                      })()}
                     </div>
                   );
                 })}
