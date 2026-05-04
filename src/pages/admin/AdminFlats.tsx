@@ -365,10 +365,31 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
       toast.error(lang === "bn" ? "ফ্ল্যাট নম্বর দিন" : "Flat number required");
       return;
     }
+    const holding = holdingNo.trim();
+    if (!holding) {
+      toast.error(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number required");
+      return;
+    }
+    if (holding.length > 50) {
+      toast.error(lang === "bn" ? "হোল্ডিং নম্বর ৫০ অক্ষরের কম হতে হবে" : "Holding number must be under 50 characters");
+      return;
+    }
     setSaving(true);
+    // Uniqueness pre-check (case-insensitive)
+    const { data: dupe } = await supabase
+      .from("flats")
+      .select("id")
+      .ilike("holding_no", holding)
+      .limit(1)
+      .maybeSingle();
+    if (dupe) {
+      setSaving(false);
+      toast.error(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      return;
+    }
     const { error } = await supabase.from("flats").insert({
       flat_no: flatNo.trim(),
-      holding_no: holdingNo.trim() || null,
+      holding_no: holding,
       floor: Number(floor) || 1,
       owner_name: ownerName || null,
       owner_name_bn: ownerNameBn || null,
@@ -378,7 +399,13 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
       is_occupied: true,
     } as any);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      const msg = /unique|duplicate/i.test(error.message)
+        ? (lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used")
+        : error.message;
+      toast.error(msg);
+      return;
+    }
     toast.success(lang === "bn" ? "ফ্ল্যাট যোগ হয়েছে" : "Flat added");
     reset();
     onSaved();
@@ -402,8 +429,8 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
             </div>
           </div>
           <div>
-            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
-            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} />
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"} <span className="text-destructive">*</span></Label>
+            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} maxLength={50} required />
           </div>
           <div>
             <Label className="text-xs">Owner Name (EN)</Label>
@@ -919,7 +946,29 @@ function FlatEditDialog({
     setForm((p) => (p ? { ...p, [k]: v } : p));
 
   const save = async () => {
+    const holding = (form.holding_no ?? "").trim();
+    if (!holding) {
+      toast.error(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number required");
+      return;
+    }
+    if (holding.length > 50) {
+      toast.error(lang === "bn" ? "হোল্ডিং নম্বর ৫০ অক্ষরের কম হতে হবে" : "Holding number must be under 50 characters");
+      return;
+    }
     setSaving(true);
+    // Uniqueness pre-check (case-insensitive, excluding self)
+    const { data: dupe } = await supabase
+      .from("flats")
+      .select("id")
+      .ilike("holding_no", holding)
+      .neq("id", form.id)
+      .limit(1)
+      .maybeSingle();
+    if (dupe) {
+      setSaving(false);
+      toast.error(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      return;
+    }
     const { error } = await supabase
       .from("flats")
       .update({
@@ -927,7 +976,7 @@ function FlatEditDialog({
         owner_name_bn: form.owner_name_bn,
         phone: form.phone,
         size: form.size,
-        holding_no: form.holding_no,
+        holding_no: holding,
         service_charge: form.service_charge,
         gas_bill: form.gas_bill,
         parking: form.parking,
@@ -943,7 +992,10 @@ function FlatEditDialog({
       .eq("id", form.id);
     setSaving(false);
     if (error) {
-      toast.error(error.message);
+      const msg = /unique|duplicate/i.test(error.message)
+        ? (lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used")
+        : error.message;
+      toast.error(msg);
       return;
     }
     toast.success("Saved");
@@ -962,11 +1014,13 @@ function FlatEditDialog({
         <div className="space-y-4">
           {/* Flat meta */}
           <div className="rounded-lg border border-border p-3">
-            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"} <span className="text-destructive">*</span></Label>
             <Input
               value={form.holding_no ?? ""}
               onChange={(e) => set("holding_no", e.target.value)}
               placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+              maxLength={50}
+              required
             />
           </div>
           {/* Owner section */}
