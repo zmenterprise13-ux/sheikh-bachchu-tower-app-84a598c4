@@ -355,10 +355,34 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
   const [phone, setPhone] = useState("");
   const [size, setSize] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const [holdingError, setHoldingError] = useState<string | null>(null);
+  const [holdingChecking, setHoldingChecking] = useState(false);
 
   const reset = () => {
     setFlatNo(""); setHoldingNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
+    setHoldingError(null);
   };
+
+  // Live validation for holding number
+  useEffect(() => {
+    if (!open) return;
+    const v = holdingNo.trim();
+    if (!v) { setHoldingError(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number is required"); setHoldingChecking(false); return; }
+    if (v.length > 50) { setHoldingError(lang === "bn" ? "৫০ অক্ষরের কম হতে হবে" : "Must be under 50 characters"); setHoldingChecking(false); return; }
+    setHoldingChecking(true);
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("flats")
+        .select("id")
+        .ilike("holding_no", v)
+        .limit(1)
+        .maybeSingle();
+      setHoldingChecking(false);
+      if (data) setHoldingError(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      else setHoldingError(null);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [holdingNo, open, lang]);
 
   const submit = async () => {
     if (!flatNo.trim()) {
@@ -430,7 +454,23 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
           </div>
           <div>
             <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"} <span className="text-destructive">*</span></Label>
-            <Input value={holdingNo} onChange={(e) => setHoldingNo(e.target.value)} placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"} maxLength={50} required />
+            <Input
+              value={holdingNo}
+              onChange={(e) => setHoldingNo(e.target.value)}
+              placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+              maxLength={50}
+              required
+              aria-invalid={!!holdingError}
+              aria-describedby="add-holding-error"
+              className={holdingError ? "border-destructive focus-visible:ring-destructive" : undefined}
+            />
+            {holdingError ? (
+              <p id="add-holding-error" className="text-xs text-destructive mt-1">{holdingError}</p>
+            ) : holdingChecking ? (
+              <p className="text-xs text-muted-foreground mt-1">{lang === "bn" ? "যাচাই করা হচ্ছে…" : "Checking…"}</p>
+            ) : holdingNo.trim() ? (
+              <p className="text-xs text-success mt-1">{lang === "bn" ? "ব্যবহারযোগ্য" : "Available"}</p>
+            ) : null}
           </div>
           <div>
             <Label className="text-xs">Owner Name (EN)</Label>
@@ -455,7 +495,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
           <Button variant="outline" onClick={() => { reset(); onClose(); }} disabled={saving}>
             {lang === "bn" ? "বাতিল" : "Cancel"}
           </Button>
-          <Button onClick={submit} disabled={saving}>
+          <Button onClick={submit} disabled={saving || !!holdingError || holdingChecking}>
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             {lang === "bn" ? "যোগ করুন" : "Add"}
           </Button>
@@ -896,11 +936,36 @@ function FlatEditDialog({
   const [form, setForm] = useState<Flat | null>(null);
   const [saving, setSaving] = useState(false);
   const [creatingLogin, setCreatingLogin] = useState(false);
+  const [holdingError, setHoldingError] = useState<string | null>(null);
+  const [holdingChecking, setHoldingChecking] = useState(false);
   const { enabled: signupEnabled } = useSignupEnabled();
 
   useEffect(() => {
     setForm(flat);
+    setHoldingError(null);
   }, [flat]);
+
+  // Live validation for holding number
+  useEffect(() => {
+    if (!form) return;
+    const v = (form.holding_no ?? "").trim();
+    if (!v) { setHoldingError(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number is required"); setHoldingChecking(false); return; }
+    if (v.length > 50) { setHoldingError(lang === "bn" ? "৫০ অক্ষরের কম হতে হবে" : "Must be under 50 characters"); setHoldingChecking(false); return; }
+    setHoldingChecking(true);
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("flats")
+        .select("id")
+        .ilike("holding_no", v)
+        .neq("id", form.id)
+        .limit(1)
+        .maybeSingle();
+      setHoldingChecking(false);
+      if (data) setHoldingError(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      else setHoldingError(null);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [form?.holding_no, form?.id, lang]);
 
   const createLogin = async () => {
     if (!form) return;
@@ -1021,7 +1086,17 @@ function FlatEditDialog({
               placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
               maxLength={50}
               required
+              aria-invalid={!!holdingError}
+              aria-describedby="edit-holding-error"
+              className={holdingError ? "border-destructive focus-visible:ring-destructive" : undefined}
             />
+            {holdingError ? (
+              <p id="edit-holding-error" className="text-xs text-destructive mt-1">{holdingError}</p>
+            ) : holdingChecking ? (
+              <p className="text-xs text-muted-foreground mt-1">{lang === "bn" ? "যাচাই করা হচ্ছে…" : "Checking…"}</p>
+            ) : (form.holding_no ?? "").trim() ? (
+              <p className="text-xs text-success mt-1">{lang === "bn" ? "ব্যবহারযোগ্য" : "Available"}</p>
+            ) : null}
           </div>
           {/* Owner section */}
           <div className="rounded-lg border border-border p-3 space-y-3">
@@ -1197,7 +1272,7 @@ function FlatEditDialog({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {t("cancel")}
           </Button>
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving || !!holdingError || holdingChecking}>
             {t("save")}
           </Button>
         </DialogFooter>
