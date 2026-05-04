@@ -51,6 +51,8 @@ type Bill = {
   paid_amount: number;
 };
 type Expense = { date: string; category: string; amount: number };
+type LoanRow = { loan_date: string; principal: number };
+type RepayRow = { paid_date: string; amount: number };
 type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
