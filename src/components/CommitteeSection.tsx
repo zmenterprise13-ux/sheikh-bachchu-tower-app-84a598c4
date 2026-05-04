@@ -79,7 +79,7 @@ export function CommitteeSection() {
                 className="snap-center shrink-0 w-[78%] max-w-[300px] animate-fade-in"
                 style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
               >
-                <div className="relative rounded-3xl bg-card border border-border shadow-soft overflow-hidden">
+                <button type="button" onClick={() => setSelected(m)} className="block w-full text-left relative rounded-3xl bg-card border border-border shadow-soft overflow-hidden active:scale-[0.98] transition-transform">
                   <div className={`absolute inset-x-0 top-0 h-32 bg-gradient-to-br ${m.accent} opacity-90`} />
                   <div className="relative pt-8 px-5">
                     <div className="mx-auto w-28 h-28 rounded-full ring-4 ring-card overflow-hidden bg-muted shadow-lg">
