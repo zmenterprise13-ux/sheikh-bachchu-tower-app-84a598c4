@@ -194,7 +194,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
-                  <Input type="password" value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
+                  <PasswordInput value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -216,7 +216,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
-                  <Input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} />
+                  <PasswordInput value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -241,7 +241,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "পাসওয়ার্ড (৬+ অক্ষর)" : "Password (6+ chars)"}</Label>
-                  <Input type="password" value={pass} onChange={e => setPass(e.target.value)} required minLength={6} maxLength={72} />
+                  <PasswordInput value={pass} onChange={e => setPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
