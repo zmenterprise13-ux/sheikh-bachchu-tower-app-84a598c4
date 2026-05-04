@@ -235,6 +235,7 @@ export default function Auth() {
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                   <PasswordInput value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} />
                 </div>
+                <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-email" />
                 <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {lang === "bn" ? "লগইন করুন" : "Log in"}
