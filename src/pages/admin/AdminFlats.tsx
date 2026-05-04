@@ -927,6 +927,7 @@ function FlatEditDialog({
         owner_name_bn: form.owner_name_bn,
         phone: form.phone,
         size: form.size,
+        holding_no: form.holding_no,
         service_charge: form.service_charge,
         gas_bill: form.gas_bill,
         parking: form.parking,
