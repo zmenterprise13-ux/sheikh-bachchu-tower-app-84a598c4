@@ -355,10 +355,34 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
   const [phone, setPhone] = useState("");
   const [size, setSize] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const [holdingError, setHoldingError] = useState<string | null>(null);
+  const [holdingChecking, setHoldingChecking] = useState(false);
 
   const reset = () => {
     setFlatNo(""); setHoldingNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
+    setHoldingError(null);
   };
+
+  // Live validation for holding number
+  useEffect(() => {
+    if (!open) return;
+    const v = holdingNo.trim();
+    if (!v) { setHoldingError(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number is required"); setHoldingChecking(false); return; }
+    if (v.length > 50) { setHoldingError(lang === "bn" ? "৫০ অক্ষরের কম হতে হবে" : "Must be under 50 characters"); setHoldingChecking(false); return; }
+    setHoldingChecking(true);
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("flats")
+        .select("id")
+        .ilike("holding_no", v)
+        .limit(1)
+        .maybeSingle();
+      setHoldingChecking(false);
+      if (data) setHoldingError(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      else setHoldingError(null);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [holdingNo, open, lang]);
 
   const submit = async () => {
     if (!flatNo.trim()) {
