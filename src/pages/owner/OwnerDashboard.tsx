@@ -373,39 +373,45 @@ function OwnerAvatarUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(photoUrl);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
-  // Keep local preview in sync with the latest prop (e.g., after auth refresh
-  // following a password change, which causes flats to be refetched).
   useEffect(() => {
     setLocalUrl(photoUrl);
   }, [photoUrl]);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       toast.error(lang === "bn" ? "ফাইল অনেক বড় (সর্বোচ্চ ৫MB)" : "File too large (max 5MB)");
+      if (inputRef.current) inputRef.current.value = "";
       return;
     }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const handleCropped = async (blob: Blob) => {
     setBusy(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `owner/${flatId}/${crypto.randomUUID()}.${ext}`;
+      const path = `owner/${flatId}/${crypto.randomUUID()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("occupant-photos")
-        .upload(path, file, { upsert: false, contentType: file.type });
+        .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("occupant-photos").getPublicUrl(path);
       const newUrl = pub.publicUrl;
       const { error: rpcErr } = await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
       if (rpcErr) throw rpcErr;
       setLocalUrl(newUrl);
+      setCropSrc(null);
       toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
     } catch (err: any) {
       toast.error(err.message ?? "Upload failed");
     } finally {
       setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
   };
 
@@ -433,6 +439,15 @@ function OwnerAvatarUpload({
         accept="image/*"
         className="hidden"
         onChange={handleFile}
+      />
+      <ImageCropDialog
+        open={!!cropSrc}
+        imageSrc={cropSrc}
+        title={lang === "bn" ? "ছবি ক্রপ করুন" : "Crop photo"}
+        onCancel={() => setCropSrc(null)}
+        onCropped={handleCropped}
+        aspect={1}
+        cropShape="round"
       />
     </div>
   );
