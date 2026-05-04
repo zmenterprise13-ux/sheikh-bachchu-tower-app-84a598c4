@@ -141,7 +141,7 @@ export default function OwnerDashboard() {
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
             <OwnerAvatarUpload
-              photoUrl={flat.owner_photo_url}
+              photoUrl={profileName.avatar || flat.owner_photo_url}
               ownerName={flat.owner_name}
               flatId={flat.id}
               onChanged={refetchFlats}
