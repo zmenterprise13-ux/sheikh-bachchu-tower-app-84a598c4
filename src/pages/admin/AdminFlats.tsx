@@ -348,6 +348,7 @@ export default function AdminFlats() {
 function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
   const { lang } = useLang();
   const [flatNo, setFlatNo] = useState("");
+  const [holdingNo, setHoldingNo] = useState("");
   const [floor, setFloor] = useState<number>(1);
   const [ownerName, setOwnerName] = useState("");
   const [ownerNameBn, setOwnerNameBn] = useState("");
@@ -356,7 +357,7 @@ function AddFlatDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setFlatNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
+    setFlatNo(""); setHoldingNo(""); setFloor(1); setOwnerName(""); setOwnerNameBn(""); setPhone(""); setSize(0);
   };
 
   const submit = async () => {
