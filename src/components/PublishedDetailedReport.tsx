@@ -20,6 +20,7 @@ type Snapshot = {
   loan_by_lender?: { lender: string; lender_bn: string | null; amount: number }[];
   opening_cash?: number;
   published?: boolean;
+  published_at?: string | null;
 };
 
 const oiCatLabel: Record<string, { bn: string; en: string }> = {
