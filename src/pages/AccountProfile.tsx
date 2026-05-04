@@ -111,7 +111,7 @@ export default function AccountProfile() {
           <div className="relative">
             <Avatar className="h-24 w-24 border-2 border-border shadow-soft">
               {avatarUrl ? (
-                <AvatarImage
+                <AvatarImageWithSkeleton
                   src={avatarUrl}
                   alt={
                     displayName
