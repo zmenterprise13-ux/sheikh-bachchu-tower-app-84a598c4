@@ -139,34 +139,6 @@ export default function Index() {
         <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
       </section>
 
-      <NoticeTicker />
-
-      {/* Features */}
-      <section className="container py-16 sm:py-24">
-        <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-            {lang === "bn" ? "যা যা আছে" : "Everything you need"}
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            {lang === "bn"
-              ? "বিল্ডিং পরিচালনার সব দিক একটি প্ল্যাটফর্মে।"
-              : "Every aspect of building management on a single platform."}
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, key, desc }) => (
-            <div key={key} className="group rounded-2xl gradient-card border border-border p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-smooth">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-glow group-hover:scale-110 transition-base">
-                <Icon className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{t(key)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{desc[lang]}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <CommitteeSection />
 
       <footer className="border-t border-border py-8">
