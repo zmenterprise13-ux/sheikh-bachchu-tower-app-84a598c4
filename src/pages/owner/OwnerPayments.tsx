@@ -138,7 +138,7 @@ export default function OwnerPayments() {
       : noFee(Number(pr.amount));
 
     // Header band
-    doc.setFillColor(15, 23, 42); // slate-900
+    doc.setFillColor(22, 163, 74); // green-600
     doc.rect(0, 0, W, 32, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
