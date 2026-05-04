@@ -37,7 +37,7 @@ export default function TenantInfoBlankForm() {
         </Button>
       </div>
 
-      <div className="form-page" style={{ padding: 24, maxWidth: 800, margin: "0 auto", fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+      <div className="form-page print-area" style={{ padding: 24, maxWidth: 800, margin: "0 auto", fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
         <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: 8, marginBottom: 12 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>শেখ বাচ্চু টাওয়ার</h1>
           <h2 style={{ fontSize: 14, fontWeight: 600, margin: 4 }}>ভাড়াটিয়া তথ্য হালনাগাদ ফরম</h2>
