@@ -400,12 +400,19 @@ export default function AdminCommittee() {
           </Dialog>
         </div>
 
-        <div className="grid gap-3">
-          {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
-          {!loading && items.length === 0 && (
-            <div className="rounded-2xl bg-card border border-border p-12 text-center text-muted-foreground">{t("noData")}</div>
-          )}
-          {!loading && items.map((m, i) => {
+        {loading && (
+          <div className="grid gap-3">
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+          </div>
+        )}
+        {!loading && items.length === 0 && (
+          <div className="rounded-2xl bg-card border border-border p-12 text-center text-muted-foreground">{t("noData")}</div>
+        )}
+        {!loading && items.length > 0 && (() => {
+          const advisors = items.filter((m) => m.category === "advisor");
+          const committee = items.filter((m) => m.category !== "advisor");
+
+          const renderRow = (m: Member, i: number, list: Member[]) => {
             const f = flatById(m.flat_id);
             const photo = m.photo_url || f?.owner_photo_url || null;
             const phone = f?.phone || m.phone;
@@ -419,9 +426,6 @@ export default function AdminCommittee() {
                   <div className="font-semibold text-foreground truncate">{lang === "bn" ? m.name_bn : m.name}</div>
                   <div className="text-sm text-muted-foreground truncate">{lang === "bn" ? m.role_bn : m.role}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className={`text-[10px] font-bold rounded-full px-2 py-0.5 ${m.category === "advisor" ? "bg-fuchsia-100 text-fuchsia-700" : "bg-sky-100 text-sky-700"}`}>
-                      {m.category === "advisor" ? (lang === "bn" ? "উপদেষ্টা" : "Advisor") : (lang === "bn" ? "কমিটি" : "Committee")}
-                    </span>
                     {f && (
                       <span className="text-[10px] font-bold bg-primary/10 text-primary rounded-full px-2 py-0.5">
                         {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
@@ -430,6 +434,15 @@ export default function AdminCommittee() {
                     {phone && (
                       <span className="text-[10px] font-mono bg-muted text-muted-foreground rounded-full px-2 py-0.5">
                         {phone}
+                      </span>
+                    )}
+                    {(m.bio_bn?.trim() || m.bio?.trim()) ? (
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5">
+                        {lang === "bn" ? "বায়ো আছে" : "Bio added"}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">
+                        {lang === "bn" ? "বায়ো নেই" : "No bio"}
                       </span>
                     )}
                     {noPhone && (
@@ -446,15 +459,49 @@ export default function AdminCommittee() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button variant="ghost" size="icon" onClick={() => move(m, -1)} disabled={i === 0} aria-label="Up"><ArrowUp className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => move(m, 1)} disabled={i === items.length - 1} aria-label="Down"><ArrowDown className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => move(m, 1)} disabled={i === list.length - 1} aria-label="Down"><ArrowDown className="h-4 w-4" /></Button>
                   <Switch checked={m.is_published} onCheckedChange={() => togglePublish(m)} />
                   <Button variant="ghost" size="icon" onClick={() => openEdit(m)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => setDeleteId(m.id)} aria-label="Delete" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
             );
-          })}
-        </div>
+          };
+
+          const Section = ({ title, list, accent }: { title: string; list: Member[]; accent: string }) => (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full bg-gradient-to-br ${accent}`} />
+                <h2 className="text-base font-bold text-foreground">{title}</h2>
+                <span className="text-xs text-muted-foreground">({list.length})</span>
+              </div>
+              {list.length === 0 ? (
+                <div className="rounded-2xl bg-muted/30 border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                  {lang === "bn" ? "কোনো সদস্য নেই" : "No members yet"}
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {list.map((m, i) => renderRow(m, i, list))}
+                </div>
+              )}
+            </div>
+          );
+
+          return (
+            <div className="space-y-8">
+              <Section
+                title={lang === "bn" ? "উপদেষ্টা পরিষদ" : "Advisory Council"}
+                list={advisors}
+                accent="from-fuchsia-400 to-purple-600"
+              />
+              <Section
+                title={lang === "bn" ? "কার্যকরী কমিটি" : "Executive Committee"}
+                list={committee}
+                accent="from-sky-400 to-blue-600"
+              />
+            </div>
+          );
+        })()}
 
         <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
           <AlertDialogContent>
