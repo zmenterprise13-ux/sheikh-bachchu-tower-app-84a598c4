@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { AvatarImageWithSkeleton } from "@/components/AvatarImageWithSkeleton";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Camera, Loader2, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -110,7 +111,7 @@ export default function AccountProfile() {
           <div className="relative">
             <Avatar className="h-24 w-24 border-2 border-border shadow-soft">
               {avatarUrl ? (
-                <AvatarImage
+                <AvatarImageWithSkeleton
                   src={avatarUrl}
                   alt={
                     displayName
