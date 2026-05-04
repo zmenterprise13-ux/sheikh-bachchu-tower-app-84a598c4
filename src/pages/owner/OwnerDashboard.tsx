@@ -55,8 +55,18 @@ const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
   const month = currentMonth();
+  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null }>({ en: null, bn: null });
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("display_name, display_name_bn").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn });
+      });
+  }, [user]);
   const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return window.localStorage.getItem(SELECTED_FLAT_KEY);
@@ -138,7 +148,7 @@ export default function OwnerDashboard() {
             />
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
-              <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? (profileName.bn || profileName.en || flat.owner_name_bn || flat.owner_name) : (profileName.en || profileName.bn || flat.owner_name || flat.owner_name_bn)) || "—"}</h1>
               <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
                 <Building2 className="h-3.5 w-3.5 opacity-80" />
                 {hasMultipleFlats ? (
