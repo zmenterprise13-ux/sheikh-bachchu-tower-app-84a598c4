@@ -616,14 +616,43 @@ export default function AdminExpenses() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>{t("month")}</Label>
-                <Input
-                  type="month"
-                  value={templateMonth}
-                  onChange={(e) => openTemplate(e.target.value)}
-                />
-              </div>
+              {(() => {
+                const [ty, tm] = templateMonth.split("-").map(Number);
+                const monthNames = lang === "bn"
+                  ? ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"]
+                  : ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                const thisYear = new Date().getFullYear();
+                const years = Array.from({ length: 7 }, (_, i) => thisYear - 3 + i);
+                return (
+                  <div className="space-y-2">
+                    <Label>{lang === "bn" ? "কোন মাসের বিল?" : "Bill for which month?"}</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={String(tm)} onValueChange={(v) => openTemplate(`${ty}-${String(Number(v)).padStart(2, "0")}`)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {monthNames.map((mn, idx) => (
+                            <SelectItem key={idx} value={String(idx + 1)}>{mn}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={String(ty)} onValueChange={(v) => openTemplate(`${v}-${String(tm).padStart(2, "0")}`)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {years.map((y) => (
+                            <SelectItem key={y} value={String(y)}>{lang === "bn" ? y.toString().replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]) : y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 px-4 py-2.5 text-center">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        {lang === "bn" ? "নির্বাচিত মাস" : "Selected month"}
+                      </div>
+                      <div className="text-base font-bold text-primary">{monthLabel(templateMonth)}</div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {TEMPLATE_ITEMS.map((it, i) => {
