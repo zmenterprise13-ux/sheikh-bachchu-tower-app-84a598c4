@@ -799,6 +799,155 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_family_members: {
+        Row: {
+          age: number | null
+          children_count: number | null
+          children_details: string | null
+          created_at: string
+          education: string | null
+          gender: string | null
+          id: string
+          institution: string | null
+          is_married: boolean | null
+          name: string
+          notes: string | null
+          occupation: string | null
+          phone: string | null
+          relation: string
+          sort_order: number
+          spouse_name: string | null
+          tenant_info_id: string
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          children_count?: number | null
+          children_details?: string | null
+          created_at?: string
+          education?: string | null
+          gender?: string | null
+          id?: string
+          institution?: string | null
+          is_married?: boolean | null
+          name: string
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          relation: string
+          sort_order?: number
+          spouse_name?: string | null
+          tenant_info_id: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          children_count?: number | null
+          children_details?: string | null
+          created_at?: string
+          education?: string | null
+          gender?: string | null
+          id?: string
+          institution?: string | null
+          is_married?: boolean | null
+          name?: string
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          relation?: string
+          sort_order?: number
+          spouse_name?: string | null
+          tenant_info_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_family_members_tenant_info_id_fkey"
+            columns: ["tenant_info_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_info: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string | null
+          emergency_phone: string | null
+          father_name: string | null
+          flat_id: string
+          id: string
+          mother_name: string | null
+          move_in_date: string | null
+          nid_number: string | null
+          notes: string | null
+          occupation: string | null
+          permanent_address: string | null
+          phone: string | null
+          photo_url: string | null
+          present_address: string | null
+          spouse_name: string | null
+          tenant_name: string
+          tenant_name_bn: string | null
+          total_members: number | null
+          updated_at: string
+          updated_by: string | null
+          workplace: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          emergency_phone?: string | null
+          father_name?: string | null
+          flat_id: string
+          id?: string
+          mother_name?: string | null
+          move_in_date?: string | null
+          nid_number?: string | null
+          notes?: string | null
+          occupation?: string | null
+          permanent_address?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          present_address?: string | null
+          spouse_name?: string | null
+          tenant_name: string
+          tenant_name_bn?: string | null
+          total_members?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          workplace?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          emergency_phone?: string | null
+          father_name?: string | null
+          flat_id?: string
+          id?: string
+          mother_name?: string | null
+          move_in_date?: string | null
+          nid_number?: string | null
+          notes?: string | null
+          occupation?: string | null
+          permanent_address?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          present_address?: string | null
+          spouse_name?: string | null
+          tenant_name?: string
+          tenant_name_bn?: string | null
+          total_members?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          workplace?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
