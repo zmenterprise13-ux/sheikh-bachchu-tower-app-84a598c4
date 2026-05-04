@@ -140,12 +140,23 @@ export default function OwnerDashboard() {
       <div className="space-y-6">
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
-            <OwnerAvatarUpload
-              photoUrl={profileName.avatar || flat.owner_photo_url}
-              ownerName={flat.owner_name}
-              flatId={flat.id}
-              onChanged={refetchFlats}
-            />
+            <div className="relative shrink-0 group">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
+              <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30">
+                {(profileName.avatar || flat.owner_photo_url) ? (
+                  <AvatarImageWithSkeleton
+                    src={(profileName.avatar || flat.owner_photo_url) as string}
+                    alt={
+                      flat.owner_name
+                        ? (lang === "bn" ? `${flat.owner_name}-এর প্রোফাইল ছবি` : `Profile photo of ${flat.owner_name}`)
+                        : (lang === "bn" ? "মালিকের প্রোফাইল ছবি" : "Owner profile photo")
+                    }
+                    className="object-cover"
+                  />
+                ) : null}
+                <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-2xl ring-2 ring-white/30" />
+              </Avatar>
+            </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
               <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? (profileName.bn || profileName.en || flat.owner_name_bn || flat.owner_name) : (profileName.en || profileName.bn || flat.owner_name || flat.owner_name_bn)) || "—"}</h1>
