@@ -130,7 +130,7 @@ export default function OwnerPayments() {
   };
 
   const downloadReceipt = async (pr: PR) => {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
     const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
     const { due, fee, total } = isBkash
@@ -138,7 +138,7 @@ export default function OwnerPayments() {
       : noFee(Number(pr.amount));
 
     // Header band
-    doc.setFillColor(15, 23, 42); // slate-900
+    doc.setFillColor(22, 163, 74); // green-600
     doc.rect(0, 0, W, 32, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
@@ -196,7 +196,7 @@ export default function OwnerPayments() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     if (isBkash) {
-      try { doc.addImage(bkashLogo, "PNG", 14, 84, 12, 12); } catch {}
+      try { doc.addImage(bkashLogo, "PNG", 14, 84, 12, 12, undefined, "FAST"); } catch {}
       doc.setTextColor(226, 19, 110);
       doc.text("bKash", 30, 92);
       doc.setTextColor(15, 23, 42);
@@ -240,7 +240,7 @@ export default function OwnerPayments() {
     row += 8;
 
     // Total row
-    doc.setFillColor(15, 23, 42);
+    doc.setFillColor(22, 163, 74);
     doc.rect(14, row - 6, W - 28, 11, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
@@ -263,8 +263,8 @@ export default function OwnerPayments() {
         status: pr.status,
         date: pr.reviewed_at ?? pr.created_at,
       });
-      const qrUrl = await QRCode.toDataURL(verifyPayload, { margin: 0, width: 256, errorCorrectionLevel: "M" });
-      doc.addImage(qrUrl, "PNG", 14, 250, 28, 28);
+      const qrUrl = await QRCode.toDataURL(verifyPayload, { margin: 0, width: 128, errorCorrectionLevel: "M" });
+      doc.addImage(qrUrl, "PNG", 14, 250, 28, 28, undefined, "FAST");
       doc.setTextColor(100, 116, 139);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
