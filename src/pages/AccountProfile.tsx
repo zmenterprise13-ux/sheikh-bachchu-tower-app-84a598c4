@@ -37,9 +37,23 @@ export default function AccountProfile() {
       .eq("user_id", user.id)
       .maybeSingle();
     setAvatarUrl((data as any)?.avatar_url ?? null);
-    const dn = (data as any)?.display_name ?? "";
-    const dnBn = (data as any)?.display_name_bn ?? "";
+    let dn = (data as any)?.display_name ?? "";
+    let dnBn = (data as any)?.display_name_bn ?? "";
     const ph = (data as any)?.phone ?? "";
+    // If name is empty OR was auto-set to the phone number, fall back to the flat's owner name
+    const isPhoneLike = (s: string) => !!s && /^[0-9+\-\s]{6,}$/.test(s.trim());
+    if (!dn.trim() || isPhoneLike(dn) || !dnBn.trim() || isPhoneLike(dnBn)) {
+      const { data: flat } = await supabase
+        .from("flats")
+        .select("owner_name, owner_name_bn")
+        .eq("owner_user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (flat) {
+        if ((!dn.trim() || isPhoneLike(dn)) && (flat as any).owner_name) dn = (flat as any).owner_name;
+        if ((!dnBn.trim() || isPhoneLike(dnBn)) && (flat as any).owner_name_bn) dnBn = (flat as any).owner_name_bn;
+      }
+    }
     setDisplayName(dn);
     setDisplayNameBn(dnBn);
     setPhone(ph);
