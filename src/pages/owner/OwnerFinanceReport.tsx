@@ -5,12 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileBarChart } from "lucide-react";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
+import { PublishedDetailedReport } from "@/components/PublishedDetailedReport";
+import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const STORAGE_KEY = "owner_finance_report_month";
 
 export default function OwnerFinanceReport() {
   const { lang } = useLang();
+  const { style } = useOwnerReportStyle();
   const [month, setMonth] = useState<string>(() => {
     if (typeof window === "undefined") return currentMonth();
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -49,11 +52,15 @@ export default function OwnerFinanceReport() {
           </div>
         </div>
 
-        <MonthlyFinanceSummary
-          month={month}
-          variant="owner"
-          title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
-        />
+        {style === "detailed" ? (
+          <PublishedDetailedReport month={month} />
+        ) : (
+          <MonthlyFinanceSummary
+            month={month}
+            variant="owner"
+            title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
+          />
+        )}
       </div>
     </AppShell>
   );
