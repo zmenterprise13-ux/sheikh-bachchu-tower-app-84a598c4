@@ -109,32 +109,79 @@ export default function AccountProfile() {
         <div className="flex items-center gap-5">
           <div className="relative">
             <Avatar className="h-24 w-24 border-2 border-border shadow-soft">
-              {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName ?? "Me"} className="object-cover" /> : null}
+              {avatarUrl ? (
+                <AvatarImage
+                  src={avatarUrl}
+                  alt={
+                    displayName
+                      ? (lang === "bn" ? `${displayName}-এর প্রোফাইল ছবি` : `Profile photo of ${displayName}`)
+                      : (lang === "bn" ? "আপনার প্রোফাইল ছবি" : "Your profile photo")
+                  }
+                  className="object-cover"
+                />
+              ) : null}
               <InitialsFallback name={displayName ?? user?.email} seed={user?.id ?? user?.email} className="text-2xl" />
             </Avatar>
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={busy || loading}
-              aria-label={lang === "bn" ? "ছবি পরিবর্তন" : "Change photo"}
-              className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full gradient-primary text-primary-foreground shadow-md ring-2 ring-background flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-60"
+              aria-label={
+                busy
+                  ? (lang === "bn" ? "ছবি আপলোড হচ্ছে" : "Uploading photo")
+                  : (avatarUrl
+                      ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
+                      : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo"))
+              }
+              aria-busy={busy}
+              className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full gradient-primary text-primary-foreground shadow-md ring-2 ring-background flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Camera className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
-            <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onPick}
+              aria-label={lang === "bn" ? "প্রোফাইল ছবি ফাইল নির্বাচন" : "Choose profile photo file"}
+              tabIndex={-1}
+            />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-foreground truncate">{displayName ?? user?.email ?? "—"}</div>
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
             <div className="mt-3 flex gap-2 flex-wrap">
-              <Button size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={busy || loading}>
-                <Camera className="h-3.5 w-3.5 mr-1.5" />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => inputRef.current?.click()}
+                disabled={busy || loading}
+                aria-label={
+                  avatarUrl
+                    ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
+                    : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo")
+                }
+                className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <Camera className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                 {lang === "bn" ? "ছবি আপলোড" : "Upload photo"}
               </Button>
               {avatarUrl && (
-                <Button size="sm" variant="ghost" onClick={removePhoto} disabled={busy}>
-                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={removePhoto}
+                  disabled={busy}
+                  aria-label={lang === "bn" ? "প্রোফাইল ছবি সরান" : "Remove profile photo"}
+                  className="focus-visible:ring-2 focus-visible:ring-destructive/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                   {lang === "bn" ? "সরান" : "Remove"}
                 </Button>
               )}
