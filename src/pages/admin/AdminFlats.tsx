@@ -1272,7 +1272,7 @@ function FlatEditDialog({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {t("cancel")}
           </Button>
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving || !!holdingError || holdingChecking}>
             {t("save")}
           </Button>
         </DialogFooter>
