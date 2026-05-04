@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { compressImage } from "@/lib/imageCompress";
 
 export default function AccountProfile() {
   const { lang } = useLang();
@@ -52,10 +53,11 @@ export default function AccountProfile() {
     if (!user) return;
     setBusy(true);
     try {
+      const compressed = await compressImage(blob, { maxDim: 512, quality: 0.82 });
       const path = `user/${user.id}/${crypto.randomUUID()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("occupant-photos")
-        .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
+        .upload(path, compressed, { upsert: false, contentType: "image/jpeg" });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("occupant-photos").getPublicUrl(path);
       const newUrl = pub.publicUrl;

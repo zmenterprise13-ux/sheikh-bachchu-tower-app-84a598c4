@@ -37,7 +37,7 @@ async function getCroppedBlob(imageSrc: string, area: Area): Promise<Blob> {
     0, 0, outSize, outSize
   );
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Failed to crop"))), "image/jpeg", 0.92);
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Failed to crop"))), "image/jpeg", 0.85);
   });
 }
 

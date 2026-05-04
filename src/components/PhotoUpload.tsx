@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/imageCompress";
 
 type Props = {
   value: string | null | undefined;
@@ -25,11 +26,12 @@ export function PhotoUpload({ value, onChange, label, folder = "misc" }: Props) 
     }
     setBusy(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const compressed = await compressImage(file, { maxDim: 800, quality: 0.8 });
+      const ext = compressed.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() || "jpg");
       const path = `${folder}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage
         .from("occupant-photos")
-        .upload(path, file, { upsert: false, contentType: file.type });
+        .upload(path, compressed, { upsert: false, contentType: compressed.type || file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("occupant-photos").getPublicUrl(path);
       onChange(data.publicUrl);
