@@ -23,6 +23,8 @@ type Member = {
   accent: string;
   sort_order: number;
   is_published: boolean;
+  bio: string | null;
+  bio_bn: string | null;
 };
 
 const ACCENTS = [
@@ -47,6 +49,8 @@ const emptyForm = {
   accent: ACCENTS[1].value,
   sort_order: 0,
   is_published: true,
+  bio: "",
+  bio_bn: "",
 };
 
 export default function AdminCommittee() {
