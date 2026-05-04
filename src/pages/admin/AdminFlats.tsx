@@ -936,11 +936,36 @@ function FlatEditDialog({
   const [form, setForm] = useState<Flat | null>(null);
   const [saving, setSaving] = useState(false);
   const [creatingLogin, setCreatingLogin] = useState(false);
+  const [holdingError, setHoldingError] = useState<string | null>(null);
+  const [holdingChecking, setHoldingChecking] = useState(false);
   const { enabled: signupEnabled } = useSignupEnabled();
 
   useEffect(() => {
     setForm(flat);
+    setHoldingError(null);
   }, [flat]);
+
+  // Live validation for holding number
+  useEffect(() => {
+    if (!form) return;
+    const v = (form.holding_no ?? "").trim();
+    if (!v) { setHoldingError(lang === "bn" ? "হোল্ডিং নম্বর দিন" : "Holding number is required"); setHoldingChecking(false); return; }
+    if (v.length > 50) { setHoldingError(lang === "bn" ? "৫০ অক্ষরের কম হতে হবে" : "Must be under 50 characters"); setHoldingChecking(false); return; }
+    setHoldingChecking(true);
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("flats")
+        .select("id")
+        .ilike("holding_no", v)
+        .neq("id", form.id)
+        .limit(1)
+        .maybeSingle();
+      setHoldingChecking(false);
+      if (data) setHoldingError(lang === "bn" ? "এই হোল্ডিং নম্বর ইতিমধ্যেই ব্যবহৃত" : "This holding number is already used");
+      else setHoldingError(null);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [form?.holding_no, form?.id, lang]);
 
   const createLogin = async () => {
     if (!form) return;
