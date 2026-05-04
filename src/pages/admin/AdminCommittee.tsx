@@ -26,6 +26,7 @@ type Member = {
   is_published: boolean;
   bio: string | null;
   bio_bn: string | null;
+  phone: string | null;
 };
 
 const ACCENTS = [
@@ -52,6 +53,7 @@ const emptyForm = {
   is_published: true,
   bio: "",
   bio_bn: "",
+  phone: "",
 };
 
 export default function AdminCommittee() {
@@ -99,6 +101,7 @@ export default function AdminCommittee() {
       is_published: m.is_published,
       bio: m.bio ?? "",
       bio_bn: m.bio_bn ?? "",
+      phone: m.phone ?? "",
     });
     setOpen(true);
   };
@@ -131,6 +134,7 @@ export default function AdminCommittee() {
       is_published: form.is_published,
       bio: form.bio.trim() || null,
       bio_bn: form.bio_bn.trim() || null,
+      phone: form.phone.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
@@ -252,6 +256,10 @@ export default function AdminCommittee() {
                 <div className="space-y-1.5">
                   <Label>Short Bio (English)</Label>
                   <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief description about the member..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "ফোন নম্বর" : "Phone number"}</Label>
+                  <Input type="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01XXXXXXXXX" />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <span className="text-sm font-medium">{lang === "bn" ? "ফ্রন্ট পেজে দেখান" : "Publish on front page"}</span>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLang } from "@/i18n/LangContext";
-import { Users, Sparkles } from "lucide-react";
+import { Users, Sparkles, Phone, MessageCircle, Quote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ type Member = {
   accent: string;
   bio: string | null;
   bio_bn: string | null;
+  phone: string | null;
 };
 
 export function CommitteeSection() {
@@ -28,7 +29,7 @@ export function CommitteeSection() {
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
@@ -203,41 +204,98 @@ export function CommitteeSection() {
 }
 
 function MemberModal({ m, lang, onClose }: { m: Member | null; lang: "bn" | "en"; onClose: () => void }) {
+  const bio = m ? (lang === "bn" ? m.bio_bn : m.bio) : null;
+  const fullName = m ? (lang === "bn" ? m.name_bn : m.name) : "";
+  const role = m ? (lang === "bn" ? m.role_bn : m.role) : "";
+  const phone = m?.phone?.trim();
+  const cleanPhone = phone?.replace(/[^\d+]/g, "");
+
   return (
     <Dialog open={!!m} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-md p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-md p-0 overflow-hidden gap-0 border-0 shadow-elegant">
         {m && (
           <>
-            <div className={`relative h-48 bg-gradient-to-br ${m.accent}`}>
+            {/* Header banner */}
+            <div className={`relative h-44 bg-gradient-to-br ${m.accent} overflow-hidden`}>
               {m.photo_url && (
-                <img src={m.photo_url} alt={lang === "bn" ? m.name_bn : m.name} className="absolute inset-0 h-full w-full object-cover opacity-90" />
+                <img
+                  src={m.photo_url}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover opacity-40 blur-sm scale-110"
+                />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
+              {/* Decorative orbs */}
+              <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+              <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
             </div>
-            <div className="px-6 pb-6 -mt-12 relative">
-              <div className="mx-auto w-24 h-24 rounded-full ring-4 ring-background overflow-hidden bg-muted shadow-lg">
-                {m.photo_url ? (
-                  <img src={m.photo_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    <Users className="h-8 w-8" />
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 text-center">
-                <div className="text-xl font-bold text-foreground">{lang === "bn" ? m.name_bn : m.name}</div>
-                <div className={`mt-2 inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-xs font-semibold text-white shadow-sm`}>
-                  {lang === "bn" ? m.role_bn : m.role}
+
+            {/* Avatar overlapping banner */}
+            <div className="px-6 -mt-16 relative">
+              <div className="relative mx-auto w-28 h-28">
+                <div className={`absolute -inset-1 rounded-full bg-gradient-to-br ${m.accent} blur-md opacity-70`} />
+                <div className="relative w-28 h-28 rounded-full ring-4 ring-background overflow-hidden bg-muted shadow-xl">
+                  {m.photo_url ? (
+                    <img src={m.photo_url} alt={fullName} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <Users className="h-10 w-10" />
+                    </div>
+                  )}
                 </div>
               </div>
-              {(lang === "bn" ? m.bio_bn : m.bio) ? (
-                <p className="mt-5 text-sm text-muted-foreground leading-relaxed text-center whitespace-pre-line">
-                  {lang === "bn" ? m.bio_bn : m.bio}
-                </p>
+
+              {/* Name & role */}
+              <div className="mt-4 text-center">
+                <h2 className="text-2xl font-extrabold text-foreground tracking-tight leading-tight">
+                  {fullName}
+                </h2>
+                <div className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r ${m.accent} px-3.5 py-1 text-xs font-bold text-white shadow-md`}>
+                  <Sparkles className="h-3 w-3" />
+                  {role}
+                </div>
+              </div>
+            </div>
+
+            {/* Bio block */}
+            <div className="px-6 mt-5">
+              {bio ? (
+                <div className="relative rounded-2xl bg-muted/50 border border-border p-4 pl-10">
+                  <Quote className={`absolute top-3 left-3 h-5 w-5 text-transparent bg-gradient-to-br ${m.accent} bg-clip-text`} fill="currentColor" />
+                  <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">
+                    {bio}
+                  </p>
+                </div>
               ) : (
-                <p className="mt-5 text-sm text-muted-foreground/70 italic text-center">
-                  {lang === "bn" ? "কোনো বায়ো যোগ করা হয়নি" : "No bio added yet"}
-                </p>
+                <div className="rounded-2xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground italic">
+                  {lang === "bn" ? "এই সদস্যের বায়ো এখনো যোগ করা হয়নি" : "No bio added yet for this member"}
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="px-6 pb-6 mt-5 grid grid-cols-2 gap-2.5">
+              {cleanPhone ? (
+                <>
+                  <a
+                    href={`tel:${cleanPhone}`}
+                    className={`flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br ${m.accent} text-white px-4 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all`}
+                  >
+                    <Phone className="h-4 w-4" />
+                    {lang === "bn" ? "কল" : "Call"}
+                  </a>
+                  <a
+                    href={`sms:${cleanPhone}`}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-card border border-border text-foreground px-4 py-2.5 text-sm font-semibold hover:bg-muted hover:-translate-y-0.5 transition-all"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {lang === "bn" ? "মেসেজ" : "Message"}
+                  </a>
+                </>
+              ) : (
+                <div className="col-span-2 rounded-xl bg-muted/40 border border-dashed border-border px-4 py-2.5 text-center text-xs text-muted-foreground">
+                  {lang === "bn" ? "যোগাযোগের নম্বর নেই" : "No contact number available"}
+                </div>
               )}
             </div>
           </>

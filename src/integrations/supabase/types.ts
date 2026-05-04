@@ -224,6 +224,7 @@ export type Database = {
           is_published: boolean
           name: string
           name_bn: string
+          phone: string | null
           photo_url: string | null
           role: string
           role_bn: string
@@ -239,6 +240,7 @@ export type Database = {
           is_published?: boolean
           name: string
           name_bn: string
+          phone?: string | null
           photo_url?: string | null
           role: string
           role_bn: string
@@ -254,6 +256,7 @@ export type Database = {
           is_published?: boolean
           name?: string
           name_bn?: string
+          phone?: string | null
           photo_url?: string | null
           role?: string
           role_bn?: string
