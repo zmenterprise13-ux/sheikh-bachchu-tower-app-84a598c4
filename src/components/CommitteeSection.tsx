@@ -32,16 +32,32 @@ export function CommitteeSection() {
     (async () => {
       const { data } = await supabase
         .from("committee_members")
-        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone, flat_id, category, flats(phone, owner_photo_url)")
+        .select("id, name, name_bn, role, role_bn, photo_url, accent, bio, bio_bn, phone, flat_id, category")
         .eq("is_published", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
-      const enriched = ((data ?? []) as any[])
-        .map((m) => ({
-          ...m,
-          phone: (m.flats?.phone || m.phone || "").trim() || null,
-          photo_url: m.flats?.owner_photo_url || m.photo_url || null,
-        }))
+      const rows = (data ?? []) as any[];
+      const flatIds = Array.from(new Set(rows.map((r) => r.flat_id).filter(Boolean)));
+      let flatsMap: Record<string, { phone: string | null; owner_photo_url: string | null }> = {};
+      if (flatIds.length > 0) {
+        const { data: flatsData } = await supabase
+          .from("flats")
+          .select("id, phone, owner_photo_url")
+          .in("id", flatIds);
+        for (const f of (flatsData ?? []) as any[]) {
+          flatsMap[f.id] = { phone: f.phone, owner_photo_url: f.owner_photo_url };
+        }
+      }
+      const enriched = rows
+        .map((m) => {
+          const flat = m.flat_id ? flatsMap[m.flat_id] : null;
+          return {
+            ...m,
+            flats: flat ?? null,
+            phone: (flat?.phone || m.phone || "").trim() || null,
+            photo_url: flat?.owner_photo_url || m.photo_url || null,
+          };
+        })
         .filter((m) => !!m.phone) as Member[];
       if (active) setMembers(enriched);
     })();
