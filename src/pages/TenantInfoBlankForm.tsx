@@ -308,8 +308,11 @@ export default function TenantInfoBlankForm() {
           z-index: 5;
         }
         .col-resizer:hover { background: rgba(59,130,246,.3); }
+        @page { size: A4; margin: 8mm; }
         @media print {
+          html, body { background: #fff !important; }
           .no-print { display: none !important; }
+          .form-page { width: 210mm !important; min-height: auto !important; padding: 0 !important; margin: 0 auto !important; box-shadow: none !important; }
           .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
           .col-resizer { display: none !important; }
         }
