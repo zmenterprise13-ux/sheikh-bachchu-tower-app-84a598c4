@@ -601,6 +601,14 @@ export default function AdminReports() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-dashed border-border">
+              <span className="text-sm font-semibold text-muted-foreground">
+                {lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash"}
+              </span>
+              <span className={`text-sm font-bold ${openingCash < 0 ? "text-destructive" : "text-foreground"}`}>
+                {formatMoney(openingCash, lang)}
+              </span>
+            </div>
             <h2 className="font-semibold text-foreground mb-1">{t("income")}</h2>
             <p className="text-xs text-muted-foreground mb-4">
               {lang === "bn"
@@ -649,6 +657,27 @@ export default function AdminReports() {
                   return { ...sec, rows, subtotal };
                 });
 
+                // Loan rows: group by lender
+                const loanByLender = new Map<string, number>();
+                for (const l of loans) {
+                  const name = (lang === "bn" ? (l.lender_name_bn || l.lender_name) : (l.lender_name || l.lender_name_bn)) || (lang === "bn" ? "অজ্ঞাত" : "Unknown");
+                  loanByLender.set(name, (loanByLender.get(name) || 0) + Number(l.principal));
+                }
+                const loanLenderRows = Array.from(loanByLender.entries()).sort((a, b) => b[1] - a[1]);
+
+                // Other income by category
+                const oiByCat = new Map<string, number>();
+                for (const o of otherIncomes) {
+                  oiByCat.set(o.category, (oiByCat.get(o.category) || 0) + Number(o.amount));
+                }
+                const oiCatLabel: Record<string, { bn: string; en: string }> = {
+                  donation: { bn: "অনুদান", en: "Donation" },
+                  dues_recovery: { bn: "বকেয়া আদায়", en: "Dues Recovery" },
+                  external_rent: { bn: "অন্যান্য ভাড়া", en: "Other Rent" },
+                  bank_interest_other: { bn: "ব্যাংক ইন্টারেস্ট/অন্যান্য", en: "Bank Interest / Others" },
+                };
+                const oiRows = Array.from(oiByCat.entries()).sort((a, b) => b[1] - a[1]);
+
                 return (
                   <>
                     {/* Main calculation: total bill × flat count */}
@@ -679,8 +708,53 @@ export default function AdminReports() {
                       <span className="font-semibold">{lang === "bn" ? "মোট বিল (আয়)" : "Total Billed (Income)"}</span>
                       <span className="font-bold text-success text-lg">{formatMoney(grandBilled, lang)}</span>
                     </div>
+
+                    {/* Loan taken */}
+                    <div className="pt-3 border-t border-dashed border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-foreground">
+                          {lang === "bn" ? "লোন নেয়া (কার কাছ থেকে)" : "Loan Taken (Lenders)"}
+                        </span>
+                        <span className="text-sm font-bold text-success">{formatMoney(totalLoanIn, lang)}</span>
+                      </div>
+                      {loanLenderRows.length === 0 ? (
+                        <div className="text-xs text-muted-foreground pl-2">—</div>
+                      ) : (
+                        <div className="space-y-1 pl-2 border-l-2 border-success/40">
+                          {loanLenderRows.map(([name, amt]) => (
+                            <div key={name} className="flex items-center justify-between text-xs pl-3">
+                              <span className="text-muted-foreground truncate">{name}</span>
+                              <span className="text-foreground tabular-nums font-semibold">{formatMoney(amt, lang)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Other income by category */}
+                    <div className="pt-3 border-t border-dashed border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-foreground">
+                          {lang === "bn" ? "অন্যান্য আয়" : "Other Income"}
+                        </span>
+                        <span className="text-sm font-bold text-success">{formatMoney(totalOtherIn, lang)}</span>
+                      </div>
+                      {oiRows.length === 0 ? (
+                        <div className="text-xs text-muted-foreground pl-2">—</div>
+                      ) : (
+                        <div className="space-y-1 pl-2 border-l-2 border-success/40">
+                          {oiRows.map(([cat, amt]) => (
+                            <div key={cat} className="flex items-center justify-between text-xs pl-3">
+                              <span className="text-muted-foreground truncate">{oiCatLabel[cat]?.[lang] ?? cat}</span>
+                              <span className="text-foreground tabular-nums font-semibold">{formatMoney(amt, lang)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{lang === "bn" ? "প্রকৃত আদায়" : "Actual collected"}</span>
+                      <span>{lang === "bn" ? "প্রকৃত আদায় (বিল)" : "Actual collected (bills)"}</span>
                       <span className="font-semibold">{formatMoney(totalIncome, lang)}</span>
                     </div>
 
@@ -726,17 +800,20 @@ export default function AdminReports() {
               {Object.entries(byCategory).length === 0 && (
                 <div className="text-sm text-muted-foreground">{t("noData")}</div>
               )}
-              {Object.entries(byCategory).map(([cat, amt]) => (
-                <div key={cat}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">{t(cat as TKey) || cat}</span>
-                    <span className="font-semibold text-foreground">{formatMoney(amt, lang)}</span>
+              {Object.entries(byCategory).map(([cat, amt]) => {
+                const label = (t(cat as TKey) as string) || cat;
+                return (
+                  <div key={cat}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="font-semibold text-foreground">{formatMoney(amt, lang)}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-secondary overflow-hidden print:hidden">
+                      <div className="h-full gradient-primary" style={{ width: `${(amt / maxCat) * 100}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-secondary overflow-hidden print:hidden">
-                    <div className="h-full gradient-primary" style={{ width: `${(amt / maxCat) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
                 <span className="font-semibold">{t("total")}</span>
                 <span className="font-bold text-warning text-lg">{formatMoney(totalExpense, lang)}</span>
