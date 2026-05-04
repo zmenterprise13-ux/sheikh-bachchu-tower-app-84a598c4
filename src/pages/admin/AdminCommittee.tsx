@@ -37,6 +37,7 @@ type Member = {
   bio_bn: string | null;
   phone: string | null;
   flat_id: string | null;
+  category: string;
 };
 
 const ACCENTS = [
@@ -65,6 +66,7 @@ const emptyForm = {
   bio_bn: "",
   phone: "",
   flat_id: "" as string,
+  category: "committee" as "committee" | "advisor",
 };
 
 export default function AdminCommittee() {
@@ -129,6 +131,7 @@ export default function AdminCommittee() {
       bio_bn: m.bio_bn ?? "",
       phone: m.phone ?? "",
       flat_id: m.flat_id ?? "",
+      category: (m.category as any) || "committee",
     });
     setOpen(true);
   };
@@ -186,6 +189,7 @@ export default function AdminCommittee() {
       bio_bn: form.bio_bn.trim() || null,
       phone: f.phone.trim(),
       flat_id: form.flat_id,
+      category: form.category,
     };
     const { error } = editingId
       ? await supabase.from("committee_members").update(payload).eq("id", editingId)
@@ -348,6 +352,16 @@ export default function AdminCommittee() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
+                  <Label>{lang === "bn" ? "ক্যাটাগরি" : "Category"}</Label>
+                  <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as "committee" | "advisor" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="committee">{lang === "bn" ? "কার্যকরী কমিটি" : "Executive Committee"}</SelectItem>
+                      <SelectItem value="advisor">{lang === "bn" ? "উপদেষ্টা পরিষদ" : "Advisory Council"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "রঙ" : "Accent color"}</Label>
                   <Select value={form.accent} onValueChange={(v) => setForm({ ...form, accent: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -405,6 +419,9 @@ export default function AdminCommittee() {
                   <div className="font-semibold text-foreground truncate">{lang === "bn" ? m.name_bn : m.name}</div>
                   <div className="text-sm text-muted-foreground truncate">{lang === "bn" ? m.role_bn : m.role}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className={`text-[10px] font-bold rounded-full px-2 py-0.5 ${m.category === "advisor" ? "bg-fuchsia-100 text-fuchsia-700" : "bg-sky-100 text-sky-700"}`}>
+                      {m.category === "advisor" ? (lang === "bn" ? "উপদেষ্টা" : "Advisor") : (lang === "bn" ? "কমিটি" : "Committee")}
+                    </span>
                     {f && (
                       <span className="text-[10px] font-bold bg-primary/10 text-primary rounded-full px-2 py-0.5">
                         {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}

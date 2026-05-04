@@ -219,6 +219,7 @@ export type Database = {
           accent: string
           bio: string | null
           bio_bn: string | null
+          category: string
           created_at: string
           flat_id: string | null
           id: string
@@ -236,6 +237,7 @@ export type Database = {
           accent?: string
           bio?: string | null
           bio_bn?: string | null
+          category?: string
           created_at?: string
           flat_id?: string | null
           id?: string
@@ -253,6 +255,7 @@ export type Database = {
           accent?: string
           bio?: string | null
           bio_bn?: string | null
+          category?: string
           created_at?: string
           flat_id?: string | null
           id?: string
