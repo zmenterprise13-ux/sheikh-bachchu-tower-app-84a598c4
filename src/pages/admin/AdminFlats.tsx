@@ -960,6 +960,15 @@ function FlatEditDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Flat meta */}
+          <div className="rounded-lg border border-border p-3">
+            <Label className="text-xs">{lang === "bn" ? "হোল্ডিং নম্বর" : "Holding No"}</Label>
+            <Input
+              value={form.holding_no ?? ""}
+              onChange={(e) => set("holding_no", e.target.value)}
+              placeholder={lang === "bn" ? "যেমন: ১৪/২" : "e.g. 14/2"}
+            />
+          </div>
           {/* Owner section */}
           <div className="rounded-lg border border-border p-3 space-y-3">
             <div className="text-sm font-semibold">{t("ownerLabel")}</div>
