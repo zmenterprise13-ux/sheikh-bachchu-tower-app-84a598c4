@@ -420,6 +420,20 @@ function OwnerAvatarUpload({
     }
   };
 
+  const handleRemove = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("update_my_owner_photo", { _photo_url: null });
+      if (error) throw error;
+      setLocalUrl(null);
+      toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="relative shrink-0 group">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
