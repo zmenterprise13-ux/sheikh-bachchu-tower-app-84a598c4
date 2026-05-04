@@ -770,6 +770,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      monthly_finance_summary: { Args: { _month: string }; Returns: Json }
       update_my_owner_photo: {
         Args: { _photo_url: string }
         Returns: undefined
