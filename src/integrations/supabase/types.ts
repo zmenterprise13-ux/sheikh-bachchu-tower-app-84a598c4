@@ -674,6 +674,36 @@ export type Database = {
         }
         Relationships: []
       }
+      published_monthly_reports: {
+        Row: {
+          created_at: string
+          month: string
+          notes: string | null
+          published_at: string
+          published_by: string | null
+          snapshot: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          month: string
+          notes?: string | null
+          published_at?: string
+          published_by?: string | null
+          snapshot?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          month?: string
+          notes?: string | null
+          published_at?: string
+          published_by?: string | null
+          snapshot?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shops: {
         Row: {
           created_at: string
@@ -774,6 +804,11 @@ export type Database = {
         Returns: boolean
       }
       monthly_finance_summary: { Args: { _month: string }; Returns: Json }
+      publish_monthly_report: {
+        Args: { _month: string; _notes?: string }
+        Returns: Json
+      }
+      unpublish_monthly_report: { Args: { _month: string }; Returns: undefined }
       update_my_owner_photo: {
         Args: { _photo_url: string }
         Returns: undefined

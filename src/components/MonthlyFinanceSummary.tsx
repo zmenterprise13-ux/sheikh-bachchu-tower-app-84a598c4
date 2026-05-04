@@ -1,18 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, TKey } from "@/i18n/translations";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart, CheckCircle2, Send, Loader2, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type Props = {
-  /** YYYY-MM, e.g. "2026-03" */
   month: string;
-  /** owner = read-only summary, admin = link to full report */
   variant?: "owner" | "admin";
-  /** Custom heading override */
   title?: string;
 };
 
@@ -24,27 +22,30 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const [collected, setCollected] = useState(0);
   const [expense, setExpense] = useState(0);
   const [byCategory, setByCategory] = useState<CatRow[]>([]);
+  const [published, setPublished] = useState(false);
+  const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
-      if (cancelled) return;
-      if (error || !data) {
-        setBilled(0); setCollected(0); setExpense(0); setByCategory([]);
-      } else {
-        const d = data as any;
-        setBilled(Number(d.billed) || 0);
-        setCollected(Number(d.collected) || 0);
-        setExpense(Number(d.expense) || 0);
-        setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
-      }
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
+    if (error || !data) {
+      setBilled(0); setCollected(0); setExpense(0); setByCategory([]);
+      setPublished(false); setPublishedAt(null);
+    } else {
+      const d = data as any;
+      setBilled(Number(d.billed) || 0);
+      setCollected(Number(d.collected) || 0);
+      setExpense(Number(d.expense) || 0);
+      setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
+      setPublished(Boolean(d.published));
+      setPublishedAt(d.published_at ?? null);
+    }
+    setLoading(false);
   }, [month]);
+
+  useEffect(() => { load(); }, [load]);
 
   const monthLabel = useMemo(
     () => new Date(month + "-01").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "long" }),
@@ -52,10 +53,42 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   );
 
   const net = collected - expense;
-  const sortedByCategory = byCategory;
-
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
+  const isAdmin = variant === "admin";
+
+  const handlePublish = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("publish_monthly_report", { _month: month, _notes: null });
+      if (error) throw error;
+      toast.success(lang === "bn" ? "রিপোর্ট পাবলিশ হয়েছে" : "Report published");
+      await load();
+    } catch (e: any) { toast.error(e.message ?? "Failed"); } finally { setBusy(false); }
+  };
+  const handleUnpublish = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("unpublish_monthly_report", { _month: month });
+      if (error) throw error;
+      toast.success(lang === "bn" ? "পাবলিশ বাতিল হয়েছে" : "Unpublished");
+      await load();
+    } catch (e: any) { toast.error(e.message ?? "Failed"); } finally { setBusy(false); }
+  };
+
+  // Owner view, not yet published
+  if (!isAdmin && !loading && !published) {
+    return (
+      <div className="rounded-2xl bg-card border border-border p-6 text-center shadow-soft">
+        <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+        <div className="font-semibold text-foreground">{heading}</div>
+        <div className="text-xs text-muted-foreground mt-1">{monthLabel}</div>
+        <p className="text-sm text-muted-foreground mt-3">
+          {lang === "bn" ? "এ মাসের রিপোর্ট এখনো প্রকাশিত হয়নি।" : "This month's report has not been published yet."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl bg-card border border-border p-5 sm:p-6 shadow-soft">
@@ -64,12 +97,48 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
           <h2 className="font-semibold text-foreground flex items-center gap-2">
             <FileBarChart className="h-4 w-4 text-primary" />
             {heading}
+            {published && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success border border-success/30 px-2 py-0.5 text-[10px] font-semibold">
+                <CheckCircle2 className="h-3 w-3" />
+                {lang === "bn" ? "প্রকাশিত" : "Published"}
+              </span>
+            )}
+            {isAdmin && !published && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 text-[10px] font-semibold">
+                {lang === "bn" ? "ড্রাফট" : "Draft"}
+              </span>
+            )}
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{monthLabel}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {monthLabel}
+            {published && publishedAt && (
+              <> · {lang === "bn" ? "প্রকাশিত" : "Published"} {new Date(publishedAt).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}</>
+            )}
+          </p>
         </div>
-        <Link to={reportLink}>
-          <Button variant="ghost" size="sm">{lang === "bn" ? "বিস্তারিত" : "View details"}</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {isAdmin && !loading && (
+            published ? (
+              <>
+                <Button variant="outline" size="sm" onClick={handlePublish} disabled={busy} className="gap-1.5">
+                  {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {lang === "bn" ? "পুনঃপ্রকাশ" : "Republish"}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleUnpublish} disabled={busy}>
+                  {lang === "bn" ? "প্রত্যাহার" : "Unpublish"}
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" onClick={handlePublish} disabled={busy} className="gap-1.5">
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                {lang === "bn" ? "ওনারদের জন্য প্রকাশ" : "Publish to owners"}
+              </Button>
+            )
+          )}
+          <Link to={reportLink}>
+            <Button variant="ghost" size="sm">{lang === "bn" ? "বিস্তারিত" : "Details"}</Button>
+          </Link>
+        </div>
       </div>
 
       {loading ? (
