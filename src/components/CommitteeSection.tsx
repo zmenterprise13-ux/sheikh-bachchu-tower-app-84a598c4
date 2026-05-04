@@ -132,41 +132,66 @@ export function CommitteeSection() {
       <div className="container">
         {Header}
 
-        <div className="mt-14 flex gap-3 h-[460px] w-full">
+        <div className="mt-16 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {members.map((m, i) => (
             <div
               key={m.id}
               onClick={() => setSelected(m)}
-              className="group relative flex-1 hover:flex-[3] transition-all duration-700 ease-out rounded-3xl overflow-hidden cursor-pointer shadow-soft hover:shadow-elegant animate-fade-in border border-border"
-              style={{ animationDelay: `${i * 70}ms`, animationFillMode: "backwards" }}
+              className="group relative animate-fade-in cursor-pointer"
+              style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
             >
-              <div className="absolute inset-0 bg-muted">
-                {m.photo_url && (
-                  <img
-                    src={m.photo_url}
-                    alt={lang === "bn" ? m.name_bn : m.name}
-                    className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                )}
-              </div>
-              <div className={`absolute inset-0 bg-gradient-to-t ${m.accent} opacity-60 group-hover:opacity-30 transition-opacity duration-700`} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-center group-hover:opacity-0 transition-opacity duration-300">
-                <div className="text-white font-bold text-sm [writing-mode:vertical-rl] rotate-180 mx-auto h-32 flex items-center justify-center tracking-wider">
-                  {lang === "bn" ? m.name_bn : m.name}
+              {/* Floating gradient backdrop */}
+              <div className={`absolute -inset-2 rounded-[2rem] bg-gradient-to-br ${m.accent} opacity-0 group-hover:opacity-30 blur-xl transition-all duration-500`} />
+
+              {/* Card */}
+              <div className="relative rounded-[1.75rem] bg-card border border-border overflow-hidden shadow-soft transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-elegant">
+                {/* Top accent bar */}
+                <div className={`h-2 bg-gradient-to-r ${m.accent}`} />
+
+                {/* Photo container with gradient ring */}
+                <div className="relative pt-8 pb-4 px-6">
+                  <div className="relative mx-auto w-32 h-32">
+                    {/* Spinning gradient ring */}
+                    <div
+                      className={`absolute -inset-1.5 rounded-full bg-gradient-to-br ${m.accent} opacity-80 group-hover:opacity-100 transition-opacity`}
+                      style={{ background: undefined }}
+                    />
+                    <div className="absolute inset-0 rounded-full overflow-hidden ring-4 ring-card bg-muted">
+                      {m.photo_url ? (
+                        <img
+                          src={m.photo_url}
+                          alt={lang === "bn" ? m.name_bn : m.name}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                          <Users className="h-10 w-10" />
+                        </div>
+                      )}
+                    </div>
+                    {/* Decorative dot */}
+                    <div className={`absolute bottom-1 right-1 h-5 w-5 rounded-full bg-gradient-to-br ${m.accent} ring-4 ring-card shadow-md`} />
+                  </div>
                 </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-200 translate-y-4 group-hover:translate-y-0">
-                <div className={`inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-[11px] font-semibold text-white shadow-md mb-2`}>
-                  {lang === "bn" ? m.role_bn : m.role}
+
+                {/* Info */}
+                <div className="px-5 pb-6 text-center">
+                  <h3 className="font-bold text-foreground text-base leading-tight min-h-[2.5rem] flex items-center justify-center">
+                    {lang === "bn" ? m.name_bn : m.name}
+                  </h3>
+                  <div className={`mt-2 inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-[11px] font-semibold text-white shadow-sm`}>
+                    {lang === "bn" ? m.role_bn : m.role}
+                  </div>
+                  <div className="mt-3 text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {lang === "bn" ? "বিস্তারিত দেখুন →" : "View details →"}
+                  </div>
                 </div>
-                <div className="text-white font-bold text-2xl leading-tight drop-shadow-lg">
-                  {lang === "bn" ? m.name_bn : m.name}
+
+                {/* Shine */}
+                <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] overflow-hidden">
+                  <div className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] bg-gradient-to-br from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 group-hover:translate-y-1/4 transition-all duration-1000" />
                 </div>
-              </div>
-              <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] bg-gradient-to-br from-white/0 via-white/15 to-white/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 group-hover:translate-y-1/4 transition-all duration-1000" />
               </div>
             </div>
           ))}
