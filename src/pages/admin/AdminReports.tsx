@@ -53,6 +53,7 @@ type Bill = {
 type Expense = { date: string; category: string; amount: number };
 type LoanRow = { loan_date: string; principal: number };
 type RepayRow = { paid_date: string; amount: number };
+type OtherIncomeRow = { date: string; category: string; amount: number };
 type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -83,6 +84,7 @@ export default function AdminReports() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loans, setLoans] = useState<LoanRow[]>([]);
   const [repays, setRepays] = useState<RepayRow[]>([]);
+  const [otherIncomes, setOtherIncomes] = useState<OtherIncomeRow[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
   const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
@@ -107,7 +109,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes, oiRes, prevOiRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -117,28 +119,21 @@ export default function AdminReports() {
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn")
           .order("flat_no", { ascending: true }),
-        // Prior carry-forward: everything before `from`
-        supabase.from("bills")
-          .select("paid_amount")
-          .lt("month", from),
-        supabase.from("expenses")
-          .select("amount")
-          .lt("date", monthStart),
-        // bKash approved payments in range — for fee metadata only
+        supabase.from("bills").select("paid_amount").lt("month", from),
+        supabase.from("expenses").select("amount").lt("date", monthStart),
         supabase.from("payment_requests")
           .select("amount, method, status, bills!inner(month)")
-          .eq("method", "bkash")
-          .eq("status", "approved")
-          .gte("bills.month", from)
-          .lte("bills.month", to),
-        supabase.from("loans")
-          .select("loan_date, principal")
+          .eq("method", "bkash").eq("status", "approved")
+          .gte("bills.month", from).lte("bills.month", to),
+        supabase.from("loans").select("loan_date, principal")
           .gte("loan_date", monthStart).lt("loan_date", monthEnd),
-        supabase.from("loan_repayments")
-          .select("paid_date, amount")
+        supabase.from("loan_repayments").select("paid_date, amount")
           .gte("paid_date", monthStart).lt("paid_date", monthEnd),
         supabase.from("loans").select("principal").lt("loan_date", monthStart),
         supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
+        supabase.from("other_incomes").select("date, category, amount")
+          .gte("date", monthStart).lt("date", monthEnd),
+        supabase.from("other_incomes").select("amount").lt("date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
@@ -149,6 +144,7 @@ export default function AdminReports() {
       setRepays((repayRes.data ?? []) as RepayRow[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
+      setOtherIncomes((oiRes.data ?? []) as OtherIncomeRow[]);
 
       const feeMap: Record<string, number> = {};
       let feeTotal = 0;
@@ -166,7 +162,8 @@ export default function AdminReports() {
       const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
       const prevLoanIn = (prevLoansRes.data ?? []).reduce((s, l: any) => s + Number(l.principal), 0);
       const prevLoanOut = (prevRepayRes.data ?? []).reduce((s, r: any) => s + Number(r.amount), 0);
-      setAutoOpening(prevIncome - prevExpense + prevLoanIn - prevLoanOut);
+      const prevOther = (prevOiRes.data ?? []).reduce((s, o: any) => s + Number(o.amount), 0);
+      setAutoOpening(prevIncome + prevOther - prevExpense + prevLoanIn - prevLoanOut);
 
       setLoading(false);
     })();
@@ -181,14 +178,16 @@ export default function AdminReports() {
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
+      const mo = otherIncomes.filter((o) => (o.date || "").slice(0, 7) === m);
       const billed = mb.reduce((s, b) => s + Number(b.total), 0);
       const collected = mb.reduce((s, b) => s + Number(b.paid_amount), 0);
       const expense = me.reduce((s, e) => s + Number(e.amount), 0);
       const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
       const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
-      return { month: m, billed, collected, expense, loanIn, loanOut, balance: collected - expense + loanIn - loanOut };
+      const otherIn = mo.reduce((s, o) => s + Number(o.amount), 0);
+      return { month: m, billed, collected, otherIn, expense, loanIn, loanOut, balance: collected + otherIn - expense + loanIn - loanOut };
     });
-  }, [months, bills, expenses, loans, repays]);
+  }, [months, bills, expenses, loans, repays, otherIncomes]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
@@ -201,11 +200,12 @@ export default function AdminReports() {
   }, [perMonth, openingCash]);
 
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
+  const totalOtherIn = perMonth.reduce((s, r) => s + r.otherIn, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
   const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
   const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
-  const operatingNet = totalIncome - totalExpense;
+  const operatingNet = totalIncome + totalOtherIn - totalExpense;
   const balance = operatingNet + totalLoanIn - totalLoanOut;
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
@@ -447,7 +447,7 @@ export default function AdminReports() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
-            <StatCard label={t("income")} value={formatMoney(totalIncome, lang)} hint={`${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
+            <StatCard label={t("income")} value={formatMoney(totalIncome + totalOtherIn, lang)} hint={totalOtherIn > 0 ? `${lang === "bn" ? "বিল" : "Bills"}: ${formatMoney(totalIncome, lang)} · ${lang === "bn" ? "অন্যান্য" : "Other"}: ${formatMoney(totalOtherIn, lang)}` : `${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
             <StatCard label={t("expense")} value={formatMoney(totalExpense, lang)} hint={`${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
             <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
@@ -469,6 +469,9 @@ export default function AdminReports() {
                   {lang === "bn" ? `বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%)` : `bKash Fee (${(bkash.fee_pct*100).toFixed(2)}%)`}
                   <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
                 </th>
+                <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "অনুদান/পাওনা/অন্যান্য" : "Donation/recovery/other"}>
+                  {lang === "bn" ? "অন্যান্য আয়" : "Other Income"}
+                </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
                 <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "লোন গ্রহণ — ক্যাশ ইন" : "Loan taken — cash in"}>
                   {lang === "bn" ? "লোন (ইন)" : "Loan In"}
@@ -489,6 +492,7 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right">{formatMoney(r.billed, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-success">{r.otherIn > 0 ? formatMoney(r.otherIn, lang) : "—"}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{r.loanIn > 0 ? formatMoney(r.loanIn, lang) : "—"}</td>
                   <td className="py-2 pr-3 text-right text-warning">{r.loanOut > 0 ? formatMoney(r.loanOut, lang) : "—"}</td>
@@ -502,7 +506,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={11} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={12} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -512,6 +516,7 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right">{formatMoney(totalBilled, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalOtherIn, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalLoanIn, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalLoanOut, lang)}</td>
