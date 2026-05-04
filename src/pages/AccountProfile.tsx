@@ -282,11 +282,16 @@ export default function AccountProfile() {
               id="phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              maxLength={32}
-              disabled={loading || savingInfo}
+              readOnly
+              disabled
+              className="bg-muted/50 cursor-not-allowed"
               placeholder={lang === "bn" ? "যেমন: 01XXXXXXXXX" : "e.g. 01XXXXXXXXX"}
             />
+            <p className="text-xs text-muted-foreground">
+              {lang === "bn"
+                ? "ফোন নম্বর দিয়েই আপনি লগইন করেন, তাই এটি এখানে পরিবর্তন করা যাবে না। পরিবর্তনের প্রয়োজন হলে অ্যাডমিনের সাথে যোগাযোগ করুন।"
+                : "You log in with this phone number, so it cannot be changed here. Please contact the admin to update it."}
+            </p>
           </div>
           <div className="flex justify-end gap-2">
             {dirty && !savingInfo && (
