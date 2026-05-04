@@ -36,6 +36,7 @@ import { CombinedBillStatus } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 
 type Flat = {
   id: string;

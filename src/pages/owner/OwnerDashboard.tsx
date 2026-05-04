@@ -22,6 +22,7 @@ import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { compressImage } from "@/lib/imageCompress";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { useAuth } from "@/context/AuthContext";
+import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 
 type Bill = {
   id: string;
@@ -360,7 +361,7 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        
+        <MonthlyFinanceSummary month={month} variant="owner" />
       </div>
     </AppShell>
   );
