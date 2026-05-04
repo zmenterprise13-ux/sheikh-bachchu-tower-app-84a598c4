@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, TKey } from "@/i18n/translations";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart, CheckCircle2, Send, Loader2, Lock } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, FileBarChart, CheckCircle2, Send, Loader2, Lock, Landmark, HandCoins, Banknote } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -22,6 +22,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const [collected, setCollected] = useState(0);
   const [expense, setExpense] = useState(0);
   const [otherIncome, setOtherIncome] = useState(0);
+  const [loanTaken, setLoanTaken] = useState(0);
+  const [loanRepaid, setLoanRepaid] = useState(0);
   const [byCategory, setByCategory] = useState<CatRow[]>([]);
   const [byIncomeCategory, setByIncomeCategory] = useState<CatRow[]>([]);
   const [published, setPublished] = useState(false);
@@ -34,6 +36,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
     if (error || !data) {
       setBilled(0); setCollected(0); setExpense(0); setOtherIncome(0);
+      setLoanTaken(0); setLoanRepaid(0);
       setByCategory([]); setByIncomeCategory([]);
       setPublished(false); setPublishedAt(null);
     } else {
@@ -42,6 +45,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
       setCollected(Number(d.collected) || 0);
       setExpense(Number(d.expense) || 0);
       setOtherIncome(Number(d.other_income) || 0);
+      setLoanTaken(Number(d.loan_taken) || 0);
+      setLoanRepaid(Number(d.loan_repaid) || 0);
       setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setByIncomeCategory(((d.by_income_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setPublished(Boolean(d.published));
@@ -59,6 +64,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
 
   const totalIncome = collected + otherIncome;
   const net = totalIncome - expense;
+  const netCash = net + loanTaken - loanRepaid;
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
   const isAdmin = variant === "admin";
@@ -191,6 +197,41 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             />
           </div>
 
+          {(loanTaken > 0 || loanRepaid > 0) && (
+            <div className="mt-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                {lang === "bn" ? "ক্যাশ ফ্লো (লোন)" : "Cash Flow (Loans)"}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <Tile
+                  icon={Landmark}
+                  label={lang === "bn" ? "লোন গৃহীত (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
+                  value={formatMoney(loanTaken, lang)}
+                  hint={lang === "bn" ? "দায় বাড়ে, হাতের ক্যাশ বাড়ে" : "Liability ↑, cash on hand ↑"}
+                  tone="success"
+                />
+                <Tile
+                  icon={HandCoins}
+                  label={lang === "bn" ? "লোন পরিশোধ (ক্যাশ আউট)" : "Loan Repaid (Cash Out)"}
+                  value={formatMoney(loanRepaid, lang)}
+                  hint={lang === "bn" ? "দায় কমে, হাতের ক্যাশ কমে" : "Liability ↓, cash on hand ↓"}
+                  tone="warning"
+                />
+                <Tile
+                  icon={Banknote}
+                  label={lang === "bn" ? "নিট ক্যাশ পজিশন" : "Net Cash Position"}
+                  value={formatMoney(netCash, lang)}
+                  hint={
+                    (lang === "bn"
+                      ? "নিট ব্যালেন্স + লোন − পরিশোধ"
+                      : "Net balance + loan − repayment")
+                  }
+                  tone={netCash >= 0 ? "success" : "destructive"}
+                />
+              </div>
+            </div>
+          )}
+
           {byIncomeCategory.length > 0 && (
             <div className="mt-5">
               <div className="flex items-center justify-between mb-2">
@@ -251,7 +292,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             </div>
           )}
 
-          {billed === 0 && expense === 0 && otherIncome === 0 && (
+          {billed === 0 && expense === 0 && otherIncome === 0 && loanTaken === 0 && loanRepaid === 0 && (
             <div className="mt-3 text-xs text-muted-foreground text-center">
               {lang === "bn" ? "এ মাসের কোনো ডেটা নেই।" : "No data for this month."}
             </div>
