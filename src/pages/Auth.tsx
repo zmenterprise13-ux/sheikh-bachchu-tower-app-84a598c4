@@ -211,7 +211,15 @@ export default function Auth() {
                 <div className="space-y-1.5">
                   <Label>{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                   <PasswordInput value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} />
+                </div>
                 <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-phone" />
+                <Button type="submit" disabled={submitting} className="w-full gradient-primary text-primary-foreground">
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {lang === "bn" ? "লগইন করুন" : "Log in"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  {lang === "bn"
+                    ? "প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করুন। ডিফল্ট পাসওয়ার্ড: 12345678"
                     : "Please change your password after first login. Default password: 12345678"}
                 </p>
               </form>
