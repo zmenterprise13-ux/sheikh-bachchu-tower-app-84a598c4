@@ -130,8 +130,7 @@ export default function AccountProfile() {
 
   const dirty =
     displayName.trim() !== initial.display_name.trim() ||
-    displayNameBn.trim() !== initial.display_name_bn.trim() ||
-    phone.trim() !== initial.phone.trim();
+    displayNameBn.trim() !== initial.display_name_bn.trim();
 
   const saveInfo = async () => {
     if (!user) return;
@@ -148,11 +147,10 @@ export default function AccountProfile() {
         .update({
           display_name: name || null,
           display_name_bn: nameBn || null,
-          phone: phone.trim() || null,
         })
         .eq("user_id", user.id);
       if (error) throw error;
-      setInitial({ display_name: name, display_name_bn: nameBn, phone: phone.trim() });
+      setInitial({ display_name: name, display_name_bn: nameBn, phone: initial.phone });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
     } catch (err: any) {
       toast.error(err.message ?? "Failed");
@@ -168,7 +166,7 @@ export default function AccountProfile() {
           {lang === "bn" ? "আমার প্রোফাইল" : "My Profile"}
         </h1>
         <p className="text-sm text-muted-foreground mb-5">
-          {lang === "bn" ? "আপনার নাম, ফোন নম্বর ও প্রোফাইল ছবি আপডেট করুন।" : "Update your name, phone, and profile photo."}
+          {lang === "bn" ? "আপনার নাম ও প্রোফাইল ছবি আপডেট করুন।" : "Update your name and profile photo."}
         </p>
 
         <div className="flex items-center gap-5">
@@ -282,18 +280,23 @@ export default function AccountProfile() {
               id="phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              maxLength={32}
-              disabled={loading || savingInfo}
+              readOnly
+              disabled
+              className="bg-muted/50 cursor-not-allowed"
               placeholder={lang === "bn" ? "যেমন: 01XXXXXXXXX" : "e.g. 01XXXXXXXXX"}
             />
+            <p className="text-xs text-muted-foreground">
+              {lang === "bn"
+                ? "ফোন নম্বর দিয়েই আপনি লগইন করেন, তাই এটি এখানে পরিবর্তন করা যাবে না। পরিবর্তনের প্রয়োজন হলে অ্যাডমিনের সাথে যোগাযোগ করুন।"
+                : "You log in with this phone number, so it cannot be changed here. Please contact the admin to update it."}
+            </p>
           </div>
           <div className="flex justify-end gap-2">
             {dirty && !savingInfo && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); setPhone(initial.phone); }}
+                onClick={() => { setDisplayName(initial.display_name); setDisplayNameBn(initial.display_name_bn); }}
               >
                 {lang === "bn" ? "বাতিল" : "Reset"}
               </Button>
