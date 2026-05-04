@@ -451,26 +451,59 @@ function OwnerAvatarUpload({
         ) : null}
         <InitialsFallback name={ownerName} seed={flatId} className="text-2xl ring-2 ring-white/30" />
       </Avatar>
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        aria-label={
-          busy
+      {localUrl ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              disabled={busy}
+              aria-label={busy
+                ? (lang === "bn" ? "প্রক্রিয়াকরণ" : "Working")
+                : (lang === "bn" ? "প্রোফাইল ছবি অপশন" : "Profile photo options")}
+              aria-busy={busy}
+              className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => inputRef.current?.click()} disabled={busy}>
+              <ImagePlus className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "নতুন ছবি আপলোড" : "Upload new photo"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={handleRemove}
+              disabled={busy}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {lang === "bn" ? "ছবি সরান" : "Remove photo"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          aria-label={busy
             ? (lang === "bn" ? "ছবি আপলোড হচ্ছে" : "Uploading photo")
-            : (localUrl
-                ? (lang === "bn" ? "প্রোফাইল ছবি পরিবর্তন" : "Change profile photo")
-                : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo"))
-        }
-        aria-busy={busy}
-        className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        {busy ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-        ) : (
-          <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-        )}
-      </button>
+            : (lang === "bn" ? "প্রোফাইল ছবি আপলোড" : "Upload profile photo")}
+          aria-busy={busy}
+          className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-accent text-accent-foreground shadow-lg ring-2 ring-white/70 flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {busy ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+          ) : (
+            <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+        </button>
+      )}
       <input
         ref={inputRef}
         type="file"
