@@ -263,8 +263,8 @@ export default function OwnerPayments() {
         status: pr.status,
         date: pr.reviewed_at ?? pr.created_at,
       });
-      const qrUrl = await QRCode.toDataURL(verifyPayload, { margin: 0, width: 256, errorCorrectionLevel: "M" });
-      doc.addImage(qrUrl, "PNG", 14, 250, 28, 28);
+      const qrUrl = await QRCode.toDataURL(verifyPayload, { margin: 0, width: 128, errorCorrectionLevel: "M" });
+      doc.addImage(qrUrl, "PNG", 14, 250, 28, 28, undefined, "FAST");
       doc.setTextColor(100, 116, 139);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
