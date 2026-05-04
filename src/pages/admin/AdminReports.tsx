@@ -179,12 +179,16 @@ export default function AdminReports() {
     return months.map((m) => {
       const mb = bills.filter((b) => b.month === m);
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
+      const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
+      const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
       const billed = mb.reduce((s, b) => s + Number(b.total), 0);
       const collected = mb.reduce((s, b) => s + Number(b.paid_amount), 0);
       const expense = me.reduce((s, e) => s + Number(e.amount), 0);
-      return { month: m, billed, collected, expense, balance: collected - expense };
+      const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
+      const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
+      return { month: m, billed, collected, expense, loanIn, loanOut, balance: collected - expense + loanIn - loanOut };
     });
-  }, [months, bills, expenses]);
+  }, [months, bills, expenses, loans, repays]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
