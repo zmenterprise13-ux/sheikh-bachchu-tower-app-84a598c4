@@ -4,7 +4,8 @@ import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 import { Camera, Loader2, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
@@ -109,9 +110,7 @@ export default function AccountProfile() {
           <div className="relative">
             <Avatar className="h-24 w-24 border-2 border-border shadow-soft">
               {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName ?? "Me"} className="object-cover" /> : null}
-              <AvatarFallback className="bg-secondary">
-                <User className="h-10 w-10 text-muted-foreground" />
-              </AvatarFallback>
+              <InitialsFallback name={displayName ?? user?.email} seed={user?.id ?? user?.email} className="text-2xl" />
             </Avatar>
             <button
               type="button"
