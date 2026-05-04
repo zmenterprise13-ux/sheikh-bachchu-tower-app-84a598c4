@@ -101,6 +101,7 @@ export default function AdminCommittee() {
       is_published: m.is_published,
       bio: m.bio ?? "",
       bio_bn: m.bio_bn ?? "",
+      phone: m.phone ?? "",
     });
     setOpen(true);
   };
