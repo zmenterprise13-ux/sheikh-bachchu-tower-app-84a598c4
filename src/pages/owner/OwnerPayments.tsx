@@ -130,7 +130,7 @@ export default function OwnerPayments() {
   };
 
   const downloadReceipt = async (pr: PR) => {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
     const W = doc.internal.pageSize.getWidth();
     const isBkash = pr.method === "bkash";
     const { due, fee, total } = isBkash
