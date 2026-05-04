@@ -443,6 +443,7 @@ function OwnerAvatarUpload({
     try {
       const { error } = await supabase.rpc("update_my_owner_photo", { _photo_url: null });
       if (error) throw error;
+      if (user) await supabase.from("profiles").update({ avatar_url: null }).eq("user_id", user.id);
       setLocalUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
       await onChanged?.();
