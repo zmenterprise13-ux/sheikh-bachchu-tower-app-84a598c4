@@ -81,6 +81,8 @@ export default function AdminReports() {
   const [to, setTo] = useState(currentMonth());
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loans, setLoans] = useState<LoanRow[]>([]);
+  const [repays, setRepays] = useState<RepayRow[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
   const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
