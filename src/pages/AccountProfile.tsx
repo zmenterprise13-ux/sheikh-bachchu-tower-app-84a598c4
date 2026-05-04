@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
