@@ -122,6 +122,30 @@ export default function AccountProfile() {
     }
   };
 
+  const dirty = displayName.trim() !== initial.display_name.trim() || phone.trim() !== initial.phone.trim();
+
+  const saveInfo = async () => {
+    if (!user) return;
+    const name = displayName.trim();
+    if (!name) {
+      toast.error(lang === "bn" ? "নাম দিন" : "Name is required");
+      return;
+    }
+    setSavingInfo(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: name, phone: phone.trim() || null })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setInitial({ display_name: name, phone: phone.trim() });
+      toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed");
+    } finally {
+      setSavingInfo(false);
+    }
+  };
   return (
     <AppShell>
       <div className="rounded-2xl bg-card border border-border p-6 shadow-soft max-w-xl">
