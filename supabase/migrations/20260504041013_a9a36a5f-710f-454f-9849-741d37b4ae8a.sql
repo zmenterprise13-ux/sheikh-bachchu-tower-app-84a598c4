@@ -1,0 +1,1 @@
+ALTER TABLE public.flats ADD COLUMN IF NOT EXISTS holding_no text;

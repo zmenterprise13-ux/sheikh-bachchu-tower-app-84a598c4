@@ -326,6 +326,7 @@ export type Database = {
           flat_no: string
           floor: number
           gas_bill: number
+          holding_no: string | null
           id: string
           is_occupied: boolean
           occupant_name: string | null
@@ -350,6 +351,7 @@ export type Database = {
           flat_no: string
           floor: number
           gas_bill?: number
+          holding_no?: string | null
           id?: string
           is_occupied?: boolean
           occupant_name?: string | null
@@ -374,6 +376,7 @@ export type Database = {
           flat_no?: string
           floor?: number
           gas_bill?: number
+          holding_no?: string | null
           id?: string
           is_occupied?: boolean
           occupant_name?: string | null
