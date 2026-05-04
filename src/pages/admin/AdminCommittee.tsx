@@ -12,6 +12,7 @@ import { Plus, Pencil, Trash2, Upload, Users, ArrowUp, ArrowDown } from "lucide-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 
 type Member = {
   id: string;
