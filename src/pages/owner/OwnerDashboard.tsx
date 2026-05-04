@@ -426,6 +426,7 @@ function OwnerAvatarUpload({
       const newUrl = pub.publicUrl;
       const { error: rpcErr } = await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
       if (rpcErr) throw rpcErr;
+      if (user) await supabase.from("profiles").update({ avatar_url: newUrl }).eq("user_id", user.id);
       setLocalUrl(newUrl);
       setCropSrc(null);
       toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
