@@ -530,6 +530,11 @@ export default function AdminReports() {
               ? `* বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%) মালিক বিকাশকে দেন — সোসাইটির আয়/লেজারে যোগ হয় না, শুধু মেলানোর জন্য দেখানো।`
               : `* bKash fee (${(bkash.fee_pct*100).toFixed(2)}%) is paid by owners directly to bKash — not part of society income/ledger; shown only for reconciliation.`}
           </p>
+          <p className="text-[11px] text-muted-foreground mt-1 italic">
+            {lang === "bn"
+              ? "* লোন (ইন/আউট) ক্যাশ ফ্লোতে যোগ — operating আয়-ব্যয় না, কিন্তু হাতের ক্যাশে এফেক্ট ফেলে। নিট ক্যাশ ফ্লো = আদায় − ব্যয় + লোন − পরিশোধ।"
+              : "* Loans (in/out) affect cash flow — not operating P&L, but they change cash on hand. Net Cash Flow = Income − Expense + Loan In − Loan Out."}
+          </p>
         </div>
 
         {/* Flat-wise statement */}
