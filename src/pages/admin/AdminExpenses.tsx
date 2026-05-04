@@ -106,6 +106,21 @@ export default function AdminExpenses() {
 
   const total = items.reduce((s, e) => s + Number(e.amount), 0);
 
+  // Group expenses by month (YYYY-MM)
+  const grouped = items.reduce<Record<string, Expense[]>>((acc, e) => {
+    const key = (e.date || "").slice(0, 7); // YYYY-MM
+    (acc[key] ||= []).push(e);
+    return acc;
+  }, {});
+  const sortedMonths = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const monthLabel = (ym: string) => {
+    if (!ym) return "—";
+    const [y, m] = ym.split("-").map(Number);
+    const d = new Date(y, (m || 1) - 1, 1);
+    return d.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "long" });
+  };
+  const toggleMonth = (ym: string) => setCollapsedMonths((s) => ({ ...s, [ym]: !s[ym] }));
+
   const openEdit = (e: Expense) => {
     setEditingId(e.id);
     setForm({
