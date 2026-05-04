@@ -240,9 +240,12 @@ export default function AdminExpenses() {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" className="gap-2" onClick={() => setCatOpen(true)}>
               <Settings2 className="h-4 w-4" /> {lang === "bn" ? "ক্যাটেগরি" : "Categories"}
+            </Button>
+            <Button variant="outline" className="gap-2 border-primary/40 text-primary hover:bg-primary/5" onClick={() => openTemplate(currentYM)}>
+              <ClipboardList className="h-4 w-4" /> {lang === "bn" ? "মাসিক টেমপ্লেট" : "Monthly Template"}
             </Button>
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
               <DialogTrigger asChild>
