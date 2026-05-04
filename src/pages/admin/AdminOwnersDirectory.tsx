@@ -244,7 +244,7 @@ export default function AdminOwnersDirectory() {
                       {f.occupant_phone ? (
                         <a
                           href={`tel:${f.occupant_phone}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline shrink-0"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline shrink-0"
                         >
                           <Phone className="h-3 w-3" />
                           {f.occupant_phone}
