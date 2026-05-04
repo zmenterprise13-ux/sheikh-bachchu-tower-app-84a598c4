@@ -147,6 +147,9 @@ export default function AdminReports() {
       setFlatCount((flatsRes.data ?? []).length);
       setOtherIncomes((oiRes.data ?? []) as OtherIncomeRow[]);
 
+      const catRes = await supabase.from("expense_categories").select("name, name_bn");
+      setExpenseCats((catRes.data ?? []) as { name: string; name_bn: string | null }[]);
+
       const feeMap: Record<string, number> = {};
       let feeTotal = 0;
       for (const r of (bkashRes.data ?? []) as any[]) {
