@@ -708,6 +708,8 @@ export default function AdminDashboard() {
             </div>
           );
         })()}
+        <MonthlyFinanceSummary month={month} variant="admin" />
+
         <div className="rounded-2xl bg-card border border-border shadow-soft p-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
