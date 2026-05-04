@@ -51,6 +51,8 @@ type Bill = {
   paid_amount: number;
 };
 type Expense = { date: string; category: string; amount: number };
+type LoanRow = { loan_date: string; principal: number };
+type RepayRow = { paid_date: string; amount: number };
 type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -79,6 +81,8 @@ export default function AdminReports() {
   const [to, setTo] = useState(currentMonth());
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loans, setLoans] = useState<LoanRow[]>([]);
+  const [repays, setRepays] = useState<RepayRow[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [flatCount, setFlatCount] = useState(0);
   const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
@@ -103,7 +107,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -127,12 +131,22 @@ export default function AdminReports() {
           .eq("status", "approved")
           .gte("bills.month", from)
           .lte("bills.month", to),
+        supabase.from("loans")
+          .select("loan_date, principal")
+          .gte("loan_date", monthStart).lt("loan_date", monthEnd),
+        supabase.from("loan_repayments")
+          .select("paid_date, amount")
+          .gte("paid_date", monthStart).lt("paid_date", monthEnd),
+        supabase.from("loans").select("principal").lt("loan_date", monthStart),
+        supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
       if (flatsRes.error) toast.error(flatsRes.error.message);
       setBills((billsRes.data ?? []) as Bill[]);
       setExpenses((expRes.data ?? []) as Expense[]);
+      setLoans((loansRes.data ?? []) as LoanRow[]);
+      setRepays((repayRes.data ?? []) as RepayRow[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
 
@@ -150,7 +164,9 @@ export default function AdminReports() {
 
       const prevIncome = (prevBillsRes.data ?? []).reduce((s, b: any) => s + Number(b.paid_amount), 0);
       const prevExpense = (prevExpRes.data ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
-      setAutoOpening(prevIncome - prevExpense);
+      const prevLoanIn = (prevLoansRes.data ?? []).reduce((s, l: any) => s + Number(l.principal), 0);
+      const prevLoanOut = (prevRepayRes.data ?? []).reduce((s, r: any) => s + Number(r.amount), 0);
+      setAutoOpening(prevIncome - prevExpense + prevLoanIn - prevLoanOut);
 
       setLoading(false);
     })();
@@ -163,12 +179,16 @@ export default function AdminReports() {
     return months.map((m) => {
       const mb = bills.filter((b) => b.month === m);
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
+      const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
+      const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
       const billed = mb.reduce((s, b) => s + Number(b.total), 0);
       const collected = mb.reduce((s, b) => s + Number(b.paid_amount), 0);
       const expense = me.reduce((s, e) => s + Number(e.amount), 0);
-      return { month: m, billed, collected, expense, balance: collected - expense };
+      const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
+      const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
+      return { month: m, billed, collected, expense, loanIn, loanOut, balance: collected - expense + loanIn - loanOut };
     });
-  }, [months, bills, expenses]);
+  }, [months, bills, expenses, loans, repays]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
@@ -183,7 +203,10 @@ export default function AdminReports() {
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
-  const balance = totalIncome - totalExpense;
+  const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
+  const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
+  const operatingNet = totalIncome - totalExpense;
+  const balance = operatingNet + totalLoanIn - totalLoanOut;
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
@@ -447,7 +470,13 @@ export default function AdminReports() {
                   <span className="ml-1 text-[10px] font-normal opacity-70">({lang === "bn" ? "মেটা" : "meta"})</span>
                 </th>
                 <th className="py-2 pr-3 text-right">{t("expense")}</th>
-                <th className="py-2 pr-3 text-right">{lang === "bn" ? "মাসের লাভ/ঘাটতি" : "Net"}</th>
+                <th className="py-2 pr-3 text-right text-success" title={lang === "bn" ? "লোন গ্রহণ — ক্যাশ ইন" : "Loan taken — cash in"}>
+                  {lang === "bn" ? "লোন (ইন)" : "Loan In"}
+                </th>
+                <th className="py-2 pr-3 text-right text-warning" title={lang === "bn" ? "লোন পরিশোধ — ক্যাশ আউট" : "Loan repaid — cash out"}>
+                  {lang === "bn" ? "পরিশোধ (আউট)" : "Loan Out"}
+                </th>
+                <th className="py-2 pr-3 text-right">{lang === "bn" ? "নিট ক্যাশ ফ্লো" : "Net Cash Flow"}</th>
                 <th className="py-2 pr-3 text-right">{lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"}</th>
                 <th className="py-2 pr-3">{lang === "bn" ? "পেমেন্ট" : "Payment"}</th>
               </tr>
@@ -461,6 +490,8 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-success">{r.loanIn > 0 ? formatMoney(r.loanIn, lang) : "—"}</td>
+                  <td className="py-2 pr-3 text-right text-warning">{r.loanOut > 0 ? formatMoney(r.loanOut, lang) : "—"}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {formatMoney(r.balance, lang)}
                   </td>
@@ -471,7 +502,7 @@ export default function AdminReports() {
                 </tr>
               ))}
               {perMonth.length === 0 && (
-                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
+                <tr><td colSpan={11} className="py-6 text-center text-muted-foreground">{t("noData")}</td></tr>
               )}
             </tbody>
             <tfoot>
@@ -482,6 +513,8 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
+                <td className="py-2 pr-3 text-right text-success">{formatMoney(totalLoanIn, lang)}</td>
+                <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalLoanOut, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
                   {formatMoney(balance, lang)}
                 </td>
@@ -496,6 +529,11 @@ export default function AdminReports() {
             {lang === "bn"
               ? `* বিকাশ ফি (${(bkash.fee_pct*100).toFixed(2)}%) মালিক বিকাশকে দেন — সোসাইটির আয়/লেজারে যোগ হয় না, শুধু মেলানোর জন্য দেখানো।`
               : `* bKash fee (${(bkash.fee_pct*100).toFixed(2)}%) is paid by owners directly to bKash — not part of society income/ledger; shown only for reconciliation.`}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1 italic">
+            {lang === "bn"
+              ? "* লোন (ইন/আউট) ক্যাশ ফ্লোতে যোগ — operating আয়-ব্যয় না, কিন্তু হাতের ক্যাশে এফেক্ট ফেলে। নিট ক্যাশ ফ্লো = আদায় − ব্যয় + লোন − পরিশোধ।"
+              : "* Loans (in/out) affect cash flow — not operating P&L, but they change cash on hand. Net Cash Flow = Income − Expense + Loan In − Loan Out."}
           </p>
         </div>
 
