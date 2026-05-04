@@ -39,26 +39,26 @@ export function NoticeTicker() {
   const loop = [...items, ...items];
 
   return (
-    <div className="relative z-10 border-y border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container flex items-center gap-3 py-2.5">
-        <div className="flex items-center gap-2 shrink-0 text-xs font-bold uppercase tracking-wide text-primary">
-          <Megaphone className="h-4 w-4" />
-          <span>{lang === "bn" ? "নোটিশ" : "Notices"}</span>
+    <div className="relative z-10 border-y border-border bg-card/85 backdrop-blur supports-[backdrop-filter]:bg-card/65 shadow-soft">
+      <div className="container flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-1.5 sm:py-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 text-[10px] sm:text-xs font-bold uppercase tracking-wide text-primary">
+          <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="hidden xs:inline sm:inline">{lang === "bn" ? "নোটিশ" : "Notices"}</span>
         </div>
-        <div className="relative flex-1 overflow-hidden">
+        <div className="relative flex-1 min-w-0 overflow-hidden">
           <div
-            className="flex gap-10 animate-marquee whitespace-nowrap"
+            className="flex gap-6 sm:gap-10 animate-marquee whitespace-nowrap"
             style={{ animationDuration: `${speed}s` }}
           >
             {loop.map((n, idx) => {
               const title = lang === "bn" ? n.title_bn : n.title;
               const body = lang === "bn" ? n.body_bn : n.body;
               return (
-                <div key={`${n.id}-${idx}`} className="flex items-center gap-2 text-sm">
-                  {n.important && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                <div key={`${n.id}-${idx}`} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                  {n.important && <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive shrink-0" />}
                   <span className={`font-semibold ${n.important ? "text-destructive" : "text-foreground"}`}>{title}</span>
                   <span className="text-muted-foreground">— {body}</span>
-                  <span className="text-muted-foreground/70 text-xs">({n.date})</span>
+                  <span className="hidden sm:inline text-muted-foreground/70 text-xs">({n.date})</span>
                 </div>
               );
             })}
