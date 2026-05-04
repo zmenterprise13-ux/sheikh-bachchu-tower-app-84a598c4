@@ -116,7 +116,7 @@ export function CommitteeSection() {
     );
   }
 
-  // ---------- DESKTOP VIEW: 3D tilt grid ----------
+  // ---------- DESKTOP VIEW: hover-expand horizontal panels ----------
   return (
     <section className="relative overflow-hidden py-20 sm:py-28">
       {Background}
@@ -124,54 +124,49 @@ export function CommitteeSection() {
       <div className="container">
         {Header}
 
-        <div className="mt-14 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{ perspective: "1200px" }}>
+        <div className="mt-14 flex gap-3 h-[460px] w-full">
           {members.map((m, i) => (
             <div
               key={m.id}
-              className="group relative animate-fade-in"
-              style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards", transformStyle: "preserve-3d" }}
+              className="group relative flex-1 hover:flex-[3] transition-all duration-700 ease-out rounded-3xl overflow-hidden cursor-pointer shadow-soft hover:shadow-elegant animate-fade-in border border-border"
+              style={{ animationDelay: `${i * 70}ms`, animationFillMode: "backwards" }}
             >
-              <div
-                className="relative rounded-3xl bg-card border border-border p-5 shadow-soft transition-all duration-500 ease-out will-change-transform hover:-translate-y-2 hover:shadow-elegant"
-                style={{ transformStyle: "preserve-3d" }}
-                onMouseMove={(e) => {
-                  const el = e.currentTarget;
-                  const r = el.getBoundingClientRect();
-                  const x = (e.clientX - r.left) / r.width - 0.5;
-                  const y = (e.clientY - r.top) / r.height - 0.5;
-                  el.style.transform = `translateY(-8px) rotateY(${x * 14}deg) rotateX(${-y * 14}deg)`;
-                }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}
-              >
-                <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${m.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-md`} />
+              {/* Image */}
+              <div className="absolute inset-0 bg-muted">
+                {m.photo_url && (
+                  <img
+                    src={m.photo_url}
+                    alt={lang === "bn" ? m.name_bn : m.name}
+                    className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                )}
+              </div>
 
-                <div className="relative mx-auto" style={{ transform: "translateZ(40px)" }}>
-                  <div className={`absolute -inset-1 rounded-2xl bg-gradient-to-br ${m.accent} opacity-70 blur-sm group-hover:opacity-100 group-hover:blur-md transition-all`} />
-                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border-2 border-card bg-muted">
-                    {m.photo_url && (
-                      <img
-                        src={m.photo_url}
-                        alt={lang === "bn" ? m.name_bn : m.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        loading="lazy"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                  </div>
-                </div>
+              {/* Accent gradient overlay */}
+              <div className={`absolute inset-0 bg-gradient-to-t ${m.accent} opacity-60 group-hover:opacity-30 transition-opacity duration-700`} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                <div className="relative mt-4 text-center" style={{ transform: "translateZ(60px)" }}>
-                  <div className="font-bold text-foreground leading-tight text-[15px]">
-                    {lang === "bn" ? m.name_bn : m.name}
-                  </div>
-                  <div className={`mt-1.5 inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-0.5 text-[11px] font-semibold text-white shadow-sm`}>
-                    {lang === "bn" ? m.role_bn : m.role}
-                  </div>
+              {/* Collapsed: vertical role badge */}
+              <div className="absolute inset-x-0 bottom-0 p-4 text-center group-hover:opacity-0 transition-opacity duration-300">
+                <div className="text-white font-bold text-sm [writing-mode:vertical-rl] rotate-180 mx-auto h-32 flex items-center justify-center tracking-wider">
+                  {lang === "bn" ? m.name_bn : m.name}
                 </div>
+              </div>
 
-                <div className="pointer-events-none absolute inset-0 rounded-3xl overflow-hidden">
-                  <div className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] bg-gradient-to-br from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 group-hover:translate-y-1/4 transition-all duration-700" />
+              {/* Expanded: full info */}
+              <div className="absolute inset-x-0 bottom-0 p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-200 translate-y-4 group-hover:translate-y-0">
+                <div className={`inline-block rounded-full bg-gradient-to-r ${m.accent} px-3 py-1 text-[11px] font-semibold text-white shadow-md mb-2`}>
+                  {lang === "bn" ? m.role_bn : m.role}
                 </div>
+                <div className="text-white font-bold text-2xl leading-tight drop-shadow-lg">
+                  {lang === "bn" ? m.name_bn : m.name}
+                </div>
+              </div>
+
+              {/* Shine */}
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] bg-gradient-to-br from-white/0 via-white/15 to-white/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 group-hover:translate-y-1/4 transition-all duration-1000" />
               </div>
             </div>
           ))}
