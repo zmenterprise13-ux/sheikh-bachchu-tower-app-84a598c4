@@ -107,7 +107,7 @@ export default function AdminReports() {
       const next = new Date(Date.UTC(ty, tm, 1));
       const monthEnd = next.toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, prevBillsRes, prevExpRes, bkashRes, loansRes, repayRes, prevLoansRes, prevRepayRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
@@ -131,12 +131,22 @@ export default function AdminReports() {
           .eq("status", "approved")
           .gte("bills.month", from)
           .lte("bills.month", to),
+        supabase.from("loans")
+          .select("loan_date, principal")
+          .gte("loan_date", monthStart).lt("loan_date", monthEnd),
+        supabase.from("loan_repayments")
+          .select("paid_date, amount")
+          .gte("paid_date", monthStart).lt("paid_date", monthEnd),
+        supabase.from("loans").select("principal").lt("loan_date", monthStart),
+        supabase.from("loan_repayments").select("amount").lt("paid_date", monthStart),
       ]);
       if (billsRes.error) toast.error(billsRes.error.message);
       if (expRes.error) toast.error(expRes.error.message);
       if (flatsRes.error) toast.error(flatsRes.error.message);
       setBills((billsRes.data ?? []) as Bill[]);
       setExpenses((expRes.data ?? []) as Expense[]);
+      setLoans((loansRes.data ?? []) as LoanRow[]);
+      setRepays((repayRes.data ?? []) as RepayRow[]);
       setFlats((flatsRes.data ?? []) as Flat[]);
       setFlatCount((flatsRes.data ?? []).length);
 
