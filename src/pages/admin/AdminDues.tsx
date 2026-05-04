@@ -70,7 +70,7 @@ export default function AdminDues() {
   const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [bulkType, setBulkType] = useState<"eid_bonus" | "other_charge">("eid_bonus");
+  const [bulkType, setBulkType] = useState<"service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge" | "arrears">("eid_bonus");
   const [bulkAmount, setBulkAmount] = useState<string>("");
   const [bulkNote, setBulkNote] = useState<string>("");
   const [bulkMode, setBulkMode] = useState<"add" | "set">("add");
@@ -179,10 +179,16 @@ export default function AdminDues() {
       const currentVal = Number(b[bulkType] ?? 0);
       const newVal = bulkMode === "add" ? currentVal + amount : amount;
       const patch: {
+        service_charge?: number;
+        gas_bill?: number;
+        parking?: number;
         eid_bonus?: number;
         other_charge?: number;
+        arrears?: number;
         other_note?: string | null;
         other_due_date?: string | null;
+        total?: number;
+        status?: FlatStatus;
       } = { [bulkType]: newVal };
       if (bulkType === "other_charge") {
         if (newVal > 0) {
@@ -193,6 +199,21 @@ export default function AdminDues() {
           patch.other_note = null;
         }
       }
+      // Recompute total since bills.total is stored, not generated
+      const components = {
+        service_charge: Number(b.service_charge),
+        gas_bill: Number(b.gas_bill),
+        parking: Number(b.parking),
+        eid_bonus: Number(b.eid_bonus),
+        other_charge: Number(b.other_charge),
+        arrears: Number(b.arrears ?? 0),
+        [bulkType]: newVal,
+      };
+      patch.total = components.service_charge + components.gas_bill + components.parking + components.eid_bonus + components.other_charge + components.arrears;
+      // Recompute status based on new total vs paid_amount
+      const paid = Number(b.paid_amount);
+      patch.status = paid >= patch.total ? "paid" : paid > 0 ? "partial" : "unpaid";
+
       const { data, error } = await supabase
         .from("bills")
         .update(patch)
@@ -544,17 +565,21 @@ export default function AdminDues() {
               <Label className="text-xs mb-1.5 block">
                 {lang === "bn" ? "চার্জ টাইপ" : "Charge type"}
               </Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {([
+                  { k: "service_charge" as const, label: t("serviceCharge") },
+                  { k: "gas_bill" as const, label: t("gasBill") },
+                  { k: "parking" as const, label: t("parking") },
                   { k: "eid_bonus" as const, label: t("eidBonus") },
                   { k: "other_charge" as const, label: t("otherCharge") },
+                  { k: "arrears" as const, label: lang === "bn" ? "বকেয়া" : "Arrears" },
                 ]).map((o) => (
                   <button
                     key={o.k}
                     type="button"
                     onClick={() => setBulkType(o.k)}
                     className={cn(
-                      "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-base",
+                      "rounded-lg border px-3 py-2 text-xs font-medium transition-base",
                       bulkType === o.k
                         ? "gradient-primary text-primary-foreground border-transparent shadow-soft"
                         : "bg-card text-muted-foreground border-border hover:text-foreground"
