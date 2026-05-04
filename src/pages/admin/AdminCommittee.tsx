@@ -26,6 +26,7 @@ type Member = {
   is_published: boolean;
   bio: string | null;
   bio_bn: string | null;
+  phone: string | null;
 };
 
 const ACCENTS = [
