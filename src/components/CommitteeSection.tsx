@@ -105,9 +105,7 @@ export function CommitteeSection() {
                       {lang === "bn" ? m.role_bn : m.role}
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </button>
           </div>
         </div>
 
