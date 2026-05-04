@@ -553,6 +553,45 @@ export type Database = {
         }
         Relationships: []
       }
+      other_incomes: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          reference: string | null
+          source_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          source_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          source_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parking_slots: {
         Row: {
           created_at: string

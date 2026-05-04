@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import OtherIncomeSection from "@/components/OtherIncomeSection";
 
 type Category = {
   id: string;
@@ -295,7 +297,12 @@ export default function AdminExpenses() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <Tabs defaultValue="expenses" className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="expenses">{lang === "bn" ? "ব্যয়" : "Expenses"}</TabsTrigger>
+          <TabsTrigger value="other-income">{lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="expenses" className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("expenses")}</h1>
@@ -791,7 +798,11 @@ export default function AdminExpenses() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        </TabsContent>
+        <TabsContent value="other-income">
+          <OtherIncomeSection />
+        </TabsContent>
+      </Tabs>
     </AppShell>
   );
 }

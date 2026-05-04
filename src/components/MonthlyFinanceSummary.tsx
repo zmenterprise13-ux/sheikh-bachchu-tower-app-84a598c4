@@ -21,7 +21,9 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const [billed, setBilled] = useState(0);
   const [collected, setCollected] = useState(0);
   const [expense, setExpense] = useState(0);
+  const [otherIncome, setOtherIncome] = useState(0);
   const [byCategory, setByCategory] = useState<CatRow[]>([]);
+  const [byIncomeCategory, setByIncomeCategory] = useState<CatRow[]>([]);
   const [published, setPublished] = useState(false);
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,14 +33,17 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     setLoading(true);
     const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
     if (error || !data) {
-      setBilled(0); setCollected(0); setExpense(0); setByCategory([]);
+      setBilled(0); setCollected(0); setExpense(0); setOtherIncome(0);
+      setByCategory([]); setByIncomeCategory([]);
       setPublished(false); setPublishedAt(null);
     } else {
       const d = data as any;
       setBilled(Number(d.billed) || 0);
       setCollected(Number(d.collected) || 0);
       setExpense(Number(d.expense) || 0);
+      setOtherIncome(Number(d.other_income) || 0);
       setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
+      setByIncomeCategory(((d.by_income_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setPublished(Boolean(d.published));
       setPublishedAt(d.published_at ?? null);
     }
@@ -52,7 +57,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
     [month, lang],
   );
 
-  const net = collected - expense;
+  const totalIncome = collected + otherIncome;
+  const net = totalIncome - expense;
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
   const isAdmin = variant === "admin";
@@ -147,12 +153,23 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
         </div>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Tile
               icon={TrendingUp}
-              label={lang === "bn" ? "আয় (আদায়)" : "Income (Collected)"}
+              label={lang === "bn" ? "আদায় (বিল)" : "Collected (Bills)"}
               value={formatMoney(collected, lang)}
               hint={billed > 0 ? `${lang === "bn" ? "বিল" : "Billed"}: ${formatMoney(billed, lang)}` : undefined}
+              tone="success"
+            />
+            <Tile
+              icon={TrendingUp}
+              label={lang === "bn" ? "অন্যান্য আয়" : "Other Income"}
+              value={formatMoney(otherIncome, lang)}
+              hint={
+                byIncomeCategory.length > 0
+                  ? `${byIncomeCategory.length} ${lang === "bn" ? "খাত" : "categories"}`
+                  : (lang === "bn" ? "অনুদান/পাওনা/অন্যান্য" : "Donation/recovery/others")
+              }
               tone="success"
             />
             <Tile
@@ -166,10 +183,46 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
               icon={Wallet}
               label={lang === "bn" ? "নিট ব্যালেন্স" : "Net Balance"}
               value={formatMoney(net, lang)}
-              hint={net >= 0 ? (lang === "bn" ? "উদ্বৃত্ত" : "Surplus") : (lang === "bn" ? "ঘাটতি" : "Deficit")}
+              hint={
+                (lang === "bn" ? "মোট আয়: " : "Total income: ") +
+                formatMoney(totalIncome, lang)
+              }
               tone={net >= 0 ? "success" : "destructive"}
             />
           </div>
+
+          {byIncomeCategory.length > 0 && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {lang === "bn" ? "খাতওয়ারি অন্যান্য আয়" : "Other Income by Category"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(otherIncome, lang)}</span>
+                </div>
+              </div>
+              <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+                {byIncomeCategory.map(({ category, amount }) => {
+                  const pct = otherIncome > 0 ? Math.round((amount / otherIncome) * 100) : 0;
+                  const labelMap: Record<string, { bn: string; en: string }> = {
+                    donation: { bn: "অনুদান", en: "Donation" },
+                    dues_recovery: { bn: "পাওনা আদায়", en: "Dues Recovery" },
+                    external_rent: { bn: "অন্যান্য ভাড়া", en: "Other Rent" },
+                    bank_interest_other: { bn: "ব্যাংক ইন্টারেস্ট/অন্যান্য", en: "Bank Interest / Others" },
+                  };
+                  const label = labelMap[category]?.[lang] ?? category;
+                  return (
+                    <li key={category} className="flex items-center gap-3 px-3 py-2 text-sm">
+                      <TrendingUp className="h-3.5 w-3.5 text-success shrink-0" />
+                      <span className="flex-1 min-w-0 truncate">{label}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                      <span className="font-semibold tabular-nums">{formatMoney(amount, lang)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           {byCategory.length > 0 && (
             <div className="mt-5">
@@ -198,7 +251,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             </div>
           )}
 
-          {billed === 0 && expense === 0 && (
+          {billed === 0 && expense === 0 && otherIncome === 0 && (
             <div className="mt-3 text-xs text-muted-foreground text-center">
               {lang === "bn" ? "এ মাসের কোনো ডেটা নেই।" : "No data for this month."}
             </div>
