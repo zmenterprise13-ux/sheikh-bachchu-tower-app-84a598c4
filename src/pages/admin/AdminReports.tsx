@@ -203,7 +203,10 @@ export default function AdminReports() {
   const totalIncome = perMonth.reduce((s, r) => s + r.collected, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
-  const balance = totalIncome - totalExpense;
+  const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
+  const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
+  const operatingNet = totalIncome - totalExpense;
+  const balance = operatingNet + totalLoanIn - totalLoanOut;
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
