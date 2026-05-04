@@ -29,7 +29,7 @@ const COL_KEY = "tenant-blank-form-cols-v1";
 
 const DEFAULT_LABELS = {
   buildingName: "শেখ বাচ্চু টাওয়ার",
-  buildingAddress: "১২৭, পশ্চিম নাখালপাড়া, তেজগাঁও, ঢাকা-১২১৫",
+  buildingAddress: "১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।",
   formTitle: "ভাড়াটিয়া তথ্য হালনাগাদ ফরম",
   flatNo: "ফ্ল্যাট নং",
   date: "তারিখ",
