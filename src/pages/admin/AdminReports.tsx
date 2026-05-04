@@ -713,27 +713,17 @@ export default function AdminReports() {
                       <span className="font-bold text-success text-lg">{formatMoney(grandBilled, lang)}</span>
                     </div>
 
-                    {/* Loan taken */}
-                    <div className="pt-3 border-t border-dashed border-border">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-foreground">
-                          {lang === "bn" ? "লোন নেয়া (কার কাছ থেকে)" : "Loan Taken (Lenders)"}
-                        </span>
-                        <span className="text-sm font-bold text-success">{formatMoney(totalLoanIn, lang)}</span>
-                      </div>
-                      {loanLenderRows.length === 0 ? (
-                        <div className="text-xs text-muted-foreground pl-2">—</div>
-                      ) : (
-                        <div className="space-y-1 pl-2 border-l-2 border-success/40">
-                          {loanLenderRows.map(([name, amt]) => (
-                            <div key={name} className="flex items-center justify-between text-xs pl-3">
-                              <span className="text-muted-foreground truncate">{name}</span>
-                              <span className="text-foreground tabular-nums font-semibold">{formatMoney(amt, lang)}</span>
-                            </div>
-                          ))}
+                    {/* Loan taken (cash in) */}
+                    {totalLoanIn > 0 && (
+                      <div className="pt-3 border-t border-dashed border-border">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-foreground">
+                            {lang === "bn" ? "লোন নেয়া (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
+                          </span>
+                          <span className="text-sm font-bold text-success">{formatMoney(totalLoanIn, lang)}</span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Other income by category */}
                     <div className="pt-3 border-t border-dashed border-border">
@@ -757,9 +747,9 @@ export default function AdminReports() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{lang === "bn" ? "প্রকৃত আদায় (বিল)" : "Actual collected (bills)"}</span>
-                      <span className="font-semibold">{formatMoney(totalIncome, lang)}</span>
+                    <div className="flex items-center justify-between pt-3 border-t-2 border-success/40">
+                      <span className="font-semibold">{lang === "bn" ? "সর্বমোট কালেকশন" : "Total Collection"}</span>
+                      <span className="font-bold text-success text-lg">{formatMoney(totalIncome + totalOtherIn + totalLoanIn, lang)}</span>
                     </div>
 
                     {/* Reference-only breakdown by category */}
@@ -819,9 +809,17 @@ export default function AdminReports() {
                   </div>
                 );
               })}
+              {totalLoanOut > 0 && (
+                <div className="pt-2 border-t border-dashed border-border">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{lang === "bn" ? "লোন পরিশোধ (ক্যাশ আউট)" : "Loan Repaid (Cash Out)"}</span>
+                    <span className="font-semibold text-foreground">{formatMoney(totalLoanOut, lang)}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
-                <span className="font-semibold">{t("total")}</span>
-                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense, lang)}</span>
+                <span className="font-semibold">{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</span>
+                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense + totalLoanOut, lang)}</span>
               </div>
             </div>
           </div>
