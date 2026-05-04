@@ -55,17 +55,56 @@ type Flat = {
 };
 
 const SELECT_COLS =
-  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url";
+  "id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
 
 export default function AdminFlats() {
   const { t, lang } = useLang();
   const [q, setQ] = useState("");
-  const [flats, setFlats] = useState<Flat[]>([]);
+  const [flats, setFlats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Flat | null>(null);
   const [ledgerFlat, setLedgerFlat] = useState<Flat | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [bulkLoginBusy, setBulkLoginBusy] = useState(false);
+  const { enabled: signupEnabled } = useSignupEnabled();
+
+  const missingLogins = (flats as any[]).filter(
+    (f) => !f.owner_user_id && /^\d{11}$/.test((f.phone ?? "").trim()),
+  );
+
+  const createMissingLogins = async () => {
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বর্তমানে বন্ধ আছে" : "Sign up is currently disabled");
+      return;
+    }
+    if (missingLogins.length === 0) {
+      toast.info(lang === "bn" ? "সব ফ্ল্যাটের লগইন তৈরি আছে" : "All flats already have logins");
+      return;
+    }
+    setBulkLoginBusy(true);
+    // dedupe by phone
+    const seen = new Set<string>();
+    const targets = missingLogins.filter((f) => {
+      const p = (f.phone as string).trim();
+      if (seen.has(p)) return false;
+      seen.add(p);
+      return true;
+    });
+    let ok = 0;
+    let fail = 0;
+    for (const f of targets) {
+      const { data, error } = await supabase.functions.invoke("owner-create-account", {
+        body: { phone: (f.phone as string).trim(), flat_id: f.id },
+      });
+      if (error || (data as any)?.error) fail++;
+      else ok++;
+    }
+    setBulkLoginBusy(false);
+    if (ok) toast.success(lang === "bn" ? `${ok} টি লগইন তৈরি (পাসওয়ার্ড: 12345678)` : `Created ${ok} logins (password: 12345678)`);
+    if (fail) toast.error(lang === "bn" ? `${fail} টি ব্যর্থ` : `${fail} failed`);
+    await load();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -123,6 +162,23 @@ export default function AdminFlats() {
             >
               <Wallet className="h-4 w-4 mr-2" />
               {lang === "bn" ? "বাল্ক সার্ভিস চার্জ" : "Bulk Service Charge"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createMissingLogins}
+              disabled={bulkLoginBusy || loading}
+              className="shrink-0"
+              title={lang === "bn" ? "যাদের ফোন আছে কিন্তু লগইন নেই" : "Flats with phone but no login"}
+            >
+              {bulkLoginBusy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <KeyRound className="h-4 w-4 mr-2" />
+              )}
+              {lang === "bn"
+                ? `ওনার লগইন তৈরি (${formatNumber(missingLogins.length, lang)})`
+                : `Create Owner Logins (${missingLogins.length})`}
             </Button>
             <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
