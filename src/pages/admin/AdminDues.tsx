@@ -548,17 +548,21 @@ export default function AdminDues() {
               <Label className="text-xs mb-1.5 block">
                 {lang === "bn" ? "চার্জ টাইপ" : "Charge type"}
               </Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {([
+                  { k: "service_charge" as const, label: t("serviceCharge") },
+                  { k: "gas_bill" as const, label: t("gasBill") },
+                  { k: "parking" as const, label: t("parking") },
                   { k: "eid_bonus" as const, label: t("eidBonus") },
                   { k: "other_charge" as const, label: t("otherCharge") },
+                  { k: "arrears" as const, label: lang === "bn" ? "বকেয়া" : "Arrears" },
                 ]).map((o) => (
                   <button
                     key={o.k}
                     type="button"
                     onClick={() => setBulkType(o.k)}
                     className={cn(
-                      "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-base",
+                      "rounded-lg border px-3 py-2 text-xs font-medium transition-base",
                       bulkType === o.k
                         ? "gradient-primary text-primary-foreground border-transparent shadow-soft"
                         : "bg-card text-muted-foreground border-border hover:text-foreground"
