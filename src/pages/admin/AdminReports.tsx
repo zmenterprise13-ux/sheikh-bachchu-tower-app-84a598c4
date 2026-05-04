@@ -447,7 +447,7 @@ export default function AdminReports() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
-            <StatCard label={t("income")} value={formatMoney(totalIncome, lang)} hint={`${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
+            <StatCard label={t("income")} value={formatMoney(totalIncome + totalOtherIn, lang)} hint={totalOtherIn > 0 ? `${lang === "bn" ? "বিল" : "Bills"}: ${formatMoney(totalIncome, lang)} · ${lang === "bn" ? "অন্যান্য" : "Other"}: ${formatMoney(totalOtherIn, lang)}` : `${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
             <StatCard label={t("expense")} value={formatMoney(totalExpense, lang)} hint={`${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
             <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
