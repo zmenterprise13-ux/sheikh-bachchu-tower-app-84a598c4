@@ -119,34 +119,35 @@ export default function AdminOwnersDirectory() {
         key={g.key}
         className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:shadow-elevated hover:-translate-y-0.5"
       >
-        {/* Gradient header */}
-        <div
-          className={cn(
-            "relative px-4 pt-4 pb-12 bg-gradient-to-br",
-            getAvatarGradient(g.key),
-          )}
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.4),transparent_55%)] pointer-events-none" />
-          <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        {/* Soft faded gradient header */}
+        <div className="relative px-4 pt-4 pb-12 overflow-hidden bg-card">
+          <div
+            className={cn(
+              "absolute inset-0 bg-gradient-to-br opacity-30",
+              getAvatarGradient(g.key),
+            )}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/60 pointer-events-none" />
+          <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-white/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-start gap-3">
-            <Avatar className="h-14 w-14 ring-4 ring-white/40 shadow-lg shrink-0">
+            <Avatar className="h-14 w-14 ring-4 ring-card shadow-md shrink-0">
               {g.owner_photo_url ? <AvatarImage src={g.owner_photo_url} /> : null}
               <InitialsFallback name={g.owner_name} seed={g.key} className="text-base" />
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-white truncate leading-tight drop-shadow-sm">
+              <h3 className="font-semibold text-foreground truncate leading-tight">
                 {g.owner_name}
               </h3>
               {g.phone ? (
                 <a
                   href={`tel:${g.phone}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:underline mt-1 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline mt-1 bg-card/70 backdrop-blur-sm border border-border/60 px-2 py-0.5 rounded-full"
                 >
                   <Phone className="h-3 w-3" />
                   {g.phone}
                 </a>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white/80 mt-1 bg-white/10 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground mt-1 bg-card/70 border border-border/60 px-2 py-0.5 rounded-full">
                   <Phone className="h-3 w-3" />
                   {lang === "bn" ? "ফোন নেই" : "No phone"}
                 </span>
