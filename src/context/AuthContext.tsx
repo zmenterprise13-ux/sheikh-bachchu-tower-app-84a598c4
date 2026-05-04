@@ -21,6 +21,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // "Remember me" enforcement: if user opted out of being remembered,
+    // a sessionStorage marker is set after login. When the browser is
+    // closed, sessionStorage is cleared — so on next boot we sign out.
+    const remember = localStorage.getItem("auth.remember");
+    if (remember === "0" && !sessionStorage.getItem("auth.session_only")) {
+      supabase.auth.signOut();
+    }
+
+
     // 1. Subscribe FIRST (avoid race)
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
