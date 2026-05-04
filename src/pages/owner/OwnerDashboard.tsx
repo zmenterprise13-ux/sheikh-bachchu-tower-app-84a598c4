@@ -58,13 +58,13 @@ export default function OwnerDashboard() {
   const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
   const month = currentMonth();
-  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null }>({ en: null, bn: null });
+  const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null; avatar: string | null }>({ en: null, bn: null, avatar: null });
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("display_name, display_name_bn").eq("user_id", user.id).maybeSingle()
+    supabase.from("profiles").select("display_name, display_name_bn, avatar_url").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
-        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn });
+        if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn, avatar: (data as any).avatar_url });
       });
   }, [user]);
   const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
@@ -141,7 +141,7 @@ export default function OwnerDashboard() {
         <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
           <div className="flex items-start gap-4 flex-wrap">
             <OwnerAvatarUpload
-              photoUrl={flat.owner_photo_url}
+              photoUrl={profileName.avatar || flat.owner_photo_url}
               ownerName={flat.owner_name}
               flatId={flat.id}
               onChanged={refetchFlats}
@@ -426,6 +426,7 @@ function OwnerAvatarUpload({
       const newUrl = pub.publicUrl;
       const { error: rpcErr } = await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
       if (rpcErr) throw rpcErr;
+      if (user) await supabase.from("profiles").update({ avatar_url: newUrl }).eq("user_id", user.id);
       setLocalUrl(newUrl);
       setCropSrc(null);
       toast.success(lang === "bn" ? "ছবি আপডেট হয়েছে" : "Photo updated");
@@ -442,6 +443,7 @@ function OwnerAvatarUpload({
     try {
       const { error } = await supabase.rpc("update_my_owner_photo", { _photo_url: null });
       if (error) throw error;
+      if (user) await supabase.from("profiles").update({ avatar_url: null }).eq("user_id", user.id);
       setLocalUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
       await onChanged?.();

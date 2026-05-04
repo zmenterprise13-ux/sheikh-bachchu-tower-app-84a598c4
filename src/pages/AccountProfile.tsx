@@ -97,6 +97,8 @@ export default function AccountProfile() {
         .update({ avatar_url: newUrl })
         .eq("user_id", user.id);
       if (updErr) throw updErr;
+      // Sync to all owned flats so dashboard shows the same photo
+      await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
       setAvatarUrl(newUrl);
       setCropSrc(null);
       toast.success(lang === "bn" ? "প্রোফাইল ছবি আপডেট হয়েছে" : "Profile photo updated");
@@ -116,6 +118,7 @@ export default function AccountProfile() {
         .update({ avatar_url: null })
         .eq("user_id", user.id);
       if (error) throw error;
+      await supabase.rpc("update_my_owner_photo", { _photo_url: null });
       setAvatarUrl(null);
       toast.success(lang === "bn" ? "ছবি সরানো হয়েছে" : "Photo removed");
     } catch (err: any) {
