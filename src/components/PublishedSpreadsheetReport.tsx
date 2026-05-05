@@ -104,7 +104,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   // Build income rows
   type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean; breakdown?: boolean };
   const incomeRows: Row[] = [];
-  incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, muted: true });
+  incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, bold: true, category: true });
   incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true, category: true });
   flatBuckets.forEach((r) => {
     incomeRows.push({
