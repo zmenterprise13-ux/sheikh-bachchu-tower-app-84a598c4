@@ -347,26 +347,39 @@ function useAccountName() {
 }
 
 function AccountHeader() {
-  const { name, flatLabel } = useAccountName();
+  const { name, flats, chosenId, setSelectedFlatId } = useAccountName();
   const { role } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   if (!name) return null;
   const roleText = role ? t(role as TKey) : "";
+  const hasMulti = flats.length > 1;
   return (
-    <div className="px-3 py-2.5 rounded-lg bg-secondary/60 border border-border">
+    <div className="px-3 py-2.5 rounded-lg bg-secondary/60 border border-border space-y-2">
       <div className="flex items-center gap-2.5">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full gradient-primary text-primary-foreground">
           <UserCircle className="h-5 w-5" />
         </div>
         <div className="min-w-0 leading-tight">
           <div className="text-sm font-semibold text-foreground truncate">{name}</div>
-          {(roleText || flatLabel) && (
-            <div className="text-[11px] text-muted-foreground truncate">
-              {[roleText, flatLabel].filter(Boolean).join(" · ")}
-            </div>
+          {roleText && (
+            <div className="text-[11px] text-muted-foreground truncate">{roleText}</div>
           )}
         </div>
       </div>
+      {hasMulti && chosenId && (
+        <Select value={chosenId} onValueChange={(v) => setSelectedFlatId(v)}>
+          <SelectTrigger className="h-7 text-xs px-2 bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {flats.map((f) => (
+              <SelectItem key={f.id} value={f.id} className="text-xs">
+                {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }
