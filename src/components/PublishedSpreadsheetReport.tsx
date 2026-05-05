@@ -102,7 +102,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const net = opening + totalCollection - totalExpense;
 
   // Build income rows
-  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean };
+  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean };
   const incomeRows: Row[] = [];
   incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, muted: true });
   incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true });
