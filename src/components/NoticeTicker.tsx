@@ -20,7 +20,7 @@ export function NoticeTicker() {
   const [paused, setPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-  const { speed } = useTickerSpeed();
+  const { speed, direction } = useTickerSpeed();
   const regionRef = useRef<HTMLElement>(null);
   const seenIdsRef = useRef<Set<string> | null>(null);
   const announceTimerRef = useRef<number | null>(null);
@@ -198,6 +198,7 @@ export function NoticeTicker() {
             style={{
               animationDuration: `${speed}s`,
               animationPlayState: paused ? "paused" : "running",
+              animationDirection: direction === "right" ? "reverse" : "normal",
             }}
           >
             {loop.map((n, idx) => {

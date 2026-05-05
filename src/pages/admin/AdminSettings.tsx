@@ -378,9 +378,10 @@ export default function AdminSettings() {
 
 function TickerSpeedCard() {
   const { lang } = useLang();
-  const { speed, loading, save, MIN, MAX } = useTickerSpeed();
+  const { speed, direction, loading, save, saveDirection, MIN, MAX } = useTickerSpeed();
   const [val, setVal] = useState<number>(20);
   const [saving, setSaving] = useState(false);
+  const [savingDir, setSavingDir] = useState(false);
 
   useEffect(() => { if (!loading) setVal(speed); }, [loading, speed]);
 
@@ -392,8 +393,17 @@ function TickerSpeedCard() {
     else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
   };
 
+  const onDir = async (next: "left" | "right") => {
+    if (next === direction) return;
+    setSavingDir(true);
+    const { error } = await saveDirection(next);
+    setSavingDir(false);
+    if (error) toast.error(error.message);
+    else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
+  };
+
   return (
-    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-4">
       <div className="font-semibold text-foreground">
         {lang === "bn" ? "নোটিশ স্ক্রলিং স্পিড" : "Notice scrolling speed"}
       </div>
@@ -417,6 +427,40 @@ function TickerSpeedCard() {
         <Button size="sm" onClick={onSave} disabled={saving || loading || val === speed} className="gap-2">
           <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
         </Button>
+      </div>
+
+      <div className="pt-3 border-t border-border space-y-2">
+        <div className="text-sm font-medium text-foreground">
+          {lang === "bn" ? "স্ক্রল দিক" : "Scroll direction"}
+        </div>
+        <div className="inline-flex rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            onClick={() => onDir("left")}
+            disabled={loading || savingDir}
+            className={cn(
+              "px-4 py-2 text-sm transition-colors",
+              direction === "left"
+                ? "bg-primary text-primary-foreground"
+                : "bg-background text-foreground hover:bg-muted",
+            )}
+          >
+            {lang === "bn" ? "← বামে" : "← Left"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDir("right")}
+            disabled={loading || savingDir}
+            className={cn(
+              "px-4 py-2 text-sm border-l border-border transition-colors",
+              direction === "right"
+                ? "bg-primary text-primary-foreground"
+                : "bg-background text-foreground hover:bg-muted",
+            )}
+          >
+            {lang === "bn" ? "ডানে →" : "Right →"}
+          </button>
+        </div>
       </div>
     </div>
   );
