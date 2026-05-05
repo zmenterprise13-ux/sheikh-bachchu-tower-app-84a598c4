@@ -154,7 +154,7 @@ export default function OwnerDashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
-              <h1 className="text-2xl sm:text-3xl font-bold">{(lang === "bn" ? (flat.owner_name_bn || flat.owner_name || profileName.bn || profileName.en) : (flat.owner_name || flat.owner_name_bn || profileName.en || profileName.bn)) || "—"}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">{residentName(flat, lang) || profileName.bn || profileName.en || "—"}</h1>
               <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
                 <Building2 className="h-3.5 w-3.5 opacity-80" />
                 {hasMultipleFlats ? (
