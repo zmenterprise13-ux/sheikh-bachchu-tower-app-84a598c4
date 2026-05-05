@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
@@ -128,20 +128,19 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       incomeRows.push({ label: oiCatLabel[r.category]?.[lang] ?? r.category, amount: NaN, sub: true, breakdown: true, detail: String(Number(r.amount)) });
     });
   }
-  // Breakdown
+  // Bill components breakdown — shown separately at the bottom (not part of main income column)
+  const billBreakdown: { label: string; subtotal: number; rows: { label: string; amount: number }[] }[] = [];
   components.forEach((sec) => {
     const rows = snap.bill_components?.[sec.key] ?? [];
     const subtotal = rows.reduce((s, r) => s + Number(r.rate) * Number(r.count), 0);
     if (rows.length === 0 && subtotal === 0) return;
-    incomeRows.push({ label: sec.label, amount: subtotal, category: true });
-    rows.forEach((r) => {
-      incomeRows.push({
+    billBreakdown.push({
+      label: sec.label,
+      subtotal,
+      rows: rows.map((r) => ({
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
-        amount: NaN,
-        sub: true,
-        breakdown: true,
-        detail: String(Number(r.rate) * Number(r.count)),
-      });
+        amount: Number(r.rate) * Number(r.count),
+      })),
     });
   });
 
@@ -290,6 +289,46 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
         <div className="border border-border p-2 rounded text-[11px]">
           <div className="font-semibold text-muted-foreground mb-0.5">{lang === "bn" ? "মন্তব্য" : "Notes"}</div>
           <p className="whitespace-pre-wrap">{snap.notes}</p>
+        </div>
+      )}
+
+      {billBreakdown.length > 0 && (
+        <div className="space-y-1 pt-2">
+          <div className="text-[11px] font-bold text-muted-foreground">
+            {lang === "bn" ? "বিল ব্রেকডাউন (শুধু রেফারেন্স)" : "Bill Breakdown (reference only)"}
+          </div>
+          <table className="w-full border-collapse text-[10.5px] text-foreground/60">
+            <thead>
+              <tr className="bg-secondary/50">
+                <th className={`${cellCls} text-left w-[40%] font-semibold`}>{lang === "bn" ? "বিবরণ" : "Item"}</th>
+                <th className={`${cellCls} ${numCls} w-[30%] font-semibold italic`}>{lang === "bn" ? "(ব্রেকডাউন)" : "(breakdown)"}</th>
+                <th className={`${cellCls} ${numCls} w-[30%] font-semibold`}>{lang === "bn" ? "উপ-মোট" : "Subtotal"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billBreakdown.map((sec, si) => (
+                <Fragment key={si}>
+                  <tr>
+                    <td className={`${cellCls} font-bold text-success`}>{sec.label}</td>
+                    <td className={cellCls}></td>
+                    <td className={`${cellCls} ${numCls} font-bold text-success`}>{formatMoney(sec.subtotal, lang)}</td>
+                  </tr>
+                  {sec.rows.map((r, ri) => (
+                    <tr key={ri}>
+                      <td className={`${cellCls} pl-4 text-[10px]`}>{r.label}</td>
+                      <td className={`${cellCls} ${numCls} italic text-foreground/40 text-[10px]`}>{formatMoney(r.amount, lang)}</td>
+                      <td className={cellCls}></td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-[10px] text-muted-foreground italic">
+            {lang === "bn"
+              ? "* এই ব্রেকডাউন মূল ক্যাশ/কালেকশনের সাথে যোগ হয় না — শুধুমাত্র রেফারেন্সের জন্য।"
+              : "* This breakdown is not added to the main cash/collection — for reference only."}
+          </p>
         </div>
       )}
     </div>
