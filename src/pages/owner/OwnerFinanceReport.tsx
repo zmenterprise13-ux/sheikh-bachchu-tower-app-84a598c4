@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FileBarChart, Printer } from "lucide-react";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
-import { PublishedDetailedReport } from "@/components/PublishedDetailedReport";
+import { PublishedSpreadsheetReport } from "@/components/PublishedSpreadsheetReport";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -112,7 +112,7 @@ export default function OwnerFinanceReport() {
             </p>
           </div>
           {style === "detailed" ? (
-            <PublishedDetailedReport month={month} />
+            <PublishedSpreadsheetReport month={month} />
           ) : (
             <MonthlyFinanceSummary
               month={month}
