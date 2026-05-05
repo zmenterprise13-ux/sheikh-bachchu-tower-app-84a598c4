@@ -100,6 +100,7 @@ export default function AdminDues() {
   const [bulkPayDate, setBulkPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [bulkPayScope, setBulkPayScope] = useState<"all" | "filtered">("filtered");
   const [bulkPaySaving, setBulkPaySaving] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
@@ -460,97 +461,123 @@ export default function AdminDues() {
 
         <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
           <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 text-xs font-semibold text-muted-foreground uppercase border-b border-border bg-secondary/40">
-            <div className="col-span-1">{t("flatNo")}</div>
-            <div className="col-span-3">{t("ownerName")}</div>
-            <div className="col-span-2 text-right">{t("serviceCharge")}</div>
-            <div className="col-span-2 text-right">{t("gasBill")}+{t("parking")}+{t("eidBonus")}+{t("otherCharge")}</div>
-            <div className="col-span-1 text-right">{t("total")}</div>
-            <div className="col-span-1 text-right">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</div>
-            <div className="col-span-2 text-right">{t("action")}</div>
+            <div className="col-span-2">{t("flatNo")}</div>
+            <div className="col-span-5">{t("ownerName")}</div>
+            <div className="col-span-2 text-right">{t("due")}</div>
+            <div className="col-span-3 text-right">{t("action")}</div>
           </div>
 
           <div className="divide-y divide-border">
             {loading && (
               <div className="p-5 space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
+                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
               </div>
             )}
             {!loading && visible.map((b) => {
               const flat = flats.find((f) => f.id === b.flat_id)!;
               const due = Number(b.total) - Number(b.paid_amount);
+              const isOpen = expandedId === b.id;
+              const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
+              const photo = isTenant ? (flat.occupant_photo_url || flat.owner_photo_url) : flat.owner_photo_url;
+              const name = residentName(flat, lang) || flat.flat_no;
               return (
-                <div key={b.id} className="grid grid-cols-[auto_1fr] md:grid-cols-12 gap-x-3 gap-y-2 px-4 sm:px-5 py-3 items-start hover:bg-secondary/40 transition-base">
-                  <div className="md:col-span-1 flex flex-col items-center gap-1 shrink-0">
-                    {(() => {
-                      const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
-                      const photo = isTenant ? (flat.occupant_photo_url || flat.owner_photo_url) : flat.owner_photo_url;
-                      const name = residentName(flat, lang) || flat.flat_no;
-                      return (
-                        <Avatar className="h-10 w-10 ring-2 ring-card shadow-sm">
-                          {photo ? <AvatarImage src={photo} alt={name} /> : null}
-                          <InitialsFallback name={name} seed={flat.id} className="text-[11px]" />
-                        </Avatar>
-                      );
-                    })()}
-                    <span className="font-bold text-primary text-xs leading-none">{flat.flat_no}</span>
-                  </div>
-                  <div className="md:col-span-3 min-w-0 max-w-full overflow-hidden">
-                    <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="break-words [overflow-wrap:anywhere] min-w-0">{residentName(flat, lang) || "—"}</span>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
-                        {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
-                      </span>
+                <div key={b.id} className="transition-base">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isOpen ? null : b.id)}
+                    className="w-full text-left grid grid-cols-[auto_1fr_auto] md:grid-cols-12 gap-3 px-4 sm:px-5 py-3 items-center hover:bg-secondary/40"
+                  >
+                    <div className="md:col-span-2 flex flex-col items-center gap-1 shrink-0">
+                      <Avatar className="h-16 w-16 sm:h-20 sm:w-20 ring-2 ring-card shadow-sm">
+                        {photo ? <AvatarImage src={photo} alt={name} /> : null}
+                        <InitialsFallback name={name} seed={flat.id} className="text-sm" />
+                      </Avatar>
+                      <span className="font-bold text-primary text-xs leading-none">{flat.flat_no}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground break-all">{(flat.occupant_type === "tenant" ? flat.occupant_phone : flat.phone) || ""}</div>
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
-                      <span className="text-muted-foreground">
-                        {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(Number(b.total), lang)}</span>
-                      </span>
-                      <span className="text-muted-foreground">
-                        {lang === "bn" ? "আদায়" : "Paid"}: <span className="font-semibold text-success">{formatMoney(Number(b.paid_amount), lang)}</span>
-                      </span>
-                      <span className="text-muted-foreground">
-                        {lang === "bn" ? "বাকী" : "Due"}: <span className={cn("font-semibold", due > 0 ? "text-destructive" : "text-foreground")}>{formatMoney(Math.max(0, due), lang)}</span>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 md:text-right text-sm">{formatMoney(Number(b.service_charge), lang)}</div>
-                  <div className="md:col-span-2 md:text-right text-sm">
-                    {formatMoney(Number(b.gas_bill) + Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge) + Number(b.arrears ?? 0), lang)}
-                    {(Number(b.eid_bonus) > 0 || Number(b.other_charge) > 0 || Number(b.arrears ?? 0) > 0) && (
-                      <div className="text-[10px] text-muted-foreground">
-                        {Number(b.arrears ?? 0) > 0 && <span className="text-destructive">{lang === "bn" ? "বাকি" : "Arr"}: {formatMoney(Number(b.arrears), lang)} </span>}
-                        {Number(b.eid_bonus) > 0 && <>ঈদ: {formatMoney(Number(b.eid_bonus), lang)} </>}
-                        {Number(b.other_charge) > 0 && <>+ {b.other_note || t("otherCharge")}: {formatMoney(Number(b.other_charge), lang)}</>}
+                    <div className="md:col-span-5 min-w-0">
+                      <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="break-words [overflow-wrap:anywhere] min-w-0">{name}</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${isTenant ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
+                          {isTenant ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="md:col-span-1 md:text-right">
-                    <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
-                    {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === "bn" ? "জেনারেট" : "Gen"}: {formatDMY(b.generated_at)}
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground tabular-nums">{formatMoney(Number(b.total), lang)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="md:col-span-1 md:text-right text-xs tabular-nums">
-                    {b.paid_at ? (
-                      <span className="text-success font-semibold">{formatDMY(b.paid_at)}</span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </div>
-                  <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
-                    <StatusBadge status={b.status} />
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(b)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    {b.status !== "paid" && (
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openPay(b)}>
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">{t("markPaid")}</span>
-                      </Button>
-                    )}
-                  </div>
+                    <div className="md:col-span-2 md:text-right">
+                      <div className={cn("text-lg font-bold tabular-nums", due > 0 ? "text-destructive" : "text-success")}>
+                        {formatMoney(Math.max(0, due), lang)}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">{lang === "bn" ? "বকেয়া" : "Due"}</div>
+                    </div>
+                    <div className="md:col-span-3 flex items-center justify-end gap-2 col-span-3">
+                      <StatusBadge status={b.status} />
+                      <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-4 sm:px-5 pb-4 pt-1 bg-secondary/20 border-t border-border space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                        <div className="rounded-lg bg-card border border-border p-2">
+                          <div className="text-muted-foreground text-[10px]">{t("serviceCharge")}</div>
+                          <div className="font-semibold tabular-nums">{formatMoney(Number(b.service_charge), lang)}</div>
+                        </div>
+                        <div className="rounded-lg bg-card border border-border p-2">
+                          <div className="text-muted-foreground text-[10px]">{t("gasBill")}</div>
+                          <div className="font-semibold tabular-nums">{formatMoney(Number(b.gas_bill), lang)}</div>
+                        </div>
+                        <div className="rounded-lg bg-card border border-border p-2">
+                          <div className="text-muted-foreground text-[10px]">{t("parking")}</div>
+                          <div className="font-semibold tabular-nums">{formatMoney(Number(b.parking), lang)}</div>
+                        </div>
+                        {Number(b.eid_bonus) > 0 && (
+                          <div className="rounded-lg bg-card border border-border p-2">
+                            <div className="text-muted-foreground text-[10px]">{t("eidBonus")}</div>
+                            <div className="font-semibold tabular-nums">{formatMoney(Number(b.eid_bonus), lang)}</div>
+                          </div>
+                        )}
+                        {Number(b.other_charge) > 0 && (
+                          <div className="rounded-lg bg-card border border-border p-2">
+                            <div className="text-muted-foreground text-[10px]">{b.other_note || t("otherCharge")}</div>
+                            <div className="font-semibold tabular-nums">{formatMoney(Number(b.other_charge), lang)}</div>
+                          </div>
+                        )}
+                        {Number(b.arrears ?? 0) > 0 && (
+                          <div className="rounded-lg bg-card border border-border p-2">
+                            <div className="text-muted-foreground text-[10px]">{lang === "bn" ? "বকেয়া" : "Arrears"}</div>
+                            <div className="font-semibold tabular-nums text-destructive">{formatMoney(Number(b.arrears), lang)}</div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs tabular-nums">
+                        <span className="text-muted-foreground">{lang === "bn" ? "মোট" : "Total"}: <b className="text-foreground">{formatMoney(Number(b.total), lang)}</b></span>
+                        <span className="text-muted-foreground">{lang === "bn" ? "আদায়" : "Paid"}: <b className="text-success">{formatMoney(Number(b.paid_amount), lang)}</b></span>
+                        <span className="text-muted-foreground">{lang === "bn" ? "বাকী" : "Due"}: <b className={due > 0 ? "text-destructive" : "text-foreground"}>{formatMoney(Math.max(0, due), lang)}</b></span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                        <span>{lang === "bn" ? "ফোন" : "Phone"}: {(isTenant ? flat.occupant_phone : flat.phone) || "—"}</span>
+                        <span>{lang === "bn" ? "জেনারেট" : "Generated"}: {formatDMY(b.generated_at)}</span>
+                        <span>{lang === "bn" ? "পেমেন্ট তারিখ" : "Paid on"}: {b.paid_at ? <span className="text-success font-semibold">{formatDMY(b.paid_at)}</span> : "—"}</span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <Button size="sm" variant="ghost" className="gap-1" onClick={() => setEditing(b)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                          {lang === "bn" ? "এডিট" : "Edit"}
+                        </Button>
+                        {b.status !== "paid" && (
+                          <Button size="sm" className="gap-1 bg-success text-success-foreground hover:bg-success/90" onClick={() => openPay(b)}>
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            {t("markPaid")}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
