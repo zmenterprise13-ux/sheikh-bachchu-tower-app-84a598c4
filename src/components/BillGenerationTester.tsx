@@ -19,16 +19,47 @@ type RunResult = {
   error?: string;
 };
 
+function shiftMonth(m: string, delta: number): string {
+  const [y, mm] = m.split("-").map(Number);
+  const d = new Date(Date.UTC(y, mm - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 export function BillGenerationTester() {
   const { lang } = useLang();
-  const [month, setMonth] = useState(currentMonth());
+  const [billedMonths, setBilledMonths] = useState<Set<string>>(new Set());
+  const [loadingMonths, setLoadingMonths] = useState(true);
+  const [month, setMonth] = useState<string>("");
   const [eidOverride, setEidOverride] = useState(false);
   const [forceEid, setForceEid] = useState(false);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
+  // Build a window of candidate months (last 12 + current + next 1) and exclude already-billed ones.
+  const now = currentMonth();
+  const candidates: string[] = [];
+  for (let i = -12; i <= 1; i++) candidates.push(shiftMonth(now, i));
+  const availableMonths = candidates.filter((m) => !billedMonths.has(m));
+
+  const loadBilled = async () => {
+    setLoadingMonths(true);
+    const { data } = await supabase.from("bills").select("month");
+    const set = new Set<string>((data ?? []).map((r: any) => r.month as string));
+    setBilledMonths(set);
+    setLoadingMonths(false);
+    // pick default month: latest available <= current, else first available
+    setMonth((prev) => {
+      if (prev && !set.has(prev)) return prev;
+      const preferred = [...candidates].reverse().find((m) => !set.has(m) && m <= now);
+      return preferred ?? candidates.find((m) => !set.has(m)) ?? "";
+    });
+  };
+
+  useEffect(() => { loadBilled(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
   const run = async () => {
     if (!/^\d{4}-\d{2}$/.test(month)) return;
+    if (billedMonths.has(month)) return;
     setRunning(true);
     setResult(null);
     const startedAt = new Date().toISOString();
@@ -43,6 +74,8 @@ export function BillGenerationTester() {
       } else {
         setResult({ ok: true, status: 200, durationMs, startedAt, data });
       }
+      // Refresh billed months so generated month disappears from picker
+      await loadBilled();
     } catch (e) {
       setResult({
         ok: false, status: 0, durationMs: Math.round(performance.now() - t0),
