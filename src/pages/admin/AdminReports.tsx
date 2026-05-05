@@ -144,7 +144,7 @@ export default function AdminReports() {
           .select("date, category, amount")
           .gte("date", monthStart).lt("date", monthEnd),
         supabase.from("flats")
-          .select("id, flat_no, owner_name, owner_name_bn")
+          .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
         anchorMonth
           ? supabase.from("bills").select("paid_amount").gte("month", anchorMonth).lt("month", from)
