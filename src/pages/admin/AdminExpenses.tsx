@@ -289,6 +289,7 @@ export default function AdminExpenses() {
         description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(ym)}` : `${it.name} - ${monthLabel(ym)}`),
         amount: Number(row.amount),
         created_by: user?.id ?? null,
+        ...approvalFieldsForInsert(role, user?.id),
       };
     });
     const { error } = await supabase.from("expenses").insert(expenseRows);
