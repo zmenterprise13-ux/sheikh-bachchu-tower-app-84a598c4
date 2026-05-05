@@ -479,9 +479,22 @@ export default function AdminDues() {
               const flat = flats.find((f) => f.id === b.flat_id)!;
               const due = Number(b.total) - Number(b.paid_amount);
               return (
-                <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-x-3 gap-y-2 px-4 sm:px-5 py-3 items-start hover:bg-secondary/40 transition-base">
-                  <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
-                  <div className="md:col-span-3 min-w-0 col-span-1 max-w-full overflow-hidden">
+                <div key={b.id} className="grid grid-cols-[auto_1fr] md:grid-cols-12 gap-x-3 gap-y-2 px-4 sm:px-5 py-3 items-start hover:bg-secondary/40 transition-base">
+                  <div className="md:col-span-1 flex flex-col items-center gap-1 shrink-0">
+                    {(() => {
+                      const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
+                      const photo = isTenant ? (flat.occupant_photo_url || flat.owner_photo_url) : flat.owner_photo_url;
+                      const name = residentName(flat, lang) || flat.flat_no;
+                      return (
+                        <Avatar className="h-10 w-10 ring-2 ring-card shadow-sm">
+                          {photo ? <AvatarImage src={photo} alt={name} /> : null}
+                          <InitialsFallback name={name} seed={flat.id} className="text-[11px]" />
+                        </Avatar>
+                      );
+                    })()}
+                    <span className="font-bold text-primary text-xs leading-none">{flat.flat_no}</span>
+                  </div>
+                  <div className="md:col-span-3 min-w-0 max-w-full overflow-hidden">
                     <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="break-words [overflow-wrap:anywhere] min-w-0">{residentName(flat, lang) || "—"}</span>
                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
