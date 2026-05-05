@@ -6,7 +6,7 @@ import { StatCard } from "@/components/StatCard";
 import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2 } from "lucide-react";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2, Bell, FileText, TrendingUp, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,8 @@ import { useAuth } from "@/context/AuthContext";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { Progress } from "@/components/ui/progress";
 
 type Bill = {
   id: string;
