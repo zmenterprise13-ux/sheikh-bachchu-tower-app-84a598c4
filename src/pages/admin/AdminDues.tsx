@@ -58,6 +58,8 @@ function formatDMY(d: string | null | undefined): string {
   if (!y || !m || !day) return d;
   return `${day}/${m}/${y}`;
 }
+
+function formatMonthLabel(m: string, lang: "bn" | "en"): string {
   const [y, mm] = m.split("-").map(Number);
   const d = new Date(Date.UTC(y, mm - 1, 1));
   return d.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", {
