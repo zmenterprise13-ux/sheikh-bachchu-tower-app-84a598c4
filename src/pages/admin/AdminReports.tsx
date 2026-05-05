@@ -224,7 +224,8 @@ export default function AdminReports() {
       const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
       const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
       const otherIn = mo.reduce((s, o) => s + Number(o.amount), 0);
-      return { month: m, billed, collected, otherIn, expense, loanIn, loanOut, balance: collected + otherIn - expense + loanIn - loanOut };
+      const expenseTotal = expense + loanOut; // loan repayment is treated as expense
+      return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
   }, [months, bills, expenses, loans, repays, otherIncomes]);
 
@@ -242,10 +243,11 @@ export default function AdminReports() {
   const totalOtherIn = perMonth.reduce((s, r) => s + r.otherIn, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
+  const totalExpenseAll = perMonth.reduce((s, r) => s + r.expenseTotal, 0);
   const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
   const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
-  const operatingNet = totalIncome + totalOtherIn - totalExpense;
-  const balance = operatingNet + totalLoanIn - totalLoanOut;
+  const operatingNet = totalIncome + totalOtherIn - totalExpenseAll;
+  const balance = operatingNet + totalLoanIn;
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
@@ -312,9 +314,9 @@ export default function AdminReports() {
     lines.push("");
     lines.push([t("month"), lang === "bn" ? "আগের ক্যাশ" : "Opening", lang === "bn" ? "বিল" : "Billed", t("income"), lang === "bn" ? `বিকাশ ফি (মেটা)` : `bKash Fee (meta)`, t("expense"), lang === "bn" ? "নিট" : "Net", lang === "bn" ? "শেষ ব্যালেন্স" : "Closing"].map(esc).join(","));
     perMonthRolling.forEach((r) => {
-      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, bkashByMonth[r.month] || 0, r.expense, r.balance, r.closing].map(esc).join(","));
+      lines.push([fmtMonthLabel(r.month), r.opening, r.billed, r.collected, bkashByMonth[r.month] || 0, r.expenseTotal, r.balance, r.closing].map(esc).join(","));
     });
-    lines.push([t("total"), openingCash, totalBilled, totalIncome, bkashTotal, totalExpense, balance, closingBalance].map(esc).join(","));
+    lines.push([t("total"), openingCash, totalBilled, totalIncome, bkashTotal, totalExpenseAll, balance, closingBalance].map(esc).join(","));
     lines.push("");
     lines.push(`# ${t("expense")} — ${lang === "bn" ? "ক্যাটেগরি অনুযায়ী" : "By category"}`);
     lines.push([lang === "bn" ? "ক্যাটেগরি" : "Category", lang === "bn" ? "টাকা" : "Amount"].map(esc).join(","));
@@ -603,7 +605,7 @@ export default function AdminReports() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
             <StatCard label={t("income")} value={formatMoney(totalIncome + totalOtherIn, lang)} hint={totalOtherIn > 0 ? `${lang === "bn" ? "বিল" : "Bills"}: ${formatMoney(totalIncome, lang)} · ${lang === "bn" ? "অন্যান্য" : "Other"}: ${formatMoney(totalOtherIn, lang)}` : `${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
-            <StatCard label={t("expense")} value={formatMoney(totalExpense, lang)} hint={`${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
+            <StatCard label={t("expense")} value={formatMoney(totalExpenseAll, lang)} hint={totalLoanOut > 0 ? (lang === "bn" ? `নিয়মিত: ${formatMoney(totalExpense, lang)} + লোন পরিশোধ: ${formatMoney(totalLoanOut, lang)}` : `Regular: ${formatMoney(totalExpense, lang)} + Loan: ${formatMoney(totalLoanOut, lang)}`) : `${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
             <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
         )}
@@ -648,7 +650,14 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{r.otherIn > 0 ? formatMoney(r.otherIn, lang) : "—"}</td>
-                  <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-warning" title={r.loanOut > 0 ? (lang === "bn" ? `নিয়মিত ব্যয়: ${formatMoney(r.expense, lang)} + লোন পরিশোধ: ${formatMoney(r.loanOut, lang)}` : `Regular: ${formatMoney(r.expense, lang)} + Loan repaid: ${formatMoney(r.loanOut, lang)}`) : undefined}>
+                    {formatMoney(r.expenseTotal, lang)}
+                    {r.loanOut > 0 && (
+                      <div className="text-[10px] text-muted-foreground font-normal">
+                        {lang === "bn" ? `+${formatMoney(r.loanOut, lang)} লোন পরিশোধ` : `incl. ${formatMoney(r.loanOut, lang)} loan repaid`}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-2 pr-3 text-right text-success">{r.loanIn > 0 ? formatMoney(r.loanIn, lang) : "—"}</td>
                   <td className="py-2 pr-3 text-right text-warning">{r.loanOut > 0 ? formatMoney(r.loanOut, lang) : "—"}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
@@ -672,7 +681,7 @@ export default function AdminReports() {
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalIncome, lang)}</td>
                 <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashTotal, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalOtherIn, lang)}</td>
-                <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpense, lang)}</td>
+                <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalExpenseAll, lang)}</td>
                 <td className="py-2 pr-3 text-right text-success">{formatMoney(totalLoanIn, lang)}</td>
                 <td className="py-2 pr-3 text-right text-warning">{formatMoney(totalLoanOut, lang)}</td>
                 <td className={`py-2 pr-3 text-right ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
@@ -970,7 +979,7 @@ export default function AdminReports() {
               )}
               <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
                 <span className="font-semibold">{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</span>
-                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense + totalLoanOut, lang)}</span>
+                <span className="font-bold text-warning text-lg">{formatMoney(totalExpenseAll, lang)}</span>
               </div>
             </div>
           </div>
@@ -988,7 +997,7 @@ export default function AdminReports() {
             </div>
             <div>
               <div className="text-xs uppercase opacity-80">{t("expense")}</div>
-              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpense, lang)}</div>
+              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpenseAll, lang)}</div>
             </div>
             <div>
               <div className="text-xs uppercase opacity-80">{lang === "bn" ? "নিট" : "Net"}</div>
