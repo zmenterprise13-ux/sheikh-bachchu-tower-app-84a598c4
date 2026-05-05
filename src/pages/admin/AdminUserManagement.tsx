@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Users, Search, Trash2, Ban, ShieldCheck, Wallet, Briefcase, User as UserIcon,
-  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X,
+  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X, LogIn, UserPlus,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
