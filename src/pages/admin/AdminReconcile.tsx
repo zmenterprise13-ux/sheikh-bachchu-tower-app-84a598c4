@@ -141,7 +141,39 @@ export default function AdminReconcile() {
             {onlyIssues
               ? (lang === "bn" ? "শুধু গরমিল" : "Only mismatches")
               : (lang === "bn" ? "সব দেখান" : "Show all")}
+          <Button variant={onlyIssues ? "default" : "outline"} size="sm" onClick={() => setOnlyIssues(v => !v)}>
+            {onlyIssues
+              ? (lang === "bn" ? "শুধু গরমিল" : "Only mismatches")
+              : (lang === "bn" ? "সব দেখান" : "Show all")}
           </Button>
+          <Select value={monthFilter || "all"} onValueChange={(v) => setMonthFilter(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-40 h-9">
+              <SelectValue placeholder={lang === "bn" ? "সব মাস" : "All months"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "bn" ? "সব মাস" : "All months"}</SelectItem>
+              {monthOptions.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={flatFilter} onValueChange={setFlatFilter}>
+            <SelectTrigger className="w-44 h-9">
+              <SelectValue placeholder={lang === "bn" ? "সব ফ্ল্যাট" : "All flats"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "bn" ? "সব ফ্ল্যাট" : "All flats"}</SelectItem>
+              {flatOptions.map(([id, no]) => (
+                <SelectItem key={id} value={id}>{lang === "bn" ? "ফ্ল্যাট" : "Flat"} {no}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(monthFilter || flatFilter !== "all") && (
+            <Button variant="ghost" size="sm" onClick={() => { setMonthFilter(""); setFlatFilter("all"); }}>
+              <X className="h-3.5 w-3.5 mr-1" />
+              {lang === "bn" ? "ক্লিয়ার" : "Clear"}
+            </Button>
+          )}
           <div className="ml-auto text-sm">
             {issuesCount === 0 ? (
               <span className="inline-flex items-center gap-1 text-success font-medium">
