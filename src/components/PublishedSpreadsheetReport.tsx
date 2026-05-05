@@ -38,6 +38,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const [loading, setLoading] = useState(true);
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
+  const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     (async () => {
@@ -45,7 +46,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       const start = `${month}-01`;
       const [y, m] = month.split("-").map(Number);
       const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
-      const [{ data }, catRes, repayRes] = await Promise.all([
+      const [{ data }, catRes, repayRes, expRes] = await Promise.all([
         supabase.rpc("monthly_finance_summary", { _month: month }),
         supabase.from("expense_categories").select("name, name_bn"),
         supabase
@@ -53,6 +54,12 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
           .select("amount, loans!inner(lender_name, lender_name_bn)")
           .gte("paid_date", start)
           .lt("paid_date", nextMonth),
+        supabase
+          .from("expenses")
+          .select("category, description")
+          .eq("approval_status", "approved")
+          .gte("date", start)
+          .lt("date", nextMonth),
       ]);
       setSnap((data as Snapshot | null) ?? null);
       setExpenseCats((catRes.data ?? []) as any);
@@ -65,9 +72,18 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
         else agg.set(key, { lender: r.loans?.lender_name || "", lender_bn: r.loans?.lender_name_bn || null, amount: amt });
       }
       setLiveRepayLenders(Array.from(agg.values()).filter((x) => x.amount > 0));
+      const descMap: Record<string, string[]> = {};
+      for (const e of (expRes.data ?? []) as any[]) {
+        const desc = String(e.description || "").trim();
+        if (!desc) continue;
+        if (!descMap[e.category]) descMap[e.category] = [];
+        if (!descMap[e.category].includes(desc)) descMap[e.category].push(desc);
+      }
+      setExpenseDescByCat(descMap);
       setLoading(false);
     })();
   }, [month]);
+
 
   const monthLabel = useMemo(
     () => new Date(month + "-01").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "long" }),
