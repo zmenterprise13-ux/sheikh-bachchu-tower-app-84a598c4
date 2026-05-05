@@ -292,11 +292,10 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
         </div>
       )}
 
-      {billBreakdown.length > 0 && (
-        <div className="space-y-1 pt-2">
-          <div className="text-[11px] font-bold text-muted-foreground">
-            {lang === "bn" ? "বিল ব্রেকডাউন (শুধু রেফারেন্স)" : "Bill Breakdown (reference only)"}
-          </div>
+      {billBreakdown.length > 0 && (() => {
+        const mid = Math.ceil(billBreakdown.length / 2);
+        const cols = [billBreakdown.slice(0, mid), billBreakdown.slice(mid)];
+        const renderTable = (items: typeof billBreakdown) => (
           <table className="w-full border-collapse text-[10.5px] text-foreground/60">
             <thead>
               <tr className="bg-secondary/50">
@@ -306,7 +305,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
               </tr>
             </thead>
             <tbody>
-              {billBreakdown.map((sec, si) => (
+              {items.map((sec, si) => (
                 <Fragment key={si}>
                   <tr>
                     <td className={`${cellCls} font-bold text-success`}>{sec.label}</td>
@@ -324,13 +323,24 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
               ))}
             </tbody>
           </table>
-          <p className="text-[10px] text-muted-foreground italic">
-            {lang === "bn"
-              ? "* এই ব্রেকডাউন মূল ক্যাশ/কালেকশনের সাথে যোগ হয় না — শুধুমাত্র রেফারেন্সের জন্য।"
-              : "* This breakdown is not added to the main cash/collection — for reference only."}
-          </p>
-        </div>
-      )}
+        );
+        return (
+          <div className="space-y-1 pt-2">
+            <div className="text-[11px] font-bold text-muted-foreground">
+              {lang === "bn" ? "বিল ব্রেকডাউন (শুধু রেফারেন্স)" : "Bill Breakdown (reference only)"}
+            </div>
+            <div className="grid grid-cols-2 gap-2 items-start">
+              {renderTable(cols[0])}
+              {cols[1].length > 0 ? renderTable(cols[1]) : <div />}
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              {lang === "bn"
+                ? "* এই ব্রেকডাউন মূল ক্যাশ/কালেকশনের সাথে যোগ হয় না — শুধুমাত্র রেফারেন্সের জন্য।"
+                : "* This breakdown is not added to the main cash/collection — for reference only."}
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 }
