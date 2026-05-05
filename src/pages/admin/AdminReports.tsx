@@ -288,10 +288,13 @@ export default function AdminReports() {
     for (const r of map.values()) r.due = r.billed - r.paid;
     return flats.map((f) => {
       const r = map.get(f.id)!;
+      const isTenant = (f.occupant_type ?? "").toLowerCase() === "tenant";
+      const roleText = lang === "bn" ? (isTenant ? "ভাড়াটিয়া" : "মালিক") : (isTenant ? "Tenant" : "Owner");
+      const name = residentName(f, lang);
       return {
         ...r,
         flat_no: f.flat_no,
-        owner: residentName(f, lang),
+        owner: name ? `${name} (${roleText})` : "",
       };
     }).filter((r) => r.billed > 0 || r.paid > 0);
   }, [flats, scopedBills, lang, flatFilter]);
@@ -529,14 +532,17 @@ export default function AdminReports() {
                 className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="all">{lang === "bn" ? "সব ফ্ল্যাট" : "All flats"}</option>
-                {flats.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
-                    {residentName(f, lang)
-                      ? ` — ${residentName(f, lang)}`
-                      : ""}
-                  </option>
-                ))}
+                {flats.map((f) => {
+                  const isTenant = (f.occupant_type ?? "").toLowerCase() === "tenant";
+                  const roleText = lang === "bn" ? (isTenant ? "ভাড়াটিয়া" : "মালিক") : (isTenant ? "Tenant" : "Owner");
+                  const n = residentName(f, lang);
+                  return (
+                    <option key={f.id} value={f.id}>
+                      {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+                      {n ? ` — ${n} (${roleText})` : ` (${roleText})`}
+                    </option>
+                  );
+                })}
               </select>
               {flatFilter !== "all" && (
                 <p className="text-[11px] text-muted-foreground mt-1">

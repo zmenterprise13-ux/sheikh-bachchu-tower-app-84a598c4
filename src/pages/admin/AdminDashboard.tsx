@@ -796,8 +796,13 @@ export default function AdminDashboard() {
                       {flat?.flat_no ?? "—"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground truncate">
-                        {flat ? (residentName(flat, lang) || "—") : "—"}
+                      <div className="font-medium text-foreground truncate flex items-center gap-2">
+                        <span className="truncate">{flat ? (residentName(flat, lang) || "—") : "—"}</span>
+                        {flat && (
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
+                            {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
