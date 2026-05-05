@@ -312,32 +312,47 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           category: string
           created_at: string
           created_by: string | null
           date: string
           description: string
           id: string
+          reject_reason: string | null
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category: string
           created_at?: string
           created_by?: string | null
           date?: string
           description: string
           id?: string
+          reject_reason?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string
           created_at?: string
           created_by?: string | null
           date?: string
           description?: string
           id?: string
+          reject_reason?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -426,32 +441,47 @@ export type Database = {
       loan_repayments: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           created_by: string | null
           id: string
           loan_id: string
           note: string | null
           paid_date: string
+          reject_reason: string | null
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           loan_id: string
           note?: string | null
           paid_date?: string
+          reject_reason?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           loan_id?: string
           note?: string | null
           paid_date?: string
+          reject_reason?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -466,6 +496,9 @@ export type Database = {
       }
       loans: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -476,10 +509,15 @@ export type Database = {
           note: string | null
           principal: number
           purpose: string | null
+          reject_reason: string | null
           status: string
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -490,10 +528,15 @@ export type Database = {
           note?: string | null
           principal?: number
           purpose?: string | null
+          reject_reason?: string | null
           status?: string
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -504,7 +547,9 @@ export type Database = {
           note?: string | null
           principal?: number
           purpose?: string | null
+          reject_reason?: string | null
           status?: string
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -589,6 +634,9 @@ export type Database = {
       other_incomes: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           category: string
           created_at: string
           created_by: string | null
@@ -596,11 +644,16 @@ export type Database = {
           description: string | null
           id: string
           reference: string | null
+          reject_reason: string | null
           source_name: string | null
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category: string
           created_at?: string
           created_by?: string | null
@@ -608,11 +661,16 @@ export type Database = {
           description?: string | null
           id?: string
           reference?: string | null
+          reject_reason?: string | null
           source_name?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string
           created_at?: string
           created_by?: string | null
@@ -620,7 +678,9 @@ export type Database = {
           description?: string | null
           id?: string
           reference?: string | null
+          reject_reason?: string | null
           source_name?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: []
