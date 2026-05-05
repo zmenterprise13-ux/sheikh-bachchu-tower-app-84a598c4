@@ -17,7 +17,8 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && user && role) {
-      navigate(role === "admin" ? "/admin" : "/owner", { replace: true });
+      const dest = role === "admin" || role === "manager" || role === "accountant" ? "/admin" : "/owner";
+      navigate(dest, { replace: true });
     }
   }, [user, role, loading, navigate]);
 
