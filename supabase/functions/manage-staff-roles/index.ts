@@ -52,6 +52,101 @@ Deno.serve(async (req) => {
 
     const body = (await req.json()) as Action;
 
+    if ((body as any).action === "list_all") {
+      // Fetch all auth users (paginated up to 2000)
+      const users: any[] = [];
+      let page = 1;
+      while (page <= 10) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (error) throw error;
+        users.push(...data.users);
+        if (data.users.length < 200) break;
+        page++;
+      }
+      const ids = users.map((u) => u.id);
+      const safeIds = ids.length ? ids : ["00000000-0000-0000-0000-000000000000"];
+
+      const [{ data: profiles }, { data: roles }, { data: flats }] = await Promise.all([
+        admin.from("profiles").select("user_id, display_name, display_name_bn, phone, avatar_url").in("user_id", safeIds),
+        admin.from("user_roles").select("user_id, role").in("user_id", safeIds),
+        admin.from("flats").select("id, flat_no, owner_user_id, owner_name, owner_name_bn").in("owner_user_id", safeIds),
+      ]);
+
+      const profileMap = new Map<string, any>();
+      (profiles ?? []).forEach((p: any) => profileMap.set(p.user_id, p));
+      const roleMap = new Map<string, string[]>();
+      (roles ?? []).forEach((r: any) => {
+        const arr = roleMap.get(r.user_id) ?? [];
+        arr.push(r.role);
+        roleMap.set(r.user_id, arr);
+      });
+      const flatMap = new Map<string, any[]>();
+      (flats ?? []).forEach((f: any) => {
+        const arr = flatMap.get(f.owner_user_id) ?? [];
+        arr.push({ id: f.id, flat_no: f.flat_no, owner_name: f.owner_name, owner_name_bn: f.owner_name_bn });
+        flatMap.set(f.owner_user_id, arr);
+      });
+
+      const result = users.map((u) => ({
+        user_id: u.id,
+        email: u.email ?? null,
+        phone: u.phone ?? null,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at ?? null,
+        confirmed: !!(u.email_confirmed_at || u.phone_confirmed_at),
+        banned_until: (u as any).banned_until ?? null,
+        display_name: profileMap.get(u.id)?.display_name ?? null,
+        display_name_bn: profileMap.get(u.id)?.display_name_bn ?? null,
+        profile_phone: profileMap.get(u.id)?.phone ?? null,
+        avatar_url: profileMap.get(u.id)?.avatar_url ?? null,
+        roles: roleMap.get(u.id) ?? [],
+        flats: flatMap.get(u.id) ?? [],
+      }));
+
+      result.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      return new Response(JSON.stringify({ data: result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((body as any).action === "delete_user") {
+      const uid = (body as any).user_id as string;
+      if (!uid) throw new Error("user_id required");
+      if (uid === userRes.user.id) throw new Error("Cannot delete yourself");
+      await admin.from("user_roles").delete().eq("user_id", uid);
+      const { error } = await admin.auth.admin.deleteUser(uid);
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((body as any).action === "set_ban") {
+      const uid = (body as any).user_id as string;
+      const banned = !!(body as any).banned;
+      if (!uid) throw new Error("user_id required");
+      if (uid === userRes.user.id) throw new Error("Cannot ban yourself");
+      const { error } = await admin.auth.admin.updateUserById(uid, {
+        ban_duration: banned ? "100000h" : "none",
+      } as any);
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((body as any).action === "assign_by_id") {
+      const uid = (body as any).user_id as string;
+      const role = (body as any).role as string;
+      if (!uid || !role) throw new Error("user_id and role required");
+      if (!["owner", "accountant", "manager", "admin"].includes(role)) throw new Error("Invalid role");
+      const { error } = await admin.from("user_roles").insert({ user_id: uid, role });
+      if (error && !String(error.message).includes("duplicate")) throw error;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (body.action === "list") {
       // Get all role rows except plain owners (we still include accountant/manager/admin)
       const { data: roles, error } = await admin
