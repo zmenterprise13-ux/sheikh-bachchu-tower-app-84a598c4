@@ -36,6 +36,8 @@ export default function AdminReconcile() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(true);
+  const [monthFilter, setMonthFilter] = useState<string>("");
+  const [flatFilter, setFlatFilter] = useState<string>("all");
 
   const load = async () => {
     setLoading(true);
