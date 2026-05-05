@@ -241,18 +241,30 @@ function flattenGroups(groups: NavGroup[]): NavItem[] {
   return groups.flatMap((g) => g.items);
 }
 
-/** Hook to load the current user's display name from profiles + auto-selected flat. */
+type FlatLite = {
+  id: string;
+  flat_no: string;
+  owner_name: string | null;
+  owner_name_bn: string | null;
+  occupant_name: string | null;
+  occupant_name_bn: string | null;
+  occupant_phone: string | null;
+  tenant_user_id: string | null;
+};
+
+/** Hook to load the current user's display name from profiles + selected/auto-picked flat. */
 function useAccountName() {
   const { user, role } = useAuth();
   const { lang } = useLang();
+  const { selectedFlatId, setSelectedFlatId } = useSelectedFlatId();
   const [name, setName] = useState<string>("");
-  const [flatLabel, setFlatLabel] = useState<string>("");
+  const [flats, setFlats] = useState<FlatLite[]>([]);
+  const [chosenId, setChosenId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     if (!user) {
-      setName("");
-      setFlatLabel("");
+      setName(""); setFlats([]); setChosenId(null);
       return;
     }
     (async () => {
@@ -269,49 +281,46 @@ function useAccountName() {
 
       const flatCols = "id, flat_no, floor, updated_at, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, owner_user_id, tenant_user_id";
 
-      // Fetch ALL flats matching this user (by id or phone)
-      let { data: flats } = await supabase
+      let { data: rows } = await supabase
         .from("flats")
         .select(flatCols)
         .or(`owner_user_id.eq.${user.id},tenant_user_id.eq.${user.id}`);
 
-      if ((!flats || flats.length === 0) && phone) {
+      if ((!rows || rows.length === 0) && phone) {
         const byPhone = await supabase
           .from("flats")
           .select(flatCols)
           .or(`phone.eq.${phone},occupant_phone.eq.${phone}`);
-        flats = byPhone.data;
+        rows = byPhone.data;
       }
 
       let chosen: any = null;
-      if (flats && flats.length > 0) {
-        if (flats.length === 1) {
-          chosen = flats[0];
-        } else {
-          // Auto-select: prefer flat with current unpaid dues; tie-break by most recently updated
-          const ids = flats.map((f: any) => f.id);
-          const { data: bills } = await supabase
-            .from("bills")
-            .select("flat_id, status, total, paid_amount, arrears, updated_at")
-            .in("flat_id", ids)
-            .neq("status", "paid");
-          const dueMap = new Map<string, { due: number; latest: number }>();
-          (bills || []).forEach((b: any) => {
-            const due = Number(b.total || 0) + Number(b.arrears || 0) - Number(b.paid_amount || 0);
-            const ts = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-            const cur = dueMap.get(b.flat_id) || { due: 0, latest: 0 };
-            dueMap.set(b.flat_id, { due: cur.due + Math.max(0, due), latest: Math.max(cur.latest, ts) });
-          });
-          const scored = flats.map((f: any) => {
-            const d = dueMap.get(f.id) || { due: 0, latest: 0 };
-            return {
-              flat: f,
-              due: d.due,
-              activity: Math.max(d.latest, f.updated_at ? new Date(f.updated_at).getTime() : 0),
-            };
-          });
-          scored.sort((a, b) => (b.due - a.due) || (b.activity - a.activity));
-          chosen = scored[0].flat;
+      if (rows && rows.length > 0) {
+        if (selectedFlatId) chosen = rows.find((r: any) => r.id === selectedFlatId) || null;
+        if (!chosen) {
+          if (rows.length === 1) {
+            chosen = rows[0];
+          } else {
+            const ids = rows.map((f: any) => f.id);
+            const { data: bills } = await supabase
+              .from("bills")
+              .select("flat_id, status, total, paid_amount, arrears, updated_at")
+              .in("flat_id", ids)
+              .neq("status", "paid");
+            const dueMap = new Map<string, { due: number; latest: number }>();
+            (bills || []).forEach((b: any) => {
+              const due = Number(b.total || 0) + Number(b.arrears || 0) - Number(b.paid_amount || 0);
+              const ts = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+              const cur = dueMap.get(b.flat_id) || { due: 0, latest: 0 };
+              dueMap.set(b.flat_id, { due: cur.due + Math.max(0, due), latest: Math.max(cur.latest, ts) });
+            });
+            const scored = rows.map((f: any) => {
+              const d = dueMap.get(f.id) || { due: 0, latest: 0 };
+              return { flat: f, due: d.due, activity: Math.max(d.latest, f.updated_at ? new Date(f.updated_at).getTime() : 0) };
+            });
+            scored.sort((a, b) => (b.due - a.due) || (b.activity - a.activity));
+            chosen = scored[0].flat;
+          }
         }
       }
 
@@ -328,18 +337,13 @@ function useAccountName() {
       const isJustPhone = !!profileName && !!phone && profileName.trim() === phone;
       const finalName = (!profileName || isJustPhone) && flatName ? flatName : (profileName || flatName);
       setName(finalName || user.email || "");
-      if (chosen) {
-        const totalFlats = flats?.length || 1;
-        const base = `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${chosen.flat_no}`;
-        setFlatLabel(totalFlats > 1 ? `${base} (+${totalFlats - 1})` : base);
-      } else {
-        setFlatLabel("");
-      }
+      setFlats((rows || []) as FlatLite[]);
+      setChosenId(chosen?.id || null);
     })();
     return () => { cancelled = true; };
-  }, [user, lang, role]);
+  }, [user, lang, role, selectedFlatId]);
 
-  return { name, flatLabel };
+  return { name, flats, chosenId, setSelectedFlatId };
 }
 
 function AccountHeader() {
