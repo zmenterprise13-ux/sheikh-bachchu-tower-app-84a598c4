@@ -112,6 +112,7 @@ export default function OwnerFinanceReport() {
               title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
             />
           )}
+          </div>
         </div>
       </div>
     </AppShell>
