@@ -354,6 +354,14 @@
     font-style: normal !important;
   }
   #owner-finance-print-inner table { font-size: 10.5pt !important; }
+  #owner-finance-print-inner,
+  #owner-finance-print-inner *:not(.report-header-title) {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
+    font-style: normal !important;
+  }
+  #owner-finance-print-inner table { font-size: 10.5pt !important; }
   #owner-finance-print-inner .text-\[10px\],
   #owner-finance-print-inner .text-\[10\.5px\],
   #owner-finance-print-inner .text-\[11px\],
