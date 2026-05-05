@@ -168,8 +168,8 @@ export default function OwnerDashboard() {
 
   return (
     <AppShell>
-      <div className="space-y-6 animate-fade-in">
-        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
+        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-8 shadow-elevated overflow-hidden">
           {/* decorative orbs */}
           <div className="pointer-events-none absolute -top-24 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
           <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-accent/30 blur-3xl" />
