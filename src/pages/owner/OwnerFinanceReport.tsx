@@ -62,6 +62,16 @@ export default function OwnerFinanceReport() {
         </div>
 
         <div className="print-area">
+          <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
+            <h1 className="text-xl font-bold text-black">
+              {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
+            </h1>
+            <p className="text-xs text-black mt-1">
+              {lang === "bn"
+                ? "১৪/২, শেখ বাচ্চু টাওয়ার, মোক্তারবাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।"
+                : "14/2, Sheikh Bachchu Tower, Moktarbari Road, Auchpara, Tongi, Gazipur."}
+            </p>
+          </div>
           {style === "detailed" ? (
             <PublishedDetailedReport month={month} />
           ) : (
