@@ -181,7 +181,17 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
       <div className="print-area space-y-4">
         {/* Print header */}
         <div className="border-b border-border pb-3">
-          <div className="text-lg font-bold">
+          <div className="hidden print:block text-center mb-3">
+            <div className="text-lg font-bold text-black">
+              {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
+            </div>
+            <div className="text-xs text-black">
+              {lang === "bn"
+                ? "১৪/২, শেখ বাচ্চু টাওয়ার, মোক্তারবাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।"
+                : "14/2, Sheikh Bachchu Tower, Moktarbari Road, Auchpara, Tongi, Gazipur."}
+            </div>
+          </div>
+          <div className="text-lg font-bold print:hidden">
             {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
           </div>
           <div className="text-sm text-muted-foreground">
