@@ -30,7 +30,7 @@ export function useOwnerFlats() {
     const { data } = await supabase
       .from("flats")
       .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type")
-      .eq("owner_user_id", uid)
+      .or(`owner_user_id.eq.${uid},tenant_user_id.eq.${uid}`)
       .order("floor", { ascending: true })
       .order("flat_no", { ascending: true });
     return (data as OwnerFlat[] | null) ?? [];

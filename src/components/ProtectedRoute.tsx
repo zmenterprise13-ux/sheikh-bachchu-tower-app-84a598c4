@@ -30,6 +30,7 @@ export function ProtectedRoute({ children, requireRole, allowRoles }: Props) {
       if (roles.includes("manager")) return <Navigate to="/manager" replace />;
       if (roles.includes("accountant")) return <Navigate to="/accountant" replace />;
       if (roles.includes("owner")) return <Navigate to="/owner" replace />;
+      if (roles.includes("tenant")) return <Navigate to="/owner" replace />;
       return <Navigate to="/auth" replace />;
     }
   }

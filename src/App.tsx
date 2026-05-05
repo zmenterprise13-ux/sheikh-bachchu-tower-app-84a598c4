@@ -88,14 +88,14 @@ const App = () => (
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
 
               {/* Owner */}
-              <Route path="/owner" element={<ProtectedRoute requireRole="owner"><OwnerDashboard /></ProtectedRoute>} />
-              <Route path="/owner/dues" element={<ProtectedRoute requireRole="owner"><OwnerDues /></ProtectedRoute>} />
-              <Route path="/owner/payments" element={<ProtectedRoute requireRole="owner"><OwnerPayments /></ProtectedRoute>} />
-              <Route path="/owner/ledger" element={<ProtectedRoute requireRole="owner"><OwnerLedger /></ProtectedRoute>} />
-              <Route path="/owner/receipts" element={<ProtectedRoute requireRole="owner"><OwnerReceipts /></ProtectedRoute>} />
-              <Route path="/owner/notices" element={<ProtectedRoute requireRole="owner"><OwnerNotices /></ProtectedRoute>} />
-              <Route path="/owner/reports" element={<ProtectedRoute requireRole="owner"><OwnerReports /></ProtectedRoute>} />
-              <Route path="/owner/finance-report" element={<ProtectedRoute requireRole="owner"><OwnerFinanceReport /></ProtectedRoute>} />
+              <Route path="/owner" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDashboard /></ProtectedRoute>} />
+              <Route path="/owner/dues" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDues /></ProtectedRoute>} />
+              <Route path="/owner/payments" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerPayments /></ProtectedRoute>} />
+              <Route path="/owner/ledger" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerLedger /></ProtectedRoute>} />
+              <Route path="/owner/receipts" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerReceipts /></ProtectedRoute>} />
+              <Route path="/owner/notices" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerNotices /></ProtectedRoute>} />
+              <Route path="/owner/reports" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerReports /></ProtectedRoute>} />
+              <Route path="/owner/finance-report" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerFinanceReport /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
 
