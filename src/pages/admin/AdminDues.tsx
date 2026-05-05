@@ -409,7 +409,7 @@ export default function AdminDues() {
                 size="sm"
                 variant="ghost"
                 className="h-8 px-2 text-xs"
-                onClick={() => setMonth(currentMonth())}
+                onClick={() => setMonth(latestBillMonth)}
               >
                 {lang === "bn" ? "এ মাস" : "This month"}
               </Button>
