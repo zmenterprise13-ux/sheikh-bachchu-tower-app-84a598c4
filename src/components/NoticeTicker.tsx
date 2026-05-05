@@ -204,7 +204,7 @@ export function NoticeTicker() {
               const title = lang === "bn" ? n.title_bn : n.title;
               const body = lang === "bn" ? n.body_bn : n.body;
               return (
-                <div key={`${n.id}-${idx}`} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                <div key={`${n.id}-${idx}`} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm shrink-0">
                   {n.important && <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive shrink-0" />}
                   <span className={`font-semibold ${n.important ? "text-destructive" : "text-foreground"}`}>{title}</span>
                   <span className="text-muted-foreground">— {body}</span>
