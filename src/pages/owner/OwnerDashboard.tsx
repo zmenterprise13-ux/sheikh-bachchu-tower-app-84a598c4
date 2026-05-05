@@ -18,6 +18,7 @@ import { generateBillPdf } from "@/lib/billPdf";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { useAuth } from "@/context/AuthContext";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
+import { cn } from "@/lib/utils";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
@@ -409,31 +410,64 @@ export default function OwnerDashboard() {
                 {lang === "bn" ? "এ মাসের কোনো বিল এখনো তৈরি হয়নি।" : "No bill generated for this month yet."}
               </div>
             ) : (
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between border-b border-border pb-2">
-                  <span className="text-muted-foreground">{t("serviceCharge")}</span>
-                  <span className="font-semibold">{formatMoney(Number(currentBill.service_charge), lang)}</span>
-                </div>
-                <div className="flex justify-between border-b border-border pb-2">
-                  <span className="text-muted-foreground">{t("gasBill")}</span>
-                  <span className="font-semibold">{formatMoney(Number(currentBill.gas_bill), lang)}</span>
-                </div>
-                {Number(currentBill.parking) > 0 && (
-                  <div className="flex justify-between border-b border-border pb-2">
-                    <span className="text-muted-foreground">{t("parking")}</span>
-                    <span className="font-semibold">{formatMoney(Number(currentBill.parking), lang)}</span>
+              <div className="space-y-3">
+                <div className={cn(
+                  "rounded-xl border-2 p-4 space-y-3",
+                  due > 0 ? "border-destructive/40 bg-destructive/5" : "border-success/40 bg-success/5"
+                )}>
+                  <div className="flex items-center justify-between text-xs uppercase tracking-wide font-semibold">
+                    <span className={due > 0 ? "text-destructive" : "text-success"}>
+                      {lang === "bn" ? "এ মাসের বকেয়া" : "This Month's Due"}
+                    </span>
+                    <span className="text-muted-foreground normal-case tracking-normal font-medium">{currentBill.month}</span>
                   </div>
-                )}
-                <div className="flex justify-between pt-2 border-t-2 border-foreground/20">
-                  <span className="font-bold">{t("total")}</span>
-                  <span className="font-bold text-primary text-lg">{formatMoney(Number(currentBill.total), lang)}</span>
-                </div>
-                {due > 0 && (
-                  <div className="flex justify-between text-destructive">
-                    <span className="font-semibold">{t("due")}</span>
-                    <span className="font-bold">{formatMoney(due, lang)}</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-background/80 border border-border p-2.5">
+                      <div className="text-[11px] text-muted-foreground">{t("serviceCharge")}</div>
+                      <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.service_charge), lang)}</div>
+                    </div>
+                    <div className="rounded-lg bg-background/80 border border-border p-2.5">
+                      <div className="text-[11px] text-muted-foreground">{t("gasBill")}</div>
+                      <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.gas_bill), lang)}</div>
+                    </div>
+                    {Number(currentBill.parking) > 0 && (
+                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
+                        <div className="text-[11px] text-muted-foreground">{t("parking")}</div>
+                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.parking), lang)}</div>
+                      </div>
+                    )}
+                    {Number(currentBill.eid_bonus) > 0 && (
+                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
+                        <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "ঈদ বোনাস" : "Eid Bonus"}</div>
+                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.eid_bonus), lang)}</div>
+                      </div>
+                    )}
+                    {Number(currentBill.other_charge) > 0 && (
+                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
+                        <div className="text-[11px] text-muted-foreground">{t("otherCharge")}</div>
+                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.other_charge), lang)}</div>
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                    <span className="text-sm font-semibold text-muted-foreground">{t("total")}</span>
+                    <span className="text-xl sm:text-2xl font-extrabold text-primary tabular-nums">{formatMoney(Number(currentBill.total), lang)}</span>
+                  </div>
+                  {due > 0 ? (
+                    <div className="flex items-center justify-between rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2">
+                      <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4" />
+                        {lang === "bn" ? "মোট বাকী" : "Total Due"}
+                      </span>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-destructive tabular-nums">{formatMoney(due, lang)}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 border border-success/30 px-3 py-2 text-success font-bold">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {lang === "bn" ? "সম্পূর্ণ পরিশোধিত" : "Fully Paid"}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
