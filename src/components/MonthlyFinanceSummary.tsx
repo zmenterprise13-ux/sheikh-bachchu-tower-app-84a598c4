@@ -24,8 +24,10 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const [otherIncome, setOtherIncome] = useState(0);
   const [loanTaken, setLoanTaken] = useState(0);
   const [loanRepaid, setLoanRepaid] = useState(0);
+  const [openingCash, setOpeningCash] = useState(0);
   const [byCategory, setByCategory] = useState<CatRow[]>([]);
   const [byIncomeCategory, setByIncomeCategory] = useState<CatRow[]>([]);
+  const [catBnMap, setCatBnMap] = useState<Record<string, string>>({});
   const [published, setPublished] = useState(false);
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,10 +35,18 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.rpc("monthly_finance_summary", { _month: month });
+    const [{ data, error }, catsRes] = await Promise.all([
+      supabase.rpc("monthly_finance_summary", { _month: month }),
+      supabase.from("expense_categories").select("name, name_bn"),
+    ]);
+    const map: Record<string, string> = {};
+    ((catsRes.data ?? []) as { name: string; name_bn: string | null }[]).forEach((c) => {
+      if (c.name_bn) map[c.name] = c.name_bn;
+    });
+    setCatBnMap(map);
     if (error || !data) {
       setBilled(0); setCollected(0); setExpense(0); setOtherIncome(0);
-      setLoanTaken(0); setLoanRepaid(0);
+      setLoanTaken(0); setLoanRepaid(0); setOpeningCash(0);
       setByCategory([]); setByIncomeCategory([]);
       setPublished(false); setPublishedAt(null);
     } else {
@@ -47,6 +57,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
       setOtherIncome(Number(d.other_income) || 0);
       setLoanTaken(Number(d.loan_taken) || 0);
       setLoanRepaid(Number(d.loan_repaid) || 0);
+      setOpeningCash(Number(d.opening_cash) || 0);
       setByCategory(((d.by_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setByIncomeCategory(((d.by_income_category ?? []) as any[]).map((r) => ({ category: r.category, amount: Number(r.amount) || 0 })));
       setPublished(Boolean(d.published));
@@ -64,7 +75,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
 
   const totalIncome = collected + otherIncome;
   const net = totalIncome - expense;
-  const netCash = net + loanTaken - loanRepaid;
+  const netCash = openingCash + net + loanTaken - loanRepaid;
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
   const isAdmin = variant === "admin";
@@ -207,12 +218,19 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             />
           </div>
 
-          {(loanTaken > 0 || loanRepaid > 0) && (
+          {(openingCash !== 0 || loanTaken > 0 || loanRepaid > 0) && (
             <div className="mt-3">
               <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                {lang === "bn" ? "ক্যাশ ফ্লো (লোন)" : "Cash Flow (Loans)"}
+                {lang === "bn" ? "ক্যাশ পজিশন" : "Cash Position"}
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Tile
+                  icon={Wallet}
+                  label={lang === "bn" ? "ক্যাশ শুরুর ব্যালেন্স" : "Opening Cash"}
+                  value={formatMoney(openingCash, lang)}
+                  hint={lang === "bn" ? "মাস শুরুর জের" : "Carry-forward at month start"}
+                  tone={openingCash >= 0 ? "success" : "destructive"}
+                />
                 <Tile
                   icon={Landmark}
                   label={lang === "bn" ? "লোন গৃহীত (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
@@ -233,8 +251,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
                   value={formatMoney(netCash, lang)}
                   hint={
                     (lang === "bn"
-                      ? "নিট ব্যালেন্স + লোন − পরিশোধ"
-                      : "Net balance + loan − repayment")
+                      ? "শুরুর + নিট + লোন − পরিশোধ"
+                      : "Opening + net + loan − repayment")
                   }
                   tone={netCash >= 0 ? "success" : "destructive"}
                 />
@@ -288,7 +306,9 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
               <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
                 {byCategory.map(({ category, amount }) => {
                   const pct = expense > 0 ? Math.round((amount / expense) * 100) : 0;
-                  const label = (t(category as TKey) as string) || category;
+                  const label = lang === "bn"
+                    ? (catBnMap[category] || (t(category as TKey) as string) || category)
+                    : ((t(category as TKey) as string) || category);
                   return (
                     <li key={category} className="flex items-center gap-3 px-3 py-2 text-sm">
                       <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
