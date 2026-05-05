@@ -89,7 +89,7 @@ export default function AdminLedger() {
               {filtered.map((f) => (
                 <SelectItem key={f.id} value={f.id}>
                   {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no} —{" "}
-                  {(lang === "bn" ? f.owner_name_bn : f.owner_name) || "—"}
+                  {residentName(f, lang) || "—"}
                 </SelectItem>
               ))}
             </SelectContent>
