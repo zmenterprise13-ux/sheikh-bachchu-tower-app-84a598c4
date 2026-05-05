@@ -249,7 +249,7 @@ export default function AdminDashboard() {
           .gte("date", monthStart).lt("date", monthEnd)
           .order("date", { ascending: true }),
         supabase.from("flats")
-          .select("id, flat_no, owner_name, owner_name_bn")
+          .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
       ]);
       if (billsRes.error) throw billsRes.error;
