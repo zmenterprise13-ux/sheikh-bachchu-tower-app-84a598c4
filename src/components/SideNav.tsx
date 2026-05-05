@@ -78,6 +78,44 @@ const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
+const accountantNav: { to: string; key: TKey; icon: React.ElementType }[] = [
+  { to: "/accountant", key: "dashboard", icon: LayoutDashboard },
+  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+  { to: "/admin/dues", key: "dues", icon: Receipt },
+  { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
+  { to: "/admin/ledger", key: "ledger", icon: BookOpen },
+  { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
+  { to: "/admin/expenses", key: "expenses", icon: Wallet },
+  { to: "/admin/reports", key: "reports", icon: FileBarChart },
+  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+];
+
+const managerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
+  { to: "/manager", key: "dashboard", icon: LayoutDashboard },
+  { to: "/admin/flats", key: "flats", icon: Building },
+  { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
+  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+  { to: "/admin/shops", key: "shops", icon: Store },
+  { to: "/admin/parking", key: "parkingNav", icon: Car },
+  { to: "/admin/dues", key: "dues", icon: Receipt },
+  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+  { to: "/admin/notices", key: "notices", icon: Megaphone },
+  { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
+  { to: "/admin/reports", key: "reports", icon: FileBarChart },
+  { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+];
+
+function navFor(role: string | null) {
+  if (role === "admin") return adminNav;
+  if (role === "manager") return managerNav;
+  if (role === "accountant") return accountantNav;
+  return ownerNav;
+}
+
 export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
