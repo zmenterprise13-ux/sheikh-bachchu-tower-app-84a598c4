@@ -279,10 +279,11 @@ export default function AdminDashboard() {
         .map((b: any) => {
           const f = flatMap.get(b.flat_id) as any;
           const owner = residentName(f, lang);
+          const roleText = f ? (lang === "bn" ? ((f.occupant_type ?? "").toLowerCase() === "tenant" ? "ভাড়াটিয়া" : "মালিক") : ((f.occupant_type ?? "").toLowerCase() === "tenant" ? "Tenant" : "Owner")) : "";
           const due = Number(b.total) - Number(b.paid_amount);
           return `<tr>
             <td>${esc(f?.flat_no ?? "—")}</td>
-            <td>${esc(owner ?? "")}</td>
+            <td>${esc(owner ?? "")}${roleText ? ` <span style="color:#888;font-size:11px">(${esc(roleText)})</span>` : ""}</td>
             <td class="r">${fmtMoney(Number(b.service_charge))}</td>
             <td class="r">${fmtMoney(Number(b.gas_bill))}</td>
             <td class="r">${fmtMoney(Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge))}</td>
