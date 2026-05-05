@@ -102,15 +102,17 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const net = opening + totalCollection - totalExpense;
 
   // Build income rows
-  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean };
+  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean; breakdown?: boolean };
   const incomeRows: Row[] = [];
   incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, muted: true });
   incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true, category: true });
   flatBuckets.forEach((r) => {
     incomeRows.push({
       label: `${formatMoney(r.amount, lang)} × ${formatNumber(r.count, lang)}`,
-      amount: r.amount * r.count,
+      amount: NaN,
       sub: true,
+      breakdown: true,
+      detail: String(r.amount * r.count),
     });
   });
   if (Number(snap.loan_taken) > 0) {
@@ -137,7 +139,8 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
         amount: NaN,
         sub: true,
-        muted: true,
+        breakdown: true,
+        detail: String(Number(r.rate) * Number(r.count)),
       });
     });
   });
@@ -177,13 +180,27 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const cellCls = "border border-foreground/30 px-1.5 py-0.5 align-top";
   const numCls = "text-right tabular-nums font-mono";
 
-  const renderRow = (r: Row, idx: number, isAmount = true) => (
+  const renderIncomeRow = (r: Row) => (
+    <>
+      <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
+        {r.label}
+      </td>
+      <td className={`${cellCls} ${numCls} text-[10.5px] text-foreground/40 italic font-normal`}>
+        {r.breakdown && r.detail ? formatMoney(Number(r.detail), lang) : ""}
+      </td>
+      <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
+        {Number.isFinite(r.amount) ? formatMoney(r.amount, lang) : ""}
+      </td>
+    </>
+  );
+
+  const renderExpenseRow = (r: Row) => (
     <>
       <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
         {r.label}
       </td>
       <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
-        {isAmount && Number.isFinite(r.amount) ? formatMoney(r.amount, lang) : ""}
+        {Number.isFinite(r.amount) ? formatMoney(r.amount, lang) : ""}
       </td>
     </>
   );
@@ -204,27 +221,37 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr className="bg-secondary">
-            <th className={`${cellCls} text-left w-[35%] font-bold`}>{lang === "bn" ? "আয়ের বিবরণ" : "Income"}</th>
-            <th className={`${cellCls} ${numCls} w-[15%] font-bold`}>{lang === "bn" ? "পরিমাণ" : "Amount"}</th>
-            <th className={`${cellCls} text-left w-[35%] font-bold`}>{lang === "bn" ? "ব্যয়ের বিবরণ" : "Expense"}</th>
+            <th className={`${cellCls} text-left w-[30%] font-bold`}>{lang === "bn" ? "আয়ের বিবরণ" : "Income"}</th>
+            <th className={`${cellCls} ${numCls} w-[12%] font-normal text-[9px] text-muted-foreground italic`}>
+              {lang === "bn" ? "(ব্রেকডাউন)" : "(breakdown)"}
+            </th>
+            <th className={`${cellCls} ${numCls} w-[13%] font-bold`}>{lang === "bn" ? "পরিমাণ" : "Amount"}</th>
+            <th className={`${cellCls} text-left w-[30%] font-bold`}>{lang === "bn" ? "ব্যয়ের বিবরণ" : "Expense"}</th>
             <th className={`${cellCls} ${numCls} w-[15%] font-bold`}>{lang === "bn" ? "পরিমাণ" : "Amount"}</th>
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: maxLen }).map((_, i) => (
             <tr key={i}>
-              {renderRow(incomeRows[i], i)}
-              {renderRow(expenseRows[i], i)}
+              {renderIncomeRow(incomeRows[i])}
+              {renderExpenseRow(expenseRows[i])}
             </tr>
           ))}
           <tr className="bg-secondary font-bold">
             <td className={cellCls}>{lang === "bn" ? "সর্বমোট কালেকশন" : "Total Collection"}</td>
+            <td className={cellCls}></td>
             <td className={`${cellCls} ${numCls} text-success`}>{formatMoney(totalCollection, lang)}</td>
             <td className={cellCls}>{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</td>
             <td className={`${cellCls} ${numCls} text-warning`}>{formatMoney(totalExpense, lang)}</td>
           </tr>
         </tbody>
       </table>
+
+      <p className="text-[10px] text-muted-foreground italic">
+        {lang === "bn"
+          ? "* ব্রেকডাউন কলামের সংখ্যা শুধু হিসাব দেখানোর জন্য; মূল মোটে যোগ হয় না।"
+          : "* Breakdown column values are shown for reference only and are not added to the totals."}
+      </p>
 
       {/* Net balance + outstanding */}
       <table className="w-full border-collapse text-[11px]">
