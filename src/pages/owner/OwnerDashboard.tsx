@@ -275,6 +275,51 @@ export default function OwnerDashboard() {
           <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
         </div>
 
+        {(() => {
+          const sumField = (field: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
+            hasMultipleFlats
+              ? flats.reduce((s, f) => {
+                  const b = allBills[f.id];
+                  return s + (b ? Number(b[field]) : 0);
+                }, 0)
+              : currentBill ? Number(currentBill[field]) : 0;
+          const totalDueShown = hasMultipleFlats ? totalDueAcrossFlats : due;
+          if (totalDueShown <= 0) return null;
+          const items = [
+            { key: "service", label: t("serviceCharge"), value: sumField("service_charge"), icon: Home },
+            { key: "gas", label: t("gasBill"), value: sumField("gas_bill"), icon: Receipt },
+            { key: "parking", label: t("parking"), value: sumField("parking"), icon: Receipt },
+            { key: "other", label: t("otherCharge"), value: sumField("other_charge"), icon: Receipt },
+          ].filter(i => i.value > 0);
+          if (items.length === 0) return null;
+          return (
+            <div className="rounded-2xl bg-card border border-destructive/30 p-4 sm:p-5 shadow-soft">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <h3 className="font-semibold text-foreground text-sm">
+                  {lang === "bn" ? "বকেয়ার আইটেম-ভিত্তিক বিভাজন" : "Dues breakdown by item"}
+                </h3>
+                <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full bg-destructive/15 text-destructive">
+                  {lang === "bn" ? "মোট বকেয়া" : "Total due"}: {formatMoney(totalDueShown, lang)}
+                </span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {items.map(it => (
+                  <div key={it.key} className="flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-destructive/15 text-destructive flex items-center justify-center shrink-0">
+                        <it.icon className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-medium text-foreground truncate">{it.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-destructive">{formatMoney(it.value, lang)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {hasMultipleFlats && (
           <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
