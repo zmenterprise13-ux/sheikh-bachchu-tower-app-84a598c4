@@ -94,17 +94,32 @@ export function BillGenerationTester() {
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           {lang === "bn"
-            ? "নির্বাচিত মাসের জন্য বিল জেনারেট করে। ইতিমধ্যে বিল আছে এমন ফ্ল্যাট স্কিপ হবে।"
-            : "Generates bills for the selected month. Flats already billed will be skipped."}
+            ? "যে মাসের বিল ইতিমধ্যে জেনারেট হয়েছে সেটি তালিকায় দেখাবে না।"
+            : "Months that already have bills are hidden from the picker."}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
         <div>
           <Label className="text-xs">{lang === "bn" ? "মাস" : "Month"}</Label>
-          <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+          <Select value={month} onValueChange={setMonth} disabled={loadingMonths || availableMonths.length === 0}>
+            <SelectTrigger>
+              <SelectValue placeholder={
+                loadingMonths
+                  ? (lang === "bn" ? "লোড হচ্ছে…" : "Loading…")
+                  : availableMonths.length === 0
+                    ? (lang === "bn" ? "কোনো মাস বাকি নেই" : "No months left")
+                    : (lang === "bn" ? "মাস নির্বাচন করুন" : "Select month")
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMonths.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Button onClick={run} disabled={running} className="gap-2 gradient-primary text-primary-foreground">
+        <Button onClick={run} disabled={running || !month || billedMonths.has(month)} className="gap-2 gradient-primary text-primary-foreground">
           {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
           {lang === "bn" ? "টেস্ট চালান" : "Run test"}
         </Button>
