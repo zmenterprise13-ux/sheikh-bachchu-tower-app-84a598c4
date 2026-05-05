@@ -447,6 +447,8 @@ export function MobileNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const groups = groupsFor(role);
   const all = flattenGroups(groups);
+  const pendingPR = usePendingPaymentRequests();
+  const badges: Partial<Record<string, number>> = { paymentRequests: pendingPR };
   const primaryKeys: TKey[] =
     role === "admin" ? ["dashboard", "dues", "ledger", "expenses"]
     : role === "manager" ? ["dashboard", "flats", "dues", "notices"]
@@ -462,22 +464,32 @@ export function MobileNav() {
   return (
     <nav className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
       <div className="grid grid-cols-5">
-        {primary.map(({ to, key, icon: Icon }) => (
+        {primary.map(({ to, key, icon: Icon }) => {
+          const badge = badges[key as string] ?? 0;
+          return (
           <NavLink
             key={to}
             to={to}
             end
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-base",
+                "relative flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-base",
                 isActive ? "text-primary" : "text-muted-foreground"
               )
             }
           >
-            <Icon className="h-5 w-5" />
+            <div className="relative">
+              <Icon className="h-5 w-5" />
+              {badge > 0 && (
+                <span className="absolute -top-1.5 -right-2 inline-flex items-center justify-center min-w-[1rem] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold animate-pulse">
+                  {badge}
+                </span>
+              )}
+            </div>
             <span className="truncate max-w-full px-1">{t(key)}</span>
           </NavLink>
-        ))}
+          );
+        })}
 
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
