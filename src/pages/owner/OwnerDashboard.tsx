@@ -261,27 +261,6 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-          {[
-            { to: "/owner/bills", icon: FileText, label: lang === "bn" ? "বিল" : "Bills", color: "text-primary", bg: "bg-primary/10" },
-            { to: "/owner/notices", icon: Bell, label: lang === "bn" ? "নোটিশ" : "Notices", color: "text-accent", bg: "bg-accent/10" },
-            { to: "/owner/finance-report", icon: TrendingUp, label: lang === "bn" ? "রিপোর্ট" : "Reports", color: "text-success", bg: "bg-success/10" },
-            { to: "/owner/profile", icon: Home, label: lang === "bn" ? "প্রোফাইল" : "Profile", color: "text-warning", bg: "bg-warning/10" },
-          ].map((q) => (
-            <Link
-              key={q.to}
-              to={q.to}
-              className="group rounded-2xl border border-border bg-card p-4 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3"
-            >
-              <div className={`h-10 w-10 rounded-xl ${q.bg} ${q.color} flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
-                <q.icon className="h-5 w-5" />
-              </div>
-              <span className="font-medium text-sm text-foreground">{q.label}</span>
-            </Link>
-          ))}
-        </div>
-
         <div className="grid gap-4 sm:grid-cols-3">
           <StatCard
             label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
