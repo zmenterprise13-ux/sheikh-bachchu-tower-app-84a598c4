@@ -979,7 +979,7 @@ export default function AdminReports() {
               )}
               <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
                 <span className="font-semibold">{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</span>
-                <span className="font-bold text-warning text-lg">{formatMoney(totalExpense + totalLoanOut, lang)}</span>
+                <span className="font-bold text-warning text-lg">{formatMoney(totalExpenseAll, lang)}</span>
               </div>
             </div>
           </div>
