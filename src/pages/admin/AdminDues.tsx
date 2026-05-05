@@ -502,12 +502,12 @@ export default function AdminDues() {
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === "bn" ? "জেনারেট" : "Gen"}: {b.generated_at || "—"}
+                      {lang === "bn" ? "জেনারেট" : "Gen"}: {formatDMY(b.generated_at)}
                     </div>
                   </div>
                   <div className="md:col-span-1 md:text-right text-xs tabular-nums">
                     {b.paid_at ? (
-                      <span className="text-success font-semibold">{b.paid_at}</span>
+                      <span className="text-success font-semibold">{formatDMY(b.paid_at)}</span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
