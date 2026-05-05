@@ -330,31 +330,53 @@
   .print-fit-one-page .shadow-md { box-shadow: none !important; }
   .print-fit-one-page .rounded-2xl,
   .print-fit-one-page .rounded-xl { border-radius: 3px !important; border: 1px solid #bbb !important; }
-  .print-fit-one-page table { font-size: 8pt !important; width: 100% !important; }
-  .print-fit-one-page th, .print-fit-one-page td { padding: 0.8mm 1.2mm !important; }
+  .print-fit-one-page table { font-size: 10.5pt !important; width: 100% !important; }
+  .print-fit-one-page th, .print-fit-one-page td { padding: 1.4mm 1.8mm !important; line-height: 1.3 !important; }
   .print-fit-one-page svg { max-height: 12px; max-width: 12px; }
+
+  /* Force every text in the printed report to be solid black & bold-readable */
+  #owner-finance-print-inner,
+  #owner-finance-print-inner * {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
+    font-style: normal !important;
+  }
+  #owner-finance-print-inner table { font-size: 10.5pt !important; }
+  #owner-finance-print-inner .text-\[10px\],
+  #owner-finance-print-inner .text-\[10\.5px\],
+  #owner-finance-print-inner .text-\[11px\],
+  #owner-finance-print-inner .text-\[9px\],
+  #owner-finance-print-inner .text-\[7\.5px\],
+  #owner-finance-print-inner .text-xs { font-size: 10pt !important; }
 }
 
 /* Off-screen measurement: same tokens applied without print media so JS can read scrollHeight */
 body.print-measuring #owner-finance-print-inner {
-  font-size: 9pt !important;
-  line-height: 1.2 !important;
+  font-size: 10.5pt !important;
+  line-height: 1.3 !important;
   width: 718px !important;
+  color: #000 !important;
+}
+body.print-measuring #owner-finance-print-inner * {
+  color: #000 !important;
+  font-style: normal !important;
+  opacity: 1 !important;
 }
 body.print-measuring #owner-finance-print-inner .grid.lg\:grid-cols-2 {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
 }
-body.print-measuring .print-fit-one-page h1 { font-size: 13pt !important; }
-body.print-measuring .print-fit-one-page h2 { font-size: 11pt !important; }
-body.print-measuring .print-fit-one-page h3 { font-size: 10pt !important; }
+body.print-measuring .print-fit-one-page h1 { font-size: 14pt !important; }
+body.print-measuring .print-fit-one-page h2 { font-size: 12pt !important; }
+body.print-measuring .print-fit-one-page h3 { font-size: 11pt !important; }
 body.print-measuring .print-fit-one-page .text-3xl,
-body.print-measuring .print-fit-one-page .text-2xl { font-size: 12pt !important; }
-body.print-measuring .print-fit-one-page .text-xl { font-size: 10.5pt !important; }
-body.print-measuring .print-fit-one-page .text-lg { font-size: 10pt !important; }
-body.print-measuring .print-fit-one-page .text-base { font-size: 9.5pt !important; }
-body.print-measuring .print-fit-one-page .text-sm { font-size: 8.5pt !important; }
-body.print-measuring .print-fit-one-page .text-xs { font-size: 7.5pt !important; }
+body.print-measuring .print-fit-one-page .text-2xl { font-size: 13pt !important; }
+body.print-measuring .print-fit-one-page .text-xl { font-size: 12pt !important; }
+body.print-measuring .print-fit-one-page .text-lg { font-size: 11pt !important; }
+body.print-measuring .print-fit-one-page .text-base { font-size: 10.5pt !important; }
+body.print-measuring .print-fit-one-page .text-sm { font-size: 10pt !important; }
+body.print-measuring .print-fit-one-page .text-xs { font-size: 9.5pt !important; }
 body.print-measuring .print-fit-one-page .p-6,
 body.print-measuring .print-fit-one-page .sm\:p-6 { padding: 0.66rem !important; }
 body.print-measuring .print-fit-one-page .p-4,
@@ -363,7 +385,13 @@ body.print-measuring .print-fit-one-page .gap-6 { gap: 0.66rem !important; }
 body.print-measuring .print-fit-one-page .gap-4 { gap: 0.5rem !important; }
 body.print-measuring .print-fit-one-page .space-y-6 > * + * { margin-top: 0.66rem !important; }
 body.print-measuring .print-fit-one-page .space-y-4 > * + * { margin-top: 0.4rem !important; }
-body.print-measuring .print-fit-one-page table { font-size: 8pt !important; }
+body.print-measuring .print-fit-one-page table { font-size: 10.5pt !important; }
+body.print-measuring #owner-finance-print-inner .text-\[10px\],
+body.print-measuring #owner-finance-print-inner .text-\[10\.5px\],
+body.print-measuring #owner-finance-print-inner .text-\[11px\],
+body.print-measuring #owner-finance-print-inner .text-\[9px\],
+body.print-measuring #owner-finance-print-inner .text-\[7\.5px\],
+body.print-measuring #owner-finance-print-inner .text-xs { font-size: 10pt !important; }
 
 /* ===== On-screen A4 preview that mirrors the printed page exactly ===== */
 @media screen {
