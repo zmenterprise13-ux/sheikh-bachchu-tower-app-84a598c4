@@ -79,6 +79,8 @@ function formatMonthLabel(m: string, lang: "bn" | "en"): string {
 
 export default function AdminDues() {
   const { t, lang } = useLang();
+  const { user, role } = useAuth();
+  const isAccountant = role === "accountant";
   const [bills, setBills] = useState<Bill[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
