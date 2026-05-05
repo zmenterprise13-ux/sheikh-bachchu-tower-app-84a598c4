@@ -38,7 +38,7 @@ type Expense = {
 
 export default function AdminExpenses() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [items, setItems] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
