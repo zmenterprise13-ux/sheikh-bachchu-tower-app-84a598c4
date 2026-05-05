@@ -119,13 +119,13 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
     incomeRows.push({ label: lang === "bn" ? "লোন নেয়া" : "Loan Taken", amount: Number(snap.loan_taken), bold: true, category: true });
     (snap.loan_by_lender ?? []).forEach((l) => {
       const name = (lang === "bn" ? (l.lender_bn || l.lender) : (l.lender || l.lender_bn)) || (lang === "bn" ? "অজ্ঞাত" : "Unknown");
-      incomeRows.push({ label: name, amount: Number(l.amount), sub: true });
+      incomeRows.push({ label: name, amount: NaN, sub: true, breakdown: true, detail: String(Number(l.amount)) });
     });
   }
   if (Number(snap.other_income) > 0 || (snap.by_income_category ?? []).length > 0) {
     incomeRows.push({ label: lang === "bn" ? "অন্যান্য আয়" : "Other Income", amount: Number(snap.other_income) || 0, bold: true, category: true });
     (snap.by_income_category ?? []).forEach((r) => {
-      incomeRows.push({ label: oiCatLabel[r.category]?.[lang] ?? r.category, amount: Number(r.amount), sub: true });
+      incomeRows.push({ label: oiCatLabel[r.category]?.[lang] ?? r.category, amount: NaN, sub: true, breakdown: true, detail: String(Number(r.amount)) });
     });
   }
   // Breakdown
