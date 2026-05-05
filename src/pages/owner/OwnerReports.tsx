@@ -120,7 +120,7 @@ export default function OwnerReports() {
           </div>
         </div>
 
-        <div className="print-area space-y-6 relative">
+        <div className="print-area space-y-6 relative isolate">
           <ReportPadBackground />
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">

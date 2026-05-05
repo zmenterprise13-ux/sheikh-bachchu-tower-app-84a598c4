@@ -100,7 +100,7 @@ export default function OwnerFinanceReport() {
           </div>
         </div>
 
-        <div className="print-area print-fit-one-page relative" id="owner-finance-print">
+        <div className="print-area print-fit-one-page relative isolate" id="owner-finance-print">
           <ReportPadBackground />
           <div id="owner-finance-print-inner" className="relative z-10">
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
