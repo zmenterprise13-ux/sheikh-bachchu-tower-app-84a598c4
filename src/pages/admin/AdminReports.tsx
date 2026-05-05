@@ -997,7 +997,7 @@ export default function AdminReports() {
             </div>
             <div>
               <div className="text-xs uppercase opacity-80">{t("expense")}</div>
-              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpense, lang)}</div>
+              <div className="text-xl font-bold mt-1">−{formatMoney(totalExpenseAll, lang)}</div>
             </div>
             <div>
               <div className="text-xs uppercase opacity-80">{lang === "bn" ? "নিট" : "Net"}</div>
