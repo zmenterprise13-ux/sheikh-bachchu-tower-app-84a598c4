@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ApprovalBadge, approvalFieldsForInsert } from "@/components/ApprovalBadge";
 
 type Income = {
   id: string;
@@ -32,6 +33,8 @@ type Income = {
   source_name: string | null;
   description: string | null;
   reference: string | null;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 const CATEGORIES = [
