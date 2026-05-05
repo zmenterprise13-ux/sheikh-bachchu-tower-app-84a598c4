@@ -287,9 +287,16 @@ export default function AdminUserManagement() {
                       <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{fmtDate(r.created_at)}</span>
                     </div>
                     {r.flats.length > 0 && (
-                      <div className="text-xs mt-1 text-foreground/80">
-                        {lang === "bn" ? "ফ্ল্যাট: " : "Flats: "}
-                        <span className="font-medium">{r.flats.map((f) => f.flat_no).join(", ")}</span>
+                      <div className="text-xs mt-1 text-foreground/80 flex flex-wrap gap-1.5">
+                        <span>{lang === "bn" ? "ফ্ল্যাট:" : "Flats:"}</span>
+                        {r.flats.map((f) => {
+                          const owner = lang === "bn" ? (f.owner_name_bn || f.owner_name) : f.owner_name;
+                          return (
+                            <span key={f.id} className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 font-medium">
+                              {f.flat_no}{owner ? ` — ${owner}` : ""}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                     <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground mt-1">
