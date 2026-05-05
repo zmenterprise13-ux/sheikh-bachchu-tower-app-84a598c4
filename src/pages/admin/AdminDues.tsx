@@ -475,16 +475,16 @@ export default function AdminDues() {
               const flat = flats.find((f) => f.id === b.flat_id)!;
               const due = Number(b.total) - Number(b.paid_amount);
               return (
-                <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-start hover:bg-secondary/40 transition-base">
+                <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-x-3 gap-y-2 px-4 sm:px-5 py-3 items-start hover:bg-secondary/40 transition-base">
                   <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
-                  <div className="md:col-span-3 min-w-0">
-                    <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1 break-words">
-                      <span className="break-words md:truncate">{residentName(flat, lang) || "—"}</span>
+                  <div className="md:col-span-3 min-w-0 col-span-1 max-w-full overflow-hidden">
+                    <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="break-words [overflow-wrap:anywhere] min-w-0">{residentName(flat, lang) || "—"}</span>
                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
                         {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">{(flat.occupant_type === "tenant" ? flat.occupant_phone : flat.phone) || ""}</div>
+                    <div className="text-xs text-muted-foreground break-all">{(flat.occupant_type === "tenant" ? flat.occupant_phone : flat.phone) || ""}</div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
                       <span className="text-muted-foreground">
                         {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(Number(b.total), lang)}</span>
