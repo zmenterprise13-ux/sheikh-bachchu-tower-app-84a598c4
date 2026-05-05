@@ -53,7 +53,7 @@ const catIcon = (key: string) => CATEGORIES.find((x) => x.key === key)?.icon ?? 
 
 export default function OtherIncomeSection() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [items, setItems] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
