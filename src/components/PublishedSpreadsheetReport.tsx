@@ -128,20 +128,19 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       incomeRows.push({ label: oiCatLabel[r.category]?.[lang] ?? r.category, amount: NaN, sub: true, breakdown: true, detail: String(Number(r.amount)) });
     });
   }
-  // Breakdown
+  // Bill components breakdown — shown separately at the bottom (not part of main income column)
+  const billBreakdown: { label: string; subtotal: number; rows: { label: string; amount: number }[] }[] = [];
   components.forEach((sec) => {
     const rows = snap.bill_components?.[sec.key] ?? [];
     const subtotal = rows.reduce((s, r) => s + Number(r.rate) * Number(r.count), 0);
     if (rows.length === 0 && subtotal === 0) return;
-    incomeRows.push({ label: sec.label, amount: subtotal, category: true });
-    rows.forEach((r) => {
-      incomeRows.push({
+    billBreakdown.push({
+      label: sec.label,
+      subtotal,
+      rows: rows.map((r) => ({
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
-        amount: NaN,
-        sub: true,
-        breakdown: true,
-        detail: String(Number(r.rate) * Number(r.count)),
-      });
+        amount: Number(r.rate) * Number(r.count),
+      })),
     });
   });
 
