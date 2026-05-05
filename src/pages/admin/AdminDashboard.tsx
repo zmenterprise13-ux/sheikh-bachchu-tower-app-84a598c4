@@ -5,6 +5,7 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { residentName } from "@/lib/displayName";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
