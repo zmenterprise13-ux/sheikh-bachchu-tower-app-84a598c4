@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "react-router-dom";
+import { residentName } from "@/lib/displayName";
 
 export default function AdminLedger() {
   const { lang } = useLang();
