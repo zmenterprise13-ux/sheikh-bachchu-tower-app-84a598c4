@@ -291,7 +291,7 @@ export default function AdminReports() {
       return {
         ...r,
         flat_no: f.flat_no,
-        owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
+        owner: residentName(f, lang),
       };
     }).filter((r) => r.billed > 0 || r.paid > 0);
   }, [flats, scopedBills, lang, flatFilter]);
