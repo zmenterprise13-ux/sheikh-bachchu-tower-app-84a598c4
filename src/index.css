@@ -365,3 +365,40 @@ body.print-measuring .print-fit-one-page .space-y-6 > * + * { margin-top: 0.66re
 body.print-measuring .print-fit-one-page .space-y-4 > * + * { margin-top: 0.4rem !important; }
 body.print-measuring .print-fit-one-page table { font-size: 8pt !important; }
 
+/* ===== On-screen A4 preview that mirrors the printed page exactly ===== */
+@media screen {
+  #owner-finance-print {
+    background: #e5e7eb;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    border-radius: 8px;
+  }
+  #owner-finance-print-inner {
+    background: #fff;
+    color: #000;
+    /* A4 at 96dpi = 794 × 1123 px */
+    width: 794px;
+    min-height: 1123px;
+    /* Match @page margin: 10mm ≈ 38px */
+    padding: 38px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+    font-size: 9pt;
+    line-height: 1.2;
+  }
+  #owner-finance-print-inner .grid.lg\:grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  /* Apply the same compact tokens used in print */
+  #owner-finance-print-inner table { font-size: 8pt !important; width: 100% !important; }
+  #owner-finance-print-inner th,
+  #owner-finance-print-inner td { padding: 0.8mm 1.2mm !important; }
+  #owner-finance-print-inner h1 { font-size: 13pt !important; margin: 0 !important; }
+  #owner-finance-print-inner h2 { font-size: 11pt !important; }
+  #owner-finance-print-inner h3 { font-size: 10pt !important; }
+  /* Reveal the print-only header on screen too so preview matches */
+  #owner-finance-print-inner .hidden.print\:block { display: block !important; }
+}
+
