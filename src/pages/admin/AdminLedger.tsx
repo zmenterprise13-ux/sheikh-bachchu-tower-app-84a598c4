@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "react-router-dom";
+import { residentName } from "@/lib/displayName";
 
 export default function AdminLedger() {
   const { lang } = useLang();
@@ -28,7 +29,7 @@ export default function AdminLedger() {
       setLoading(true);
       const { data } = await supabase
         .from("flats")
-        .select("id, flat_no, floor, size, owner_name, owner_name_bn, occupant_name, occupant_name_bn")
+        .select("id, flat_no, floor, size, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
         .order("floor")
         .order("flat_no");
       setFlats((data ?? []) as LedgerFlat[]);
@@ -88,7 +89,7 @@ export default function AdminLedger() {
               {filtered.map((f) => (
                 <SelectItem key={f.id} value={f.id}>
                   {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no} —{" "}
-                  {(lang === "bn" ? f.owner_name_bn : f.owner_name) || "—"}
+                  {residentName(f, lang) || "—"}
                 </SelectItem>
               ))}
             </SelectContent>

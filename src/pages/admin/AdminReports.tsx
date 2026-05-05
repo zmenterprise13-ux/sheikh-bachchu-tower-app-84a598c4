@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from "lucide-react";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { round2 } from "@/lib/bkashMath";
+import { residentName } from "@/lib/displayName";
 
 function paymentStatusOf(billed: number, collected: number): FlatStatus {
   if (billed <= 0) return "unpaid";
@@ -55,7 +56,7 @@ type Expense = { date: string; category: string; amount: number };
 type LoanRow = { loan_date: string; principal: number; lender_name: string | null; lender_name_bn: string | null };
 type RepayRow = { paid_date: string; amount: number };
 type OtherIncomeRow = { date: string; category: string; amount: number };
-type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
+type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null; occupant_type: string | null; occupant_name: string | null; occupant_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const monthsAgo = (n: number) => {
@@ -144,7 +145,7 @@ export default function AdminReports() {
           .select("date, category, amount")
           .gte("date", monthStart).lt("date", monthEnd),
         supabase.from("flats")
-          .select("id, flat_no, owner_name, owner_name_bn")
+          .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
         anchorMonth
           ? supabase.from("bills").select("paid_amount").gte("month", anchorMonth).lt("month", from)
@@ -290,7 +291,7 @@ export default function AdminReports() {
       return {
         ...r,
         flat_no: f.flat_no,
-        owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
+        owner: residentName(f, lang),
       };
     }).filter((r) => r.billed > 0 || r.paid > 0);
   }, [flats, scopedBills, lang, flatFilter]);
@@ -531,8 +532,8 @@ export default function AdminReports() {
                 {flats.map((f) => (
                   <option key={f.id} value={f.id}>
                     {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
-                    {(lang === "bn" ? f.owner_name_bn : f.owner_name)
-                      ? ` — ${lang === "bn" ? f.owner_name_bn : f.owner_name}`
+                    {residentName(f, lang)
+                      ? ` — ${residentName(f, lang)}`
                       : ""}
                   </option>
                 ))}

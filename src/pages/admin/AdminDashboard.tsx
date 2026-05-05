@@ -5,6 +5,7 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { residentName } from "@/lib/displayName";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
@@ -43,6 +44,9 @@ type Flat = {
   flat_no: string;
   owner_name: string | null;
   owner_name_bn: string | null;
+  occupant_type: string | null;
+  occupant_name: string | null;
+  occupant_name_bn: string | null;
 };
 
 type Bill = {
@@ -126,7 +130,7 @@ export default function AdminDashboard() {
     setPrevMonth(prevTarget);
 
     const [flatsRes, billsRes, prevBillsRes, noticesRes] = await Promise.all([
-      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
+      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
@@ -246,7 +250,7 @@ export default function AdminDashboard() {
           .gte("date", monthStart).lt("date", monthEnd)
           .order("date", { ascending: true }),
         supabase.from("flats")
-          .select("id, flat_no, owner_name, owner_name_bn")
+          .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
       ]);
       if (billsRes.error) throw billsRes.error;
@@ -274,7 +278,7 @@ export default function AdminDashboard() {
       const billRows = bs
         .map((b: any) => {
           const f = flatMap.get(b.flat_id) as any;
-          const owner = f ? (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name || f.owner_name_bn) : "";
+          const owner = residentName(f, lang);
           const due = Number(b.total) - Number(b.paid_amount);
           return `<tr>
             <td>${esc(f?.flat_no ?? "—")}</td>
@@ -792,7 +796,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-foreground truncate">
-                        {flat ? (lang === "bn" ? flat.owner_name_bn || flat.owner_name : flat.owner_name) : "—"}
+                        {flat ? (residentName(flat, lang) || "—") : "—"}
                       </div>
                     </div>
                     <div className="text-right">

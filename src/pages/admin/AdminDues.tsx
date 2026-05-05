@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { residentName } from "@/lib/displayName";
 
 type Filter = "all" | FlatStatus;
 
@@ -42,6 +43,10 @@ type Flat = {
   owner_name: string | null;
   owner_name_bn: string | null;
   phone: string | null;
+  occupant_type: string | null;
+  occupant_name: string | null;
+  occupant_name_bn: string | null;
+  occupant_phone: string | null;
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -99,7 +104,7 @@ export default function AdminDues() {
         .from("bills")
         .select(BILL_SELECT)
         .eq("month", targetMonth),
-      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
+      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone"),
     ]);
     if (billsRes.error) toast.error(billsRes.error.message);
     if (flatsRes.error) toast.error(flatsRes.error.message);
@@ -473,8 +478,8 @@ export default function AdminDues() {
                 <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-start hover:bg-secondary/40 transition-base">
                   <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
                   <div className="md:col-span-3 min-w-0">
-                    <div className="font-medium text-foreground truncate">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</div>
-                    <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
+                    <div className="font-medium text-foreground truncate">{residentName(flat, lang) || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{(flat.occupant_type === "tenant" ? flat.occupant_phone : flat.phone) || ""}</div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
                       <span className="text-muted-foreground">
                         {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(Number(b.total), lang)}</span>
