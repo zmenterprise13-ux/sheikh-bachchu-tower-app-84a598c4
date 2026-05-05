@@ -81,6 +81,7 @@ export default function AdminReports() {
   const { t, lang } = useLang();
   const [from, setFrom] = useState(currentMonth());
   const [to, setTo] = useState(currentMonth());
+  const [flatFilter, setFlatFilter] = useState<string>("all");
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loans, setLoans] = useState<LoanRow[]>([]);
