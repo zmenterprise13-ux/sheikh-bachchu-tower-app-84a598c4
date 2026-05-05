@@ -30,7 +30,11 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: FlatStatus;
+  generated_at: string | null;
+  paid_at: string | null;
 };
+
+const BILL_SELECT = "id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status, generated_at, paid_at";
 
 type Flat = {
   id: string;
