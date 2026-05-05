@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { residentName } from "@/lib/displayName";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { InitialsFallback } from "@/components/InitialsFallback";
 
 type Filter = "all" | FlatStatus;
 
