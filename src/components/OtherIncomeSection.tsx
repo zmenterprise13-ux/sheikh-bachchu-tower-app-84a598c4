@@ -149,7 +149,7 @@ export default function OtherIncomeSection() {
     } else {
       ({ error } = await supabase
         .from("other_incomes")
-        .insert({ ...payload, created_by: user?.id ?? null }));
+        .insert({ ...payload, created_by: user?.id ?? null, ...approvalFieldsForInsert(role, user?.id) }));
     }
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
