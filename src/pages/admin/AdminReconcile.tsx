@@ -6,10 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, AlertTriangle, CheckCircle2, ScanSearch } from "lucide-react";
+import { Search, AlertTriangle, CheckCircle2, ScanSearch, X } from "lucide-react";
 import { round2 } from "@/lib/bkashMath";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 type Row = {
   bill_id: string;
@@ -34,6 +36,8 @@ export default function AdminReconcile() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(true);
+  const [monthFilter, setMonthFilter] = useState<string>("");
+  const [flatFilter, setFlatFilter] = useState<string>("all");
 
   const load = async () => {
     setLoading(true);
@@ -84,6 +88,8 @@ export default function AdminReconcile() {
     const s = q.toLowerCase().trim();
     return rows.filter((r) => {
       if (onlyIssues && Math.abs(r.delta) < 0.01) return false;
+      if (monthFilter && r.month !== monthFilter) return false;
+      if (flatFilter !== "all" && r.flat_id !== flatFilter) return false;
       if (!s) return true;
       return (
         r.flat_no.toLowerCase().includes(s) ||
@@ -91,7 +97,17 @@ export default function AdminReconcile() {
         r.month.includes(s)
       );
     });
-  }, [rows, q, onlyIssues]);
+  }, [rows, q, onlyIssues, monthFilter, flatFilter]);
+
+  const monthOptions = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.month))).sort().reverse(),
+    [rows]
+  );
+  const flatOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    rows.forEach((r) => { if (!seen.has(r.flat_id)) seen.set(r.flat_id, r.flat_no); });
+    return Array.from(seen.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [rows]);
 
   const issuesCount = rows.filter(r => Math.abs(r.delta) >= 0.01).length;
 
@@ -126,6 +142,34 @@ export default function AdminReconcile() {
               ? (lang === "bn" ? "শুধু গরমিল" : "Only mismatches")
               : (lang === "bn" ? "সব দেখান" : "Show all")}
           </Button>
+          <Select value={monthFilter || "all"} onValueChange={(v) => setMonthFilter(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-40 h-9">
+              <SelectValue placeholder={lang === "bn" ? "সব মাস" : "All months"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "bn" ? "সব মাস" : "All months"}</SelectItem>
+              {monthOptions.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={flatFilter} onValueChange={setFlatFilter}>
+            <SelectTrigger className="w-44 h-9">
+              <SelectValue placeholder={lang === "bn" ? "সব ফ্ল্যাট" : "All flats"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "bn" ? "সব ফ্ল্যাট" : "All flats"}</SelectItem>
+              {flatOptions.map(([id, no]) => (
+                <SelectItem key={id} value={id}>{lang === "bn" ? "ফ্ল্যাট" : "Flat"} {no}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(monthFilter || flatFilter !== "all") && (
+            <Button variant="ghost" size="sm" onClick={() => { setMonthFilter(""); setFlatFilter("all"); }}>
+              <X className="h-3.5 w-3.5 mr-1" />
+              {lang === "bn" ? "ক্লিয়ার" : "Clear"}
+            </Button>
+          )}
           <div className="ml-auto text-sm">
             {issuesCount === 0 ? (
               <span className="inline-flex items-center gap-1 text-success font-medium">

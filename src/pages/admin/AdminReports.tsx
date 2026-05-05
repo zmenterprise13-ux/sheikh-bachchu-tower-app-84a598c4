@@ -81,6 +81,7 @@ export default function AdminReports() {
   const { t, lang } = useLang();
   const [from, setFrom] = useState(currentMonth());
   const [to, setTo] = useState(currentMonth());
+  const [flatFilter, setFlatFilter] = useState<string>("all");
   const [bills, setBills] = useState<Bill[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loans, setLoans] = useState<LoanRow[]>([]);
@@ -210,10 +211,15 @@ export default function AdminReports() {
 
   const months = useMemo(() => validRange ? enumerateMonths(from, to) : [], [from, to, validRange]);
 
+  const scopedBills = useMemo(
+    () => flatFilter === "all" ? bills : bills.filter((b) => b.flat_id === flatFilter),
+    [bills, flatFilter]
+  );
+
   // Per-month aggregation
   const perMonth = useMemo(() => {
     return months.map((m) => {
-      const mb = bills.filter((b) => b.month === m);
+      const mb = scopedBills.filter((b) => b.month === m);
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
@@ -227,7 +233,7 @@ export default function AdminReports() {
       const expenseTotal = expense + loanOut; // loan repayment is treated as expense
       return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
-  }, [months, bills, expenses, loans, repays, otherIncomes]);
+  }, [months, scopedBills, expenses, loans, repays, otherIncomes]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
@@ -267,7 +273,7 @@ export default function AdminReports() {
     for (const f of flats) {
       map.set(f.id, { flat_id: f.id, service: 0, gas: 0, parking: 0, eid: 0, other: 0, billed: 0, paid: 0, due: 0 });
     }
-    for (const b of bills) {
+    for (const b of scopedBills) {
       const row = map.get(b.flat_id);
       if (!row) continue;
       row.service += Number(b.service_charge);
@@ -287,7 +293,7 @@ export default function AdminReports() {
         owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
       };
     }).filter((r) => r.billed > 0 || r.paid > 0);
-  }, [flats, bills, lang]);
+  }, [flats, scopedBills, lang, flatFilter]);
 
   const totalDue = perFlat.reduce((s, r) => s + r.due, 0);
 
@@ -511,6 +517,40 @@ export default function AdminReports() {
           {!validRange && (
             <p className="text-sm text-destructive mt-2">{lang === "bn" ? "শুরু মাস শেষ মাসের আগে হতে হবে" : "From must be ≤ To"}</p>
           )}
+
+          {/* Flat filter */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "ফ্ল্যাট ফিল্টার" : "Flat filter"}</Label>
+              <select
+                value={flatFilter}
+                onChange={(e) => setFlatFilter(e.target.value)}
+                className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="all">{lang === "bn" ? "সব ফ্ল্যাট" : "All flats"}</option>
+                {flats.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
+                    {(lang === "bn" ? f.owner_name_bn : f.owner_name)
+                      ? ` — ${lang === "bn" ? f.owner_name_bn : f.owner_name}`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+              {flatFilter !== "all" && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {lang === "bn"
+                    ? "নোট: শুধু এই ফ্ল্যাটের বিল/কালেকশনে স্কোপড। খরচ ও লোন সব মিলিয়ে দেখানো হচ্ছে।"
+                    : "Note: scoped to this flat's bills/collection only. Expenses & loans remain society-wide."}
+                </p>
+              )}
+            </div>
+            {flatFilter !== "all" && (
+              <Button size="sm" variant="ghost" onClick={() => setFlatFilter("all")}>
+                {lang === "bn" ? "ক্লিয়ার" : "Clear"}
+              </Button>
+            )}
+          </div>
 
           {/* Opening cash override */}
           <div className="mt-4 border-t border-border pt-4 space-y-2">
