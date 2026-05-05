@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Users, Search, Trash2, Ban, ShieldCheck, Wallet, Briefcase, User as UserIcon,
-  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X,
+  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X, LogIn, UserPlus,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -157,6 +157,10 @@ export default function AdminUserManagement() {
     if (!s) return "—";
     try { return new Date(s).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-GB"); } catch { return s; }
   };
+  const fmtDateTime = (s: string | null) => {
+    if (!s) return lang === "bn" ? "কখনো না" : "Never";
+    try { return new Date(s).toLocaleString(lang === "bn" ? "bn-BD" : "en-GB"); } catch { return s; }
+  };
 
   return (
     <AppShell>
@@ -286,6 +290,16 @@ export default function AdminUserManagement() {
                         <span className="font-medium">{r.flats.map((f) => f.flat_no).join(", ")}</span>
                       </div>
                     )}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground mt-1">
+                      <span className="inline-flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" />
+                        {lang === "bn" ? "রেজিস্টার:" : "Registered:"} {fmtDateTime(r.created_at)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <LogIn className="h-3 w-3" />
+                        {lang === "bn" ? "শেষ লগইন:" : "Last login:"} {fmtDateTime(r.last_sign_in_at)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
