@@ -1,26 +1,47 @@
+import { useEffect } from "react";
 import { useReportPad } from "@/hooks/useReportPad";
 
 /**
- * Renders the configured report pad (letterhead) as a background image
- * behind the printable report area. Place inside a position:relative parent.
- * The image stretches to cover the parent and prints with color.
+ * Applies the configured report pad (letterhead) as the background image of the
+ * nearest ancestor matching `targetSelector`. We attach to a real ancestor so
+ * the pad sits underneath inner cards (which have their own white backgrounds)
+ * by being painted on the page itself, not as an overlay.
+ *
+ * Default targets the printable wrappers used across reports.
  */
-export function ReportPadBackground() {
+export function ReportPadBackground({
+  targetSelector = "#owner-finance-print-inner, #report-printable, .print-area",
+}: { targetSelector?: string } = {}) {
   const { settings } = useReportPad();
-  if (!settings.enabled || !settings.url) return null;
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 print:block"
-      style={{
-        zIndex: -1,
-        backgroundImage: `url(${settings.url})`,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center top",
-        backgroundSize: "100% 100%",
-        WebkitPrintColorAdjust: "exact",
-        printColorAdjust: "exact",
-      }}
-    />
-  );
+
+  useEffect(() => {
+    const el = document.querySelector(targetSelector) as HTMLElement | null;
+    if (!el) return;
+    const prev = {
+      backgroundImage: el.style.backgroundImage,
+      backgroundRepeat: el.style.backgroundRepeat,
+      backgroundPosition: el.style.backgroundPosition,
+      backgroundSize: el.style.backgroundSize,
+      printColorAdjust: el.style.printColorAdjust,
+    };
+    if (settings.enabled && settings.url) {
+      el.style.backgroundImage = `url("${settings.url}")`;
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.backgroundPosition = "center top";
+      el.style.backgroundSize = "100% 100%";
+      el.style.printColorAdjust = "exact";
+      (el.style as any).WebkitPrintColorAdjust = "exact";
+    } else {
+      el.style.backgroundImage = "";
+    }
+    return () => {
+      el.style.backgroundImage = prev.backgroundImage;
+      el.style.backgroundRepeat = prev.backgroundRepeat;
+      el.style.backgroundPosition = prev.backgroundPosition;
+      el.style.backgroundSize = prev.backgroundSize;
+      el.style.printColorAdjust = prev.printColorAdjust;
+    };
+  }, [settings.enabled, settings.url, targetSelector]);
+
+  return null;
 }
