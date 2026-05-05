@@ -135,7 +135,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
     rows.forEach((r) => {
       incomeRows.push({
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
-        amount: Number(r.rate) * Number(r.count),
+        amount: NaN,
         sub: true,
         muted: true,
       });
