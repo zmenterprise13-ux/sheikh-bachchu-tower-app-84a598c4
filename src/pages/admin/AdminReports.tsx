@@ -532,8 +532,8 @@ export default function AdminReports() {
                 {flats.map((f) => (
                   <option key={f.id} value={f.id}>
                     {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no}
-                    {(lang === "bn" ? f.owner_name_bn : f.owner_name)
-                      ? ` — ${lang === "bn" ? f.owner_name_bn : f.owner_name}`
+                    {residentName(f, lang)
+                      ? ` — ${residentName(f, lang)}`
                       : ""}
                   </option>
                 ))}
