@@ -834,6 +834,8 @@ function BillEditDialog({
         arrears: form.arrears,
         other_note: form.other_note,
         other_due_date: otherDueDate,
+        generated_at: form.generated_at || undefined,
+        paid_at: form.paid_at || null,
       })
       .eq("id", form.id)
       .select(BILL_SELECT)
