@@ -310,6 +310,35 @@ export function PublishedDetailedReport({ month }: { month: string }) {
           </div>
         );
       })()}
+
+      {/* Outstanding loans warning */}
+      {(snap.outstanding_loans ?? []).length > 0 && (
+        <div className="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-4">
+          <p className="text-destructive font-bold italic text-sm">
+            {lang === "bn" ? "* লোন নেয়া আছে:" : "* Loan(s) outstanding:"}
+          </p>
+          <ul className="mt-2 space-y-1 italic text-destructive text-sm">
+            {(snap.outstanding_loans ?? []).map((l, i) => {
+              const name = (lang === "bn" ? (l.lender_bn || l.lender) : (l.lender || l.lender_bn)) || (lang === "bn" ? "অজ্ঞাত" : "Unknown");
+              return (
+                <li key={i}>
+                  * {name} — {formatMoney(Number(l.outstanding), lang)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {/* Admin notes */}
+      {snap.notes && snap.notes.trim().length > 0 && (
+        <div className="rounded-2xl bg-card border border-border p-4 shadow-soft">
+          <div className="text-xs font-semibold text-muted-foreground mb-1">
+            {lang === "bn" ? "মন্তব্য" : "Notes"}
+          </div>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{snap.notes}</p>
+        </div>
+      )}
     </div>
   );
 }
