@@ -218,12 +218,19 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
             />
           </div>
 
-          {(loanTaken > 0 || loanRepaid > 0) && (
+          {(openingCash !== 0 || loanTaken > 0 || loanRepaid > 0) && (
             <div className="mt-3">
               <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                {lang === "bn" ? "ক্যাশ ফ্লো (লোন)" : "Cash Flow (Loans)"}
+                {lang === "bn" ? "ক্যাশ পজিশন" : "Cash Position"}
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Tile
+                  icon={Wallet}
+                  label={lang === "bn" ? "ক্যাশ শুরুর ব্যালেন্স" : "Opening Cash"}
+                  value={formatMoney(openingCash, lang)}
+                  hint={lang === "bn" ? "মাস শুরুর জের" : "Carry-forward at month start"}
+                  tone={openingCash >= 0 ? "success" : "destructive"}
+                />
                 <Tile
                   icon={Landmark}
                   label={lang === "bn" ? "লোন গৃহীত (ক্যাশ ইন)" : "Loan Taken (Cash In)"}
@@ -244,8 +251,8 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
                   value={formatMoney(netCash, lang)}
                   hint={
                     (lang === "bn"
-                      ? "নিট ব্যালেন্স + লোন − পরিশোধ"
-                      : "Net balance + loan − repayment")
+                      ? "শুরুর + নিট + লোন − পরিশোধ"
+                      : "Opening + net + loan − repayment")
                   }
                   tone={netCash >= 0 ? "success" : "destructive"}
                 />
