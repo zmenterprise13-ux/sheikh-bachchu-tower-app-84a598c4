@@ -38,16 +38,34 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
+  const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data }, catRes] = await Promise.all([
+      const start = `${month}-01`;
+      const [y, m] = month.split("-").map(Number);
+      const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+      const [{ data }, catRes, repayRes] = await Promise.all([
         supabase.rpc("monthly_finance_summary", { _month: month }),
         supabase.from("expense_categories").select("name, name_bn"),
+        supabase
+          .from("loan_repayments")
+          .select("amount, loans!inner(lender_name, lender_name_bn)")
+          .gte("paid_date", start)
+          .lt("paid_date", nextMonth),
       ]);
       setSnap((data as Snapshot | null) ?? null);
       setExpenseCats((catRes.data ?? []) as any);
+      const agg = new Map<string, { lender: string; lender_bn: string | null; amount: number }>();
+      for (const r of (repayRes.data ?? []) as any[]) {
+        const key = (r.loans?.lender_name || "") + "|" + (r.loans?.lender_name_bn || "");
+        const prev = agg.get(key);
+        const amt = Number(r.amount) || 0;
+        if (prev) prev.amount += amt;
+        else agg.set(key, { lender: r.loans?.lender_name || "", lender_bn: r.loans?.lender_name_bn || null, amount: amt });
+      }
+      setLiveRepayLenders(Array.from(agg.values()).filter(x => x.amount > 0));
       setLoading(false);
     })();
   }, [month]);
@@ -263,28 +281,34 @@ export function PublishedDetailedReport({ month }: { month: string }) {
                 );
               });
             })()}
-            {Number(snap.loan_repaid) > 0 && (
-              <div className="pt-2 border-t border-dashed border-border space-y-1.5">
-                <div className="text-xs font-semibold text-muted-foreground">
-                  {lang === "bn" ? "লোন ফেরত" : "Loan Repaid"}
-                </div>
-                {(snap.loan_repaid_by_lender ?? []).length > 0 ? (
-                  (snap.loan_repaid_by_lender ?? []).map((r, i) => (
-                    <div key={i} className="flex items-center justify-between text-sm pl-2">
-                      <span className="text-muted-foreground">
-                        ↳ {lang === "bn" ? (r.lender_bn || r.lender) : r.lender}
-                      </span>
-                      <span className="font-semibold text-foreground">{formatMoney(Number(r.amount), lang)}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex items-center justify-between text-sm pl-2">
-                    <span className="text-muted-foreground">↳ {lang === "bn" ? "ক্যাশ আউট" : "Cash Out"}</span>
-                    <span className="font-semibold text-foreground">{formatMoney(Number(snap.loan_repaid), lang)}</span>
+            {Number(snap.loan_repaid) > 0 && (() => {
+              const lenders = (snap.loan_repaid_by_lender ?? []).length > 0
+                ? (snap.loan_repaid_by_lender ?? [])
+                : liveRepayLenders;
+              return (
+                <div className="pt-2 border-t border-dashed border-border space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                    <span>{lang === "bn" ? "লোন ফেরত" : "Loan Repaid"}</span>
+                    <span>{formatMoney(Number(snap.loan_repaid), lang)}</span>
                   </div>
-                )}
-              </div>
-            )}
+                  {lenders.length > 0 ? (
+                    lenders.map((r, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm pl-2">
+                        <span className="text-muted-foreground">
+                          ↳ {lang === "bn" ? (r.lender_bn || r.lender) : (r.lender || r.lender_bn)}
+                        </span>
+                        <span className="font-semibold text-foreground">{formatMoney(Number(r.amount), lang)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-between text-sm pl-2">
+                      <span className="text-muted-foreground">↳ {lang === "bn" ? "ক্যাশ আউট" : "Cash Out"}</span>
+                      <span className="font-semibold text-foreground">{formatMoney(Number(snap.loan_repaid), lang)}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
               <span className="font-semibold">{lang === "bn" ? "সর্বমোট ব্যয়" : "Total Expense"}</span>
               <span className="font-bold text-warning text-lg">{formatMoney(totalExpense, lang)}</span>
