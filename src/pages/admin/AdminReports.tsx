@@ -219,7 +219,7 @@ export default function AdminReports() {
   // Per-month aggregation
   const perMonth = useMemo(() => {
     return months.map((m) => {
-      const mb = bills.filter((b) => b.month === m);
+      const mb = scopedBills.filter((b) => b.month === m);
       const me = expenses.filter((e) => e.date.slice(0, 7) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
@@ -233,7 +233,7 @@ export default function AdminReports() {
       const expenseTotal = expense + loanOut; // loan repayment is treated as expense
       return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
-  }, [months, bills, expenses, loans, repays, otherIncomes]);
+  }, [months, scopedBills, expenses, loans, repays, otherIncomes]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
