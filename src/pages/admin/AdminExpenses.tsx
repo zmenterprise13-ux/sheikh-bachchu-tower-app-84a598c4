@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import OtherIncomeSection from "@/components/OtherIncomeSection";
+import { ApprovalBadge, approvalFieldsForInsert } from "@/components/ApprovalBadge";
 
 type Category = {
   id: string;
@@ -31,11 +32,13 @@ type Expense = {
   category: string;
   description: string;
   amount: number;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 export default function AdminExpenses() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [items, setItems] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +110,7 @@ export default function AdminExpenses() {
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, date, category, description, amount")
+      .select("id, date, category, description, amount, approval_status, reject_reason")
       .order("date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data ?? []) as Expense[]);
@@ -125,7 +128,7 @@ export default function AdminExpenses() {
     }
   }, [categories]);
 
-  const total = items.reduce((s, e) => s + Number(e.amount), 0);
+  const total = items.filter(e => (e.approval_status ?? "approved") === "approved").reduce((s, e) => s + Number(e.amount), 0);
 
   // Group expenses by month (YYYY-MM)
   const grouped = items.reduce<Record<string, Expense[]>>((acc, e) => {
@@ -175,6 +178,7 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         created_by: user?.id ?? null,
+        ...approvalFieldsForInsert(role, user?.id),
       }));
     }
     setSubmitting(false);
@@ -285,6 +289,7 @@ export default function AdminExpenses() {
         description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(ym)}` : `${it.name} - ${monthLabel(ym)}`),
         amount: Number(row.amount),
         created_by: user?.id ?? null,
+        ...approvalFieldsForInsert(role, user?.id),
       };
     });
     const { error } = await supabase.from("expenses").insert(expenseRows);
@@ -438,20 +443,27 @@ export default function AdminExpenses() {
                       {monthItems.map((e) => (
                         <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center hover:bg-secondary/30 transition-base">
                           <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
-                          <div className="md:col-span-3">
+                          <div className="md:col-span-2">
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
                               <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                             </span>
                           </div>
-                          <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
-                          <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                          <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                          <div className="md:col-span-3">
+                            <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
+                          </div>
+                          <div className="md:col-span-1 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
                           <div className="md:col-span-1 flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {role !== "accountant" && (
+                              <>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -492,20 +504,27 @@ export default function AdminExpenses() {
               {!loading && items.map((e) => (
                 <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center">
                   <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
                       <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                     </span>
                   </div>
-                  <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
-                  <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                  <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                  <div className="md:col-span-3">
+                    <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
+                  </div>
+                  <div className="md:col-span-1 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
                   <div className="md:col-span-1 flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {role !== "accountant" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

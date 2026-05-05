@@ -28,7 +28,8 @@ type PR = {
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canReview = role === "admin" || role === "manager";
   const [rows, setRows] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending"|"all"|"approved"|"rejected">("pending");
@@ -81,6 +82,11 @@ export default function AdminPaymentRequests() {
   }, [filter, lang]);
 
   const review = async (pr: PR, status: "approved"|"rejected") => {
+    if (!canReview) { toast.error(lang === "bn" ? "শুধু admin/manager অনুমোদন দিতে পারে" : "Only admin/manager can approve"); return; }
+    if (status === "rejected" && !(reviewNote[pr.id] || "").trim()) {
+      toast.error(lang === "bn" ? "বাতিলের কারণ লিখুন" : "Reject reason required");
+      return;
+    }
     const { error } = await supabase.from("payment_requests").update({
       status,
       review_note: reviewNote[pr.id] || null,

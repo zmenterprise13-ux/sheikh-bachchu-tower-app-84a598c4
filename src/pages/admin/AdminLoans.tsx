@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { ApprovalBadge, approvalFieldsForInsert } from "@/components/ApprovalBadge";
 
 type Flat = {
   id: string;
@@ -52,6 +53,8 @@ type Repayment = {
   amount: number;
   paid_date: string;
   note: string | null;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 type Loan = {
@@ -65,11 +68,13 @@ type Loan = {
   note: string | null;
   status: string;
   created_at: string;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 export default function AdminLoans() {
   const { lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
 
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -148,17 +153,19 @@ export default function AdminLoans() {
   // Per-loan repaid totals
   const repaidByLoan = useMemo(() => {
     const map = new Map<string, number>();
-    repayments.forEach((r) => {
+    repayments.filter(r => (r.approval_status ?? "approved") === "approved").forEach((r) => {
       map.set(r.loan_id, (map.get(r.loan_id) ?? 0) + Number(r.amount || 0));
     });
     return map;
   }, [repayments]);
 
   const totals = useMemo(() => {
-    const principal = loans.reduce((s, l) => s + Number(l.principal || 0), 0);
-    const repaid = repayments.reduce((s, r) => s + Number(r.amount || 0), 0);
+    const approvedLoans = loans.filter(l => (l.approval_status ?? "approved") === "approved");
+    const approvedRepays = repayments.filter(r => (r.approval_status ?? "approved") === "approved");
+    const principal = approvedLoans.reduce((s, l) => s + Number(l.principal || 0), 0);
+    const repaid = approvedRepays.reduce((s, r) => s + Number(r.amount || 0), 0);
     const outstanding = principal - repaid;
-    const activeCount = loans.filter((l) => l.status === "active").length;
+    const activeCount = approvedLoans.filter((l) => l.status === "active").length;
     return { principal, repaid, outstanding, activeCount };
   }, [loans, repayments]);
 
@@ -181,6 +188,7 @@ export default function AdminLoans() {
       note: form.note.trim() || null,
       status: "active",
       created_by: user?.id ?? null,
+      ...approvalFieldsForInsert(role, user?.id),
     });
     setSubmitting(false);
     if (error) {
@@ -219,6 +227,7 @@ export default function AdminLoans() {
       paid_date: repayForm.paid_date,
       note: repayForm.note.trim() || null,
       created_by: user?.id ?? null,
+      ...approvalFieldsForInsert(role, user?.id),
     });
     if (error) {
       setSubmitting(false);
@@ -414,6 +423,7 @@ export default function AdminLoans() {
                           )}>
                             {l.status}
                           </span>
+                          <ApprovalBadge table="loans" id={l.id} status={l.approval_status} rejectReason={l.reject_reason} onChanged={load} />
                         </div>
                         <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                           {editingDate?.kind === "loan" && editingDate.id === l.id ? (
@@ -548,10 +558,13 @@ export default function AdminLoans() {
                                   {r.note && <span className="text-muted-foreground italic truncate">· {r.note}</span>}
                                 </div>
                                 <div className="flex items-center gap-2">
+                                  <ApprovalBadge table="loan_repayments" id={r.id} status={r.approval_status} rejectReason={r.reject_reason} onChanged={load} />
                                   <span className="font-bold text-success">{formatMoney(r.amount, lang)}</span>
-                                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeRepayment(r.id)}>
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                  {role !== "accountant" && (
+                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeRepayment(r.id)}>
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  )}
                                 </div>
                               </li>
                             ))}
