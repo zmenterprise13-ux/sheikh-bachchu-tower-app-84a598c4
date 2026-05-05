@@ -52,6 +52,13 @@ function shiftMonth(m: string, delta: number): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+function formatDMY(d: string | null | undefined): string {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return d;
+  return `${day}/${m}/${y}`;
+}
+
 function formatMonthLabel(m: string, lang: "bn" | "en"): string {
   const [y, mm] = m.split("-").map(Number);
   const d = new Date(Date.UTC(y, mm - 1, 1));
@@ -495,12 +502,12 @@ export default function AdminDues() {
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === "bn" ? "জেনারেট" : "Gen"}: {b.generated_at || "—"}
+                      {lang === "bn" ? "জেনারেট" : "Gen"}: {formatDMY(b.generated_at)}
                     </div>
                   </div>
                   <div className="md:col-span-1 md:text-right text-xs tabular-nums">
                     {b.paid_at ? (
-                      <span className="text-success font-semibold">{b.paid_at}</span>
+                      <span className="text-success font-semibold">{formatDMY(b.paid_at)}</span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
