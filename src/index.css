@@ -269,7 +269,13 @@
   #owner-finance-print-inner {
     transform: scale(var(--print-scale, 1));
     transform-origin: top left;
-    width: 740px;
+    width: 718px;
+  }
+  /* Avoid breaking key blocks across pages, but allow the breakdown to flow */
+  #owner-finance-print-inner table,
+  #owner-finance-print-inner > div > table {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   /* Force two-column income/expense layout regardless of viewport width */
   #owner-finance-print-inner .grid.lg\:grid-cols-2 {
