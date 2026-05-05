@@ -11,7 +11,7 @@ export function ReportPadBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-0 print:block"
+      className="pointer-events-none absolute inset-0 print:block"
       style={{
         backgroundImage: `url(${settings.url})`,
         backgroundRepeat: "no-repeat",
