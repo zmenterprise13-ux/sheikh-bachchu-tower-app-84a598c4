@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import OtherIncomeSection from "@/components/OtherIncomeSection";
+import { ApprovalBadge, approvalFieldsForInsert } from "@/components/ApprovalBadge";
 
 type Category = {
   id: string;
