@@ -106,10 +106,6 @@ const adminGroups: NavGroup[] = [
 
 const ownerGroups: NavGroup[] = [
   {
-    label: "groupOverview" as TKey,
-    items: [{ to: "/owner", key: "dashboard", icon: LayoutDashboard }],
-  },
-  {
     label: "groupFinance" as TKey,
     items: [
       { to: "/owner/dues", key: "myDues", icon: CreditCard },
