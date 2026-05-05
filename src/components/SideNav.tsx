@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { TKey } from "@/i18n/translations";
@@ -29,84 +29,39 @@ import {
   UserCircle,
   UserSquare2,
   UserCog,
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
-type Item = { to: string; key: TKey; icon: React.ElementType };
-type Group = { id: string; label: string; labelBn: string; items: Item[] };
-
-// ============ Admin: grouped sidebar ============
-const adminGroups: Group[] = [
-  {
-    id: "main",
-    label: "Overview",
-    labelBn: "সারসংক্ষেপ",
-    items: [{ to: "/admin", key: "dashboard", icon: LayoutDashboard }],
-  },
-  {
-    id: "property",
-    label: "Property",
-    labelBn: "সম্পত্তি",
-    items: [
-      { to: "/admin/flats", key: "flats", icon: Building },
-      { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
-      { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
-      { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
-      { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
-      { to: "/admin/shops", key: "shops", icon: Store },
-      { to: "/admin/parking", key: "parkingNav", icon: Car },
-      { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
-    ],
-  },
-  {
-    id: "finance",
-    label: "Finance",
-    labelBn: "অর্থ",
-    items: [
-      { to: "/admin/dues", key: "dues", icon: Receipt },
-      { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
-      { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
-      { to: "/admin/ledger", key: "ledger", icon: BookOpen },
-      { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
-      { to: "/admin/expenses", key: "expenses", icon: Wallet },
-      { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
-      { to: "/admin/reports", key: "reports", icon: FileBarChart },
-    ],
-  },
-  {
-    id: "comms",
-    label: "Community",
-    labelBn: "কমিউনিটি",
-    items: [
-      { to: "/admin/notices", key: "notices", icon: Megaphone },
-      { to: "/admin/committee", key: "committee" as TKey, icon: Users },
-    ],
-  },
-  {
-    id: "admin",
-    label: "Admin",
-    labelBn: "অ্যাডমিন",
-    items: [
-      { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
-      { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
-      { to: "/admin/settings", key: "settings", icon: SettingsIcon },
-    ],
-  },
-  {
-    id: "account",
-    label: "Account",
-    labelBn: "অ্যাকাউন্ট",
-    items: [
-      { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
-      { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
-    ],
-  },
+const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
+  { to: "/admin", key: "dashboard", icon: LayoutDashboard },
+  { to: "/admin/flats", key: "flats", icon: Building },
+  { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
+  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+  { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
+  { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
+  { to: "/admin/shops", key: "shops", icon: Store },
+  { to: "/admin/parking", key: "parkingNav", icon: Car },
+  { to: "/admin/dues", key: "dues", icon: Receipt },
+  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+  { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
+  { to: "/admin/ledger", key: "ledger", icon: BookOpen },
+  { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
+  { to: "/admin/expenses", key: "expenses", icon: Wallet },
+  { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
+  { to: "/admin/reports", key: "reports", icon: FileBarChart },
+  { to: "/admin/notices", key: "notices", icon: Megaphone },
+  { to: "/admin/committee", key: "committee" as TKey, icon: Users },
+  { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+  { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
+  { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
+  { to: "/admin/settings", key: "settings", icon: SettingsIcon },
+  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
-const ownerNav: Item[] = [
+const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/owner", key: "dashboard", icon: LayoutDashboard },
   { to: "/owner/dues", key: "myDues", icon: CreditCard },
   { to: "/owner/payments", key: "myPayments", icon: History },
@@ -123,7 +78,7 @@ const ownerNav: Item[] = [
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
-const accountantNav: Item[] = [
+const accountantNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/accountant", key: "dashboard", icon: LayoutDashboard },
   { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
   { to: "/admin/dues", key: "dues", icon: Receipt },
@@ -137,7 +92,7 @@ const accountantNav: Item[] = [
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
-const managerNav: Item[] = [
+const managerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/manager", key: "dashboard", icon: LayoutDashboard },
   { to: "/admin/flats", key: "flats", icon: Building },
   { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
@@ -154,123 +109,40 @@ const managerNav: Item[] = [
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
 ];
 
-function navFor(role: string | null): Item[] {
-  if (role === "admin") return adminGroups.flatMap((g) => g.items);
+function navFor(role: string | null) {
+  if (role === "admin") return adminNav;
   if (role === "manager") return managerNav;
   if (role === "accountant") return accountantNav;
   if (role === "tenant") return ownerNav.filter((n) => !n.to.startsWith("/admin/"));
   return ownerNav;
 }
 
-// Render a single nav item link (shared)
-function NavItem({
-  to, label, Icon, onClick,
-}: { to: string; label: string; Icon: React.ElementType; onClick?: () => void }) {
-  return (
-    <NavLink
-      to={to}
-      end
-      onClick={onClick}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
-          isActive
-            ? "gradient-primary text-primary-foreground shadow-md"
-            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-        )
-      }
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span className="truncate">{label}</span>
-    </NavLink>
-  );
-}
-
-// Collapsible section used in the admin sidebar
-function GroupSection({
-  group, lang, t, pathname, onNavigate,
-}: {
-  group: Group;
-  lang: "bn" | "en";
-  t: (k: TKey) => string;
-  pathname: string;
-  onNavigate?: () => void;
-}) {
-  const hasActive = group.items.some(
-    (i) => pathname === i.to || pathname.startsWith(i.to + "/"),
-  );
-  const storageKey = `sidenav.group.${group.id}`;
-  const [open, setOpen] = useState<boolean>(() => {
-    const v = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
-    if (v === "1") return true;
-    if (v === "0") return false;
-    return hasActive || group.id === "main";
-  });
-  // Auto-open when the active route is inside this group
-  useEffect(() => {
-    if (hasActive) setOpen(true);
-  }, [hasActive]);
-  const toggle = () => {
-    setOpen((p) => {
-      const next = !p;
-      try { localStorage.setItem(storageKey, next ? "1" : "0"); } catch {}
-      return next;
-    });
-  };
-
-  // Single-item groups (e.g. Dashboard) render as plain link, no chevron
-  if (group.items.length === 1) {
-    const it = group.items[0];
-    return <NavItem to={it.to} label={t(it.key)} Icon={it.icon} onClick={onNavigate} />;
-  }
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={toggle}
-        className={cn(
-          "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wide",
-          hasActive ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        <span>{lang === "bn" ? group.labelBn : group.label}</span>
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", !open && "-rotate-90")} />
-      </button>
-      {open && (
-        <div className="mt-0.5 space-y-0.5">
-          {group.items.map((it) => (
-            <NavItem
-              key={it.to}
-              to={it.to}
-              label={t(it.key)}
-              Icon={it.icon}
-              onClick={onNavigate}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function SideNav() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { role } = useAuth();
-  const { pathname } = useLocation();
+  const items = navFor(role);
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
-      <nav className="sticky top-20 space-y-1.5 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
-        {role === "admin" ? (
-          adminGroups.map((g) => (
-            <GroupSection key={g.id} group={g} lang={lang} t={t} pathname={pathname} />
-          ))
-        ) : (
-          navFor(role).map((it) => (
-            <NavItem key={it.to} to={it.to} label={t(it.key)} Icon={it.icon} />
-          ))
-        )}
+      <nav className="sticky top-20 space-y-1 rounded-2xl bg-card p-3 shadow-soft border border-border">
+        {items.map(({ to, key, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                isActive
+                  ? "gradient-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )
+            }
+          >
+            <Icon className="h-4 w-4" />
+            <span>{t(key)}</span>
+          </NavLink>
+        ))}
       </nav>
     </aside>
   );
@@ -281,6 +153,7 @@ export function MobileNav() {
   const { role } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const all = navFor(role);
+  // Mobile bottom-nav: show the 4 most-used pages; rest go under "More"
   const primaryKeys: TKey[] =
     role === "admin" ? ["dashboard", "dues", "ledger", "expenses"]
     : role === "manager" ? ["dashboard", "flats", "dues", "notices"]
@@ -355,10 +228,10 @@ export function MobileNav() {
 }
 
 export function MobileSideNavTrigger() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { role } = useAuth();
-  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const items = navFor(role);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -371,29 +244,26 @@ export function MobileSideNavTrigger() {
         <SheetHeader className="px-4 pt-4 pb-2">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 space-y-1.5 overflow-y-auto h-[calc(100vh-4rem)]">
-          {role === "admin" ? (
-            adminGroups.map((g) => (
-              <GroupSection
-                key={g.id}
-                group={g}
-                lang={lang}
-                t={t}
-                pathname={pathname}
-                onNavigate={() => setOpen(false)}
-              />
-            ))
-          ) : (
-            navFor(role).map((it) => (
-              <NavItem
-                key={it.to}
-                to={it.to}
-                label={t(it.key)}
-                Icon={it.icon}
-                onClick={() => setOpen(false)}
-              />
-            ))
-          )}
+        <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
+          {items.map(({ to, key, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                  isActive
+                    ? "gradient-primary text-primary-foreground shadow-md"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )
+              }
+            >
+              <Icon className="h-4 w-4" />
+              <span>{t(key)}</span>
+            </NavLink>
+          ))}
         </nav>
       </SheetContent>
     </Sheet>
