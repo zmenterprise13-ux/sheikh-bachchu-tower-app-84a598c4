@@ -339,7 +339,7 @@
 body.print-measuring #owner-finance-print-inner {
   font-size: 9pt !important;
   line-height: 1.2 !important;
-  width: 740px !important;
+  width: 718px !important;
 }
 body.print-measuring #owner-finance-print-inner .grid.lg\:grid-cols-2 {
   display: grid !important;
