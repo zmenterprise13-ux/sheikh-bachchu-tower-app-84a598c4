@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Building2, Loader2 } from "lucide-react";
+import { Building2, Loader2, Mail, Phone, Lock, User, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useSignupEnabled } from "@/hooks/useSignupEnabled";
 
