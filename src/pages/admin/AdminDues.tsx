@@ -295,6 +295,25 @@ export default function AdminDues() {
       return;
     }
     setBulkPaySaving(true);
+    if (isAccountant) {
+      const inserts = targets.map((b) => ({
+        bill_id: b.id,
+        flat_id: b.flat_id,
+        amount: Number(b.total) - Number(b.paid_amount),
+        method: "cash",
+        note: lang === "bn" ? `বাল্ক — অ্যাকাউন্ট্যান্ট (${bulkPayDate})` : `Bulk — accountant (${bulkPayDate})`,
+        status: "pending",
+        submitted_by: user?.id,
+      }));
+      const { error } = await supabase.from("payment_requests").insert(inserts);
+      setBulkPaySaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(lang === "bn"
+        ? `${inserts.length} টি অ্যাডমিন অনুমোদনের জন্য পাঠানো হয়েছে`
+        : `${inserts.length} sent for admin approval`);
+      setBulkPayOpen(false);
+      return;
+    }
     const updated: Bill[] = [];
     let failed = 0;
     for (const b of targets) {
