@@ -110,6 +110,26 @@ export default function OwnerDashboard() {
     })();
   }, [flats, flatsLoading, month]);
 
+  // Refetch recent bills history whenever the selected flat changes
+  useEffect(() => {
+    if (!flat) return;
+    let cancelled = false;
+    (async () => {
+      setRecentLoading(true);
+      const { data } = await supabase
+        .from("bills")
+        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+        .eq("flat_id", flat.id)
+        .order("month", { ascending: false })
+        .limit(6);
+      if (!cancelled) {
+        setRecentBills((data ?? []) as Bill[]);
+        setRecentLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [flat?.id]);
+
   if (flatsLoading) {
     return <AppShell><Skeleton className="h-40 rounded-2xl" /></AppShell>;
   }
