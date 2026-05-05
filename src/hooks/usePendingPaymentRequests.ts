@@ -47,7 +47,7 @@ export function usePendingPaymentRequests() {
     };
 
     const channel = supabase
-      .channel("pending-payment-requests-watch")
+      .channel(`pending-pr-watch-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "payment_requests" },
         (payload) => {
