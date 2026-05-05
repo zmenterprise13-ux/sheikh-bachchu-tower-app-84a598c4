@@ -67,6 +67,8 @@ export default function OwnerDashboard() {
   }, [user]);
   const { selectedFlatId, setSelectedFlatId } = useSelectedFlatId();
   const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
+  const [recentBills, setRecentBills] = useState<Bill[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,6 +109,26 @@ export default function OwnerDashboard() {
       setLoading(false);
     })();
   }, [flats, flatsLoading, month]);
+
+  // Refetch recent bills history whenever the selected flat changes
+  useEffect(() => {
+    if (!flat) return;
+    let cancelled = false;
+    (async () => {
+      setRecentLoading(true);
+      const { data } = await supabase
+        .from("bills")
+        .select("id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+        .eq("flat_id", flat.id)
+        .order("month", { ascending: false })
+        .limit(6);
+      if (!cancelled) {
+        setRecentBills((data ?? []) as Bill[]);
+        setRecentLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [flat?.id]);
 
   if (flatsLoading) {
     return <AppShell><Skeleton className="h-40 rounded-2xl" /></AppShell>;
@@ -356,9 +378,14 @@ export default function OwnerDashboard() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+          <div key={flat.id} className="rounded-2xl bg-card border border-border p-6 shadow-soft animate-fade-in">
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                {t("dues")} — {month}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {flat.flat_no}
+                </span>
+              </h2>
               <div className="flex items-center gap-2">
                 {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
                 {currentBill && (
@@ -458,6 +485,53 @@ export default function OwnerDashboard() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Recent bills history for the selected flat */}
+        <div key={`recent-${flat.id}`} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden animate-fade-in">
+          <div className="flex items-center justify-between p-5 border-b border-border flex-wrap gap-2">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-primary" />
+              {lang === "bn" ? "সাম্প্রতিক বিল" : "Recent Bills"}
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {flat.flat_no}
+              </span>
+            </h2>
+            <Link to="/owner/bills">
+              <Button variant="ghost" size="sm">{t("viewAll")}</Button>
+            </Link>
+          </div>
+          {recentLoading ? (
+            <div className="p-5 space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+          ) : recentBills.length === 0 ? (
+            <div className="p-6 text-sm text-center text-muted-foreground">{t("noData")}</div>
+          ) : (
+            <div className="divide-y divide-border">
+              {recentBills.map((b) => {
+                const bDue = Math.max(0, Number(b.total) - Number(b.paid_amount));
+                return (
+                  <div key={b.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors">
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm text-foreground">{b.month}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {lang === "bn" ? "মোট" : "Total"}: {formatMoney(Number(b.total), lang)} · {lang === "bn" ? "পরিশোধিত" : "Paid"}: {formatMoney(Number(b.paid_amount), lang)}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {bDue > 0 ? (
+                        <div className="text-sm font-bold text-destructive">{formatMoney(bDue, lang)}</div>
+                      ) : (
+                        <div className="text-xs font-semibold text-success flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <MonthlyFinanceSummary month={month} variant="owner" />
