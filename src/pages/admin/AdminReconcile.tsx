@@ -141,10 +141,6 @@ export default function AdminReconcile() {
             {onlyIssues
               ? (lang === "bn" ? "শুধু গরমিল" : "Only mismatches")
               : (lang === "bn" ? "সব দেখান" : "Show all")}
-          <Button variant={onlyIssues ? "default" : "outline"} size="sm" onClick={() => setOnlyIssues(v => !v)}>
-            {onlyIssues
-              ? (lang === "bn" ? "শুধু গরমিল" : "Only mismatches")
-              : (lang === "bn" ? "সব দেখান" : "Show all")}
           </Button>
           <Select value={monthFilter || "all"} onValueChange={(v) => setMonthFilter(v === "all" ? "" : v)}>
             <SelectTrigger className="w-40 h-9">
