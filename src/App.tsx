@@ -30,6 +30,7 @@ import TenantInfoPage from "./pages/TenantInfo";
 import TenantInfoBlankForm from "./pages/TenantInfoBlankForm";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReceipts from "./pages/admin/AdminReceipts";
+import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
@@ -56,26 +57,27 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
 
-              {/* Admin */}
-              <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/admin/flats" element={<ProtectedRoute requireRole="admin"><AdminFlats /></ProtectedRoute>} />
-              <Route path="/admin/flats/table" element={<ProtectedRoute requireRole="admin"><AdminFlatsTable /></ProtectedRoute>} />
+              {/* Admin & staff (manager / accountant) */}
+              <Route path="/admin" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/flats" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFlats /></ProtectedRoute>} />
+              <Route path="/admin/flats/table" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFlatsTable /></ProtectedRoute>} />
               <Route path="/admin/flats/owners" element={<ProtectedRoute><AdminOwnersDirectory /></ProtectedRoute>} />
               <Route path="/admin/building" element={<ProtectedRoute><AdminBuildingOverview /></ProtectedRoute>} />
               <Route path="/admin/building/3d" element={<ProtectedRoute><AdminBuilding3D /></ProtectedRoute>} />
 
-              <Route path="/admin/shops" element={<ProtectedRoute requireRole="admin"><AdminShops /></ProtectedRoute>} />
-              <Route path="/admin/parking" element={<ProtectedRoute requireRole="admin"><AdminParking /></ProtectedRoute>} />
-              <Route path="/admin/dues" element={<ProtectedRoute requireRole="admin"><AdminDues /></ProtectedRoute>} />
-              <Route path="/admin/payment-requests" element={<ProtectedRoute requireRole="admin"><AdminPaymentRequests /></ProtectedRoute>} />
-              <Route path="/admin/receipts" element={<ProtectedRoute requireRole="admin"><AdminReceipts /></ProtectedRoute>} />
-              <Route path="/admin/ledger" element={<ProtectedRoute requireRole="admin"><AdminLedger /></ProtectedRoute>} />
-              <Route path="/admin/reconcile" element={<ProtectedRoute requireRole="admin"><AdminReconcile /></ProtectedRoute>} />
-              <Route path="/admin/expenses" element={<ProtectedRoute requireRole="admin"><AdminExpenses /></ProtectedRoute>} />
-              <Route path="/admin/loans" element={<ProtectedRoute requireRole="admin"><AdminLoans /></ProtectedRoute>} />
-              <Route path="/admin/reports" element={<ProtectedRoute requireRole="admin"><AdminReports /></ProtectedRoute>} />
-              <Route path="/admin/notices" element={<ProtectedRoute requireRole="admin"><AdminNotices /></ProtectedRoute>} />
+              <Route path="/admin/shops" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminShops /></ProtectedRoute>} />
+              <Route path="/admin/parking" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminParking /></ProtectedRoute>} />
+              <Route path="/admin/dues" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminDues /></ProtectedRoute>} />
+              <Route path="/admin/payment-requests" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminPaymentRequests /></ProtectedRoute>} />
+              <Route path="/admin/receipts" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminReceipts /></ProtectedRoute>} />
+              <Route path="/admin/ledger" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminLedger /></ProtectedRoute>} />
+              <Route path="/admin/reconcile" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminReconcile /></ProtectedRoute>} />
+              <Route path="/admin/expenses" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminExpenses /></ProtectedRoute>} />
+              <Route path="/admin/loans" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminLoans /></ProtectedRoute>} />
+              <Route path="/admin/reports" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminReports /></ProtectedRoute>} />
+              <Route path="/admin/notices" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminNotices /></ProtectedRoute>} />
               <Route path="/admin/committee" element={<ProtectedRoute requireRole="admin"><AdminCommittee /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requireRole="admin"><AdminUsers /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
 
