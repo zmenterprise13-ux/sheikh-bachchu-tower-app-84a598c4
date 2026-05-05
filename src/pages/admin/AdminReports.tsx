@@ -224,7 +224,8 @@ export default function AdminReports() {
       const loanIn = ml.reduce((s, l) => s + Number(l.principal), 0);
       const loanOut = mr.reduce((s, r) => s + Number(r.amount), 0);
       const otherIn = mo.reduce((s, o) => s + Number(o.amount), 0);
-      return { month: m, billed, collected, otherIn, expense, loanIn, loanOut, balance: collected + otherIn - expense + loanIn - loanOut };
+      const expenseTotal = expense + loanOut; // loan repayment is treated as expense
+      return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
   }, [months, bills, expenses, loans, repays, otherIncomes]);
 
