@@ -52,7 +52,12 @@ function shiftMonth(m: string, delta: number): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-function formatMonthLabel(m: string, lang: "bn" | "en"): string {
+function formatDMY(d: string | null | undefined): string {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return d;
+  return `${day}/${m}/${y}`;
+}
   const [y, mm] = m.split("-").map(Number);
   const d = new Date(Date.UTC(y, mm - 1, 1));
   return d.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", {
