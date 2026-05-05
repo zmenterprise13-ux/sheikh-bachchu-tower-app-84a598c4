@@ -74,7 +74,7 @@ type Loan = {
 
 export default function AdminLoans() {
   const { lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
 
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
