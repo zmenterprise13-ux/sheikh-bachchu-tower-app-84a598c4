@@ -6,10 +6,11 @@ import { Loader2 } from "lucide-react";
 interface Props {
   children: ReactNode;
   requireRole?: AppRole;
+  allowRoles?: AppRole[];
 }
 
-export function ProtectedRoute({ children, requireRole }: Props) {
-  const { user, role, loading } = useAuth();
+export function ProtectedRoute({ children, requireRole, allowRoles }: Props) {
+  const { user, role, roles, loading } = useAuth();
 
   if (loading) {
     return (
@@ -21,11 +22,15 @@ export function ProtectedRoute({ children, requireRole }: Props) {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (requireRole && role !== requireRole) {
-    // wrong role → send them to their own area (or auth if no role)
-    if (role === "admin") return <Navigate to="/admin" replace />;
-    if (role === "owner") return <Navigate to="/owner" replace />;
-    return <Navigate to="/auth" replace />;
+  const allowed = allowRoles ?? (requireRole ? [requireRole] : null);
+  if (allowed) {
+    const ok = allowed.some((r) => roles.includes(r));
+    if (!ok) {
+      if (roles.includes("admin")) return <Navigate to="/admin" replace />;
+      if (roles.includes("manager") || roles.includes("accountant")) return <Navigate to="/admin/payment-requests" replace />;
+      if (roles.includes("owner")) return <Navigate to="/owner" replace />;
+      return <Navigate to="/auth" replace />;
+    }
   }
 
   return <>{children}</>;
