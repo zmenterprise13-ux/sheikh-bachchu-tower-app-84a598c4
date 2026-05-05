@@ -25,7 +25,24 @@ export default function OwnerFinanceReport() {
     window.localStorage.setItem(STORAGE_KEY, month);
   }, [month]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    const el = document.getElementById("owner-finance-print");
+    if (el) {
+      // A4 at 96dpi ≈ 794 × 1123px. With ~8mm margins ≈ 764 × 1063px usable.
+      const usableW = 764;
+      const usableH = 1063;
+      // Reset any previous scale so we measure natural size.
+      el.style.setProperty("--print-scale", "1");
+      const naturalH = el.scrollHeight;
+      const naturalW = el.scrollWidth;
+      const scale = Math.min(1, usableH / naturalH, usableW / naturalW);
+      el.style.setProperty("--print-scale", String(scale));
+    }
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => el?.style.removeProperty("--print-scale"), 800);
+    }, 50);
+  };
 
   return (
     <AppShell>
