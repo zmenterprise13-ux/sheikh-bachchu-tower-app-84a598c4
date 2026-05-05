@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { toast } from "sonner";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 type Bill = {
   id: string;
