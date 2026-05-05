@@ -796,7 +796,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-foreground truncate">
-                        {flat ? (lang === "bn" ? flat.owner_name_bn || flat.owner_name : flat.owner_name) : "—"}
+                        {flat ? (residentName(flat, lang) || "—") : "—"}
                       </div>
                     </div>
                     <div className="text-right">
