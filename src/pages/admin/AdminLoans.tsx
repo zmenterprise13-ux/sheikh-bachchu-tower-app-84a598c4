@@ -415,9 +415,36 @@ export default function AdminLoans() {
                             {l.status}
                           </span>
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {l.loan_date}
-                          {l.purpose && <> · {l.purpose}</>}
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
+                          {editingDate?.kind === "loan" && editingDate.id === l.id ? (
+                            <>
+                              <Input
+                                type="date"
+                                value={dateDraft}
+                                onChange={(e) => setDateDraft(e.target.value)}
+                                className="h-7 w-36 text-xs"
+                              />
+                              <Button size="icon" variant="ghost" className="h-6 w-6 text-success" onClick={saveEditDate}>
+                                <Check className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditDate}>
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <span>{l.loan_date}</span>
+                              <button
+                                type="button"
+                                onClick={() => startEditDate("loan", l.id, l.loan_date)}
+                                className="text-primary hover:opacity-70"
+                                title={lang === "bn" ? "তারিখ পরিবর্তন" : "Edit date"}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                            </>
+                          )}
+                          {l.purpose && <span>· {l.purpose}</span>}
                         </div>
                         {l.note && <div className="text-xs text-muted-foreground italic mt-1">{l.note}</div>}
                       </div>
