@@ -146,7 +146,7 @@ export default function AdminDues() {
     if (error) { toast.error(error.message); return; }
     toast.success(lang === "bn" ? "পেমেন্ট রেকর্ড হয়েছে" : "Payment recorded");
     setBills((prev) => prev.map((x) => x.id === paying.id
-      ? { ...x, status, paid_amount: newPaid }
+      ? { ...x, status, paid_amount: newPaid, paid_at: payDate }
       : x));
     setPaying(null);
   };
