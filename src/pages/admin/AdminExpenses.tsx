@@ -178,6 +178,7 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         created_by: user?.id ?? null,
+        ...approvalFieldsForInsert(role, user?.id),
       }));
     }
     setSubmitting(false);
