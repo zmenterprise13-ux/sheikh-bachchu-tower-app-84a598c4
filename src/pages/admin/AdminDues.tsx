@@ -491,16 +491,18 @@ export default function AdminDues() {
                       </div>
                     )}
                   </div>
-                  <div className="md:col-span-2 md:text-right">
+                  <div className="md:col-span-1 md:text-right">
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === "bn" ? "জেনারেট" : "Generated"}: {b.generated_at || "—"}
+                      {lang === "bn" ? "জেনারেট" : "Gen"}: {b.generated_at || "—"}
                     </div>
-                    {b.paid_at && (
-                      <div className="text-[10px] text-success">
-                        {lang === "bn" ? "পরিশোধ" : "Paid on"}: {b.paid_at}
-                      </div>
+                  </div>
+                  <div className="md:col-span-1 md:text-right text-xs tabular-nums">
+                    {b.paid_at ? (
+                      <span className="text-success font-semibold">{b.paid_at}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </div>
                   <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
