@@ -99,6 +99,32 @@ export default function AdminLoans() {
   // Delete loan
   const [deleteLoan, setDeleteLoan] = useState<Loan | null>(null);
 
+  // Inline date editing
+  const [editingDate, setEditingDate] = useState<{ kind: "loan" | "repay"; id: string } | null>(null);
+  const [dateDraft, setDateDraft] = useState<string>("");
+
+  const startEditDate = (kind: "loan" | "repay", id: string, current: string) => {
+    setEditingDate({ kind, id });
+    setDateDraft(current);
+  };
+  const cancelEditDate = () => {
+    setEditingDate(null);
+    setDateDraft("");
+  };
+  const saveEditDate = async () => {
+    if (!editingDate || !dateDraft) return;
+    const table = editingDate.kind === "loan" ? "loans" : "loan_repayments";
+    const col = editingDate.kind === "loan" ? "loan_date" : "paid_date";
+    const { error } = await supabase.from(table).update({ [col]: dateDraft }).eq("id", editingDate.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(lang === "bn" ? "তারিখ আপডেট হয়েছে" : "Date updated");
+    cancelEditDate();
+    load();
+  };
+
   const load = async () => {
     setLoading(true);
     const [flatsRes, loansRes, repayRes] = await Promise.all([
