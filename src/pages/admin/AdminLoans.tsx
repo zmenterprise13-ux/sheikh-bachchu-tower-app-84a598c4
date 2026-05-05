@@ -113,9 +113,9 @@ export default function AdminLoans() {
   };
   const saveEditDate = async () => {
     if (!editingDate || !dateDraft) return;
-    const table = editingDate.kind === "loan" ? "loans" : "loan_repayments";
-    const col = editingDate.kind === "loan" ? "loan_date" : "paid_date";
-    const { error } = await supabase.from(table).update({ [col]: dateDraft }).eq("id", editingDate.id);
+    const { error } = editingDate.kind === "loan"
+      ? await supabase.from("loans").update({ loan_date: dateDraft }).eq("id", editingDate.id)
+      : await supabase.from("loan_repayments").update({ paid_date: dateDraft }).eq("id", editingDate.id);
     if (error) {
       toast.error(error.message);
       return;
