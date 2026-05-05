@@ -18,10 +18,28 @@ export function ReportPadBackground({
       document.querySelector(targetSelector) as HTMLElement | null;
 
     let prev: Record<string, string> | null = null;
+    let appliedEl: HTMLElement | null = null;
+
+    const isPrintMode = () => window.matchMedia("print").matches;
+
+    const scrubScreenPad = () => {
+      if (isPrintMode()) return;
+      const el = findEl();
+      if (!el) return;
+      if (el.style.backgroundImage.includes(settings.url)) {
+        el.style.backgroundImage = "";
+        el.style.backgroundRepeat = "";
+        el.style.backgroundPosition = "";
+        el.style.backgroundSize = "";
+        el.style.printColorAdjust = "";
+        (el.style as any).WebkitPrintColorAdjust = "";
+      }
+    };
 
     const apply = () => {
       const el = findEl();
       if (!el) return;
+      if (appliedEl === el && prev) return;
       prev = {
         backgroundImage: el.style.backgroundImage,
         backgroundRepeat: el.style.backgroundRepeat,
@@ -36,11 +54,16 @@ export function ReportPadBackground({
       el.style.backgroundSize = "100% 100%";
       el.style.printColorAdjust = "exact";
       (el.style as any).WebkitPrintColorAdjust = "exact";
+      appliedEl = el;
     };
 
     const restore = () => {
-      const el = findEl();
-      if (!el || !prev) return;
+      const el = appliedEl || findEl();
+      if (!el) return;
+      if (!prev) {
+        scrubScreenPad();
+        return;
+      }
       el.style.backgroundImage = prev.backgroundImage;
       el.style.backgroundRepeat = prev.backgroundRepeat;
       el.style.backgroundPosition = prev.backgroundPosition;
@@ -48,18 +71,31 @@ export function ReportPadBackground({
       el.style.printColorAdjust = prev.printColorAdjust;
       (el.style as any).WebkitPrintColorAdjust = prev.WebkitPrintColorAdjust;
       prev = null;
+      appliedEl = null;
+      scrubScreenPad();
     };
 
     const mql = window.matchMedia("print");
     const onChange = (e: MediaQueryListEvent) => (e.matches ? apply() : restore());
+    const onScreenReturn = () => {
+      if (!isPrintMode()) restore();
+    };
+
+    scrubScreenPad();
 
     window.addEventListener("beforeprint", apply);
     window.addEventListener("afterprint", restore);
+    window.addEventListener("focus", onScreenReturn);
+    window.addEventListener("pageshow", onScreenReturn);
+    document.addEventListener("visibilitychange", onScreenReturn);
     mql.addEventListener?.("change", onChange);
 
     return () => {
       window.removeEventListener("beforeprint", apply);
       window.removeEventListener("afterprint", restore);
+      window.removeEventListener("focus", onScreenReturn);
+      window.removeEventListener("pageshow", onScreenReturn);
+      document.removeEventListener("visibilitychange", onScreenReturn);
       mql.removeEventListener?.("change", onChange);
       restore();
     };
