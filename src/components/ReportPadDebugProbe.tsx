@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useReportPad } from "@/hooks/useReportPad";
 
 const DEBUG_PARAM = "padDebug";
+const DEBUG_STORAGE_KEY = "report_pad_debug";
 
 type DebugRow = {
   selector: string;
@@ -20,12 +21,32 @@ const getSelector = (el: Element) => {
 
 export function ReportPadDebugProbe() {
   const { settings } = useReportPad();
-  const debugEnabled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get(DEBUG_PARAM) === "1";
+  const [debugEnabled, setDebugEnabled] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const param = new URLSearchParams(window.location.search).get(DEBUG_PARAM);
+    return param === "1" || (param !== "0" && window.sessionStorage.getItem(DEBUG_STORAGE_KEY) === "1");
+  });
   const [summary, setSummary] = useState<{ suspects: DebugRow[]; candidates: DebugRow[]; backgrounds: number }>({
     suspects: [],
     candidates: [],
     backgrounds: 0,
   });
+
+  useEffect(() => {
+    const syncDebugFlag = () => {
+      const param = new URLSearchParams(window.location.search).get(DEBUG_PARAM);
+      if (param === "1") {
+        window.sessionStorage.setItem(DEBUG_STORAGE_KEY, "1");
+        setDebugEnabled(true);
+      } else if (param === "0") {
+        window.sessionStorage.removeItem(DEBUG_STORAGE_KEY);
+        setDebugEnabled(false);
+      }
+    };
+    syncDebugFlag();
+    window.addEventListener("popstate", syncDebugFlag);
+    return () => window.removeEventListener("popstate", syncDebugFlag);
+  }, []);
 
   useEffect(() => {
     if (!debugEnabled) return;
