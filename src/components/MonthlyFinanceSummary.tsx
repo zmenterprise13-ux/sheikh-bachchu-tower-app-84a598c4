@@ -81,9 +81,16 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
   const isAdmin = variant === "admin";
 
   const handlePublish = async () => {
+    const notes = window.prompt(
+      lang === "bn"
+        ? "মন্তব্য (ঐচ্ছিক) — রিপোর্টের সাথে প্রকাশিত হবে:"
+        : "Notes (optional) — will be shown with the report:",
+      "",
+    );
+    if (notes === null) return; // user cancelled
     setBusy(true);
     try {
-      const { error } = await supabase.rpc("publish_monthly_report", { _month: month, _notes: null });
+      const { error } = await supabase.rpc("publish_monthly_report", { _month: month, _notes: notes.trim() || null });
       if (error) throw error;
       toast.success(lang === "bn" ? "রিপোর্ট পাবলিশ হয়েছে" : "Report published");
       await load();
