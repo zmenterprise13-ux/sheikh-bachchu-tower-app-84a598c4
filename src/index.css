@@ -330,9 +330,25 @@
   .print-fit-one-page .shadow-md { box-shadow: none !important; }
   .print-fit-one-page .rounded-2xl,
   .print-fit-one-page .rounded-xl { border-radius: 3px !important; border: 1px solid #bbb !important; }
-  .print-fit-one-page table { font-size: 8pt !important; width: 100% !important; }
-  .print-fit-one-page th, .print-fit-one-page td { padding: 0.8mm 1.2mm !important; }
+  .print-fit-one-page table { font-size: 10.5pt !important; width: 100% !important; }
+  .print-fit-one-page th, .print-fit-one-page td { padding: 1.4mm 1.8mm !important; line-height: 1.3 !important; }
   .print-fit-one-page svg { max-height: 12px; max-width: 12px; }
+
+  /* Force every text in the printed report to be solid black & bold-readable */
+  #owner-finance-print-inner,
+  #owner-finance-print-inner * {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
+    font-style: normal !important;
+  }
+  #owner-finance-print-inner table { font-size: 10.5pt !important; }
+  #owner-finance-print-inner .text-\[10px\],
+  #owner-finance-print-inner .text-\[10\.5px\],
+  #owner-finance-print-inner .text-\[11px\],
+  #owner-finance-print-inner .text-\[9px\],
+  #owner-finance-print-inner .text-\[7\.5px\],
+  #owner-finance-print-inner .text-xs { font-size: 10pt !important; }
 }
 
 /* Off-screen measurement: same tokens applied without print media so JS can read scrollHeight */
