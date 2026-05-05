@@ -29,10 +29,11 @@ type PR = {
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
   const { user, role } = useAuth();
-  const canReview = role === "admin" || role === "manager";
+  const canFinalApprove = role === "admin" || role === "manager";
+  const isAccountant = role === "accountant";
   const [rows, setRows] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"pending"|"all"|"approved"|"rejected">("pending");
+  const [filter, setFilter] = useState<"pending"|"reviewed"|"all"|"approved"|"rejected">("pending");
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
 
   const refresh = async () => {
@@ -81,31 +82,43 @@ export default function AdminPaymentRequests() {
     return () => { supabase.removeChannel(channel); };
   }, [filter, lang]);
 
-  const review = async (pr: PR, status: "approved"|"rejected") => {
-    if (!canReview) { toast.error(lang === "bn" ? "শুধু admin/manager অনুমোদন দিতে পারে" : "Only admin/manager can approve"); return; }
+  const review = async (pr: PR, status: "reviewed"|"approved"|"rejected") => {
+    if ((status === "approved" || status === "rejected") && !canFinalApprove) {
+      toast.error(lang === "bn" ? "শুধু admin/manager চূড়ান্ত অনুমোদন দিতে পারে" : "Only admin/manager can finalize"); return;
+    }
+    if (status === "reviewed" && !isAccountant && !canFinalApprove) {
+      toast.error(lang === "bn" ? "অনুমতি নেই" : "Not allowed"); return;
+    }
     if (status === "rejected" && !(reviewNote[pr.id] || "").trim()) {
       toast.error(lang === "bn" ? "বাতিলের কারণ লিখুন" : "Reject reason required");
       return;
     }
-    const { error } = await supabase.from("payment_requests").update({
+    const patch: any = {
       status,
-      review_note: reviewNote[pr.id] || null,
-      reviewed_by: user?.id,
-    }).eq("id", pr.id);
+      review_note: reviewNote[pr.id] || pr.review_note || null,
+    };
+    if (status !== "reviewed") patch.reviewed_by = user?.id;
+    const { error } = await supabase.from("payment_requests").update(patch).eq("id", pr.id);
     if (error) { toast.error(error.message); return; }
     toast.success(lang === "bn" ? "সম্পন্ন" : "Done");
     refresh();
   };
+
+  const statusLabel = (s: string) =>
+    s === "approved" ? (lang === "bn" ? "অনুমোদিত" : "Approved")
+    : s === "rejected" ? (lang === "bn" ? "প্রত্যাখ্যাত" : "Rejected")
+    : s === "reviewed" ? (lang === "bn" ? "অ্যাকাউন্ট্যান্ট অনুমোদিত · অ্যাডমিন অপেক্ষায়" : "Accountant approved · awaiting admin")
+    : (lang === "bn" ? "অপেক্ষমাণ" : "Pending");
 
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("paymentRequests")}</h1>
-          <div className="flex gap-2">
-            {(["pending","approved","rejected","all"] as const).map(f => (
+          <div className="flex gap-2 flex-wrap">
+            {(["pending","reviewed","approved","rejected","all"] as const).map(f => (
               <Button key={f} size="sm" variant={filter===f?"default":"outline"} onClick={()=>setFilter(f)}>
-                {t(f as any) || f}
+                {f === "reviewed" ? (lang === "bn" ? "অ্যাডমিন অপেক্ষায়" : "Awaiting admin") : (t(f as any) || f)}
               </Button>
             ))}
           </div>
@@ -118,7 +131,7 @@ export default function AdminPaymentRequests() {
             <div key={pr.id} className="p-5 space-y-3">
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted shrink-0">
-                  {pr.status === "approved" ? <CheckCircle2 className="h-4 w-4 text-success"/> : pr.status === "rejected" ? <XCircle className="h-4 w-4 text-destructive"/> : <Clock className="h-4 w-4 text-warning"/>}
+                  {pr.status === "approved" ? <CheckCircle2 className="h-4 w-4 text-success"/> : pr.status === "rejected" ? <XCircle className="h-4 w-4 text-destructive"/> : pr.status === "reviewed" ? <CheckCircle2 className="h-4 w-4 text-primary"/> : <Clock className="h-4 w-4 text-warning"/>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-foreground">
@@ -129,22 +142,34 @@ export default function AdminPaymentRequests() {
                     {pr.reference && <> · Ref: {pr.reference}</>}
                     · {new Date(pr.created_at).toLocaleString()}
                   </div>
+                  <div className="text-[11px] mt-0.5 font-medium">
+                    {statusLabel(pr.status)}
+                  </div>
                   {pr.note && <div className="text-xs italic mt-0.5">"{pr.note}"</div>}
                   {pr.review_note && <div className="text-xs text-muted-foreground italic mt-0.5">— {pr.review_note}</div>}
                 </div>
                 <div className="font-bold text-foreground">{formatMoney(Number(pr.amount), lang)}</div>
               </div>
-              {pr.status === "pending" && (
+              {(pr.status === "pending" || pr.status === "reviewed") && (
                 <div className="flex items-center gap-2 flex-wrap pl-14">
                   <Input placeholder={lang === "bn" ? "রিভিউ নোট (ঐচ্ছিক)" : "Review note (optional)"}
                     value={reviewNote[pr.id] ?? ""} onChange={(e)=>setReviewNote(s=>({...s,[pr.id]:e.target.value}))}
                     className="max-w-sm"/>
-                  <Button size="sm" onClick={()=>review(pr, "approved")} className="bg-success text-success-foreground hover:bg-success/90 gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5"/> {t("approve")}
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={()=>review(pr, "rejected")} className="gap-1.5">
-                    <XCircle className="h-3.5 w-3.5"/> {t("reject")}
-                  </Button>
+                  {pr.status === "pending" && isAccountant && !canFinalApprove && (
+                    <Button size="sm" onClick={()=>review(pr, "reviewed")} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5"/> {lang === "bn" ? "অনুমোদন (অ্যাডমিনের কাছে পাঠান)" : "Approve → admin"}
+                    </Button>
+                  )}
+                  {canFinalApprove && (
+                    <>
+                      <Button size="sm" onClick={()=>review(pr, "approved")} className="bg-success text-success-foreground hover:bg-success/90 gap-1.5">
+                        <CheckCircle2 className="h-3.5 w-3.5"/> {t("approve")}
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={()=>review(pr, "rejected")} className="gap-1.5">
+                        <XCircle className="h-3.5 w-3.5"/> {t("reject")}
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

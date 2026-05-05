@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { residentName } from "@/lib/displayName";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
+import { useAuth } from "@/context/AuthContext";
 
 type Filter = "all" | FlatStatus;
 
@@ -78,6 +79,8 @@ function formatMonthLabel(m: string, lang: "bn" | "en"): string {
 
 export default function AdminDues() {
   const { t, lang } = useLang();
+  const { user, role } = useAuth();
+  const isAccountant = role === "accountant";
   const [bills, setBills] = useState<Bill[]>([]);
   const [flats, setFlats] = useState<Flat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +155,22 @@ export default function AdminDues() {
       return;
     }
     setPaySaving(true);
+    if (isAccountant) {
+      const { error } = await supabase.from("payment_requests").insert({
+        bill_id: paying.id,
+        flat_id: paying.flat_id,
+        amount,
+        method: "cash",
+        note: lang === "bn" ? `অ্যাকাউন্ট্যান্ট কর্তৃক রেকর্ড (${payDate})` : `Recorded by accountant (${payDate})`,
+        status: "pending",
+        submitted_by: user?.id,
+      });
+      setPaySaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(lang === "bn" ? "অ্যাডমিন অনুমোদনের জন্য পাঠানো হয়েছে" : "Sent for admin approval");
+      setPaying(null);
+      return;
+    }
     const newPaid = Number(paying.paid_amount) + amount;
     const total = Number(paying.total);
     const status: FlatStatus = newPaid >= total ? "paid" : newPaid > 0 ? "partial" : "unpaid";
@@ -276,6 +295,25 @@ export default function AdminDues() {
       return;
     }
     setBulkPaySaving(true);
+    if (isAccountant) {
+      const inserts = targets.map((b) => ({
+        bill_id: b.id,
+        flat_id: b.flat_id,
+        amount: Number(b.total) - Number(b.paid_amount),
+        method: "cash",
+        note: lang === "bn" ? `বাল্ক — অ্যাকাউন্ট্যান্ট (${bulkPayDate})` : `Bulk — accountant (${bulkPayDate})`,
+        status: "pending",
+        submitted_by: user?.id,
+      }));
+      const { error } = await supabase.from("payment_requests").insert(inserts);
+      setBulkPaySaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(lang === "bn"
+        ? `${inserts.length} টি অ্যাডমিন অনুমোদনের জন্য পাঠানো হয়েছে`
+        : `${inserts.length} sent for admin approval`);
+      setBulkPayOpen(false);
+      return;
+    }
     const updated: Bill[] = [];
     let failed = 0;
     for (const b of targets) {
