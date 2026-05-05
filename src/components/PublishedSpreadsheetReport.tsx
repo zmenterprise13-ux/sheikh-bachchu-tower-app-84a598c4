@@ -179,10 +179,10 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
 
   const renderRow = (r: Row, idx: number, isAmount = true) => (
     <>
-      <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""}`}>
+      <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
         {r.label}
       </td>
-      <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""}`}>
+      <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
         {isAmount && Number.isFinite(r.amount) ? formatMoney(r.amount, lang) : ""}
       </td>
     </>
