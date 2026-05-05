@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 
 type NavItem = { to: string; key: TKey; icon: React.ElementType };
 type NavGroup = { label: TKey; items: NavItem[] };
