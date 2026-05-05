@@ -27,7 +27,8 @@ export function ProtectedRoute({ children, requireRole, allowRoles }: Props) {
     const ok = allowed.some((r) => roles.includes(r));
     if (!ok) {
       if (roles.includes("admin")) return <Navigate to="/admin" replace />;
-      if (roles.includes("manager") || roles.includes("accountant")) return <Navigate to="/admin/payment-requests" replace />;
+      if (roles.includes("manager")) return <Navigate to="/manager" replace />;
+      if (roles.includes("accountant")) return <Navigate to="/accountant" replace />;
       if (roles.includes("owner")) return <Navigate to="/owner" replace />;
       return <Navigate to="/auth" replace />;
     }
