@@ -155,6 +155,22 @@ export default function AdminDues() {
       return;
     }
     setPaySaving(true);
+    if (isAccountant) {
+      const { error } = await supabase.from("payment_requests").insert({
+        bill_id: paying.id,
+        flat_id: paying.flat_id,
+        amount,
+        method: "cash",
+        note: lang === "bn" ? `অ্যাকাউন্ট্যান্ট কর্তৃক রেকর্ড (${payDate})` : `Recorded by accountant (${payDate})`,
+        status: "pending",
+        submitted_by: user?.id,
+      });
+      setPaySaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(lang === "bn" ? "অ্যাডমিন অনুমোদনের জন্য পাঠানো হয়েছে" : "Sent for admin approval");
+      setPaying(null);
+      return;
+    }
     const newPaid = Number(paying.paid_amount) + amount;
     const total = Number(paying.total);
     const status: FlatStatus = newPaid >= total ? "paid" : newPaid > 0 ? "partial" : "unpaid";
