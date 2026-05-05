@@ -43,14 +43,22 @@ export default function OwnerFinanceReport() {
         const naturalW = inner.scrollWidth;
         const scale = Math.min(1, usableH / naturalH, usableW / naturalW);
         el.style.setProperty("--print-scale", String(scale));
+        // Reserve only the scaled box size on the outer wrapper so the
+        // printed layout consumes a single page (transform doesn't shrink layout box).
+        el.style.height = `${Math.ceil(naturalH * scale)}px`;
+        el.style.width = `${Math.ceil(naturalW * scale)}px`;
+        el.style.overflow = "hidden";
         document.body.classList.remove("print-measuring");
         setTimeout(() => {
           window.print();
           setTimeout(() => {
             el.style.removeProperty("--print-scale");
+            el.style.removeProperty("height");
+            el.style.removeProperty("width");
+            el.style.removeProperty("overflow");
             inner.style.removeProperty("width");
           }, 800);
-        }, 50);
+        }, 80);
       });
     } else {
       window.print();
