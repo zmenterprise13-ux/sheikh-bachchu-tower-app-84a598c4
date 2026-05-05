@@ -278,7 +278,7 @@ export default function AdminDashboard() {
       const billRows = bs
         .map((b: any) => {
           const f = flatMap.get(b.flat_id) as any;
-          const owner = f ? (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name || f.owner_name_bn) : "";
+          const owner = residentName(f, lang);
           const due = Number(b.total) - Number(b.paid_amount);
           return `<tr>
             <td>${esc(f?.flat_no ?? "—")}</td>
