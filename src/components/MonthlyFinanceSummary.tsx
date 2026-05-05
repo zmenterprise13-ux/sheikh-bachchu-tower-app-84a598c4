@@ -299,7 +299,9 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
               <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
                 {byCategory.map(({ category, amount }) => {
                   const pct = expense > 0 ? Math.round((amount / expense) * 100) : 0;
-                  const label = (t(category as TKey) as string) || category;
+                  const label = lang === "bn"
+                    ? (catBnMap[category] || (t(category as TKey) as string) || category)
+                    : ((t(category as TKey) as string) || category);
                   return (
                     <li key={category} className="flex items-center gap-3 px-3 py-2 text-sm">
                       <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
