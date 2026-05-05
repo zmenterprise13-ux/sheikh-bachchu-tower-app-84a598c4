@@ -113,6 +113,7 @@ function navFor(role: string | null) {
   if (role === "admin") return adminNav;
   if (role === "manager") return managerNav;
   if (role === "accountant") return accountantNav;
+  if (role === "tenant") return ownerNav.filter((n) => !n.to.startsWith("/admin/"));
   return ownerNav;
 }
 
