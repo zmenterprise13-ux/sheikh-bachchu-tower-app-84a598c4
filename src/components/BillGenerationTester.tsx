@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlayCircle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -19,16 +20,47 @@ type RunResult = {
   error?: string;
 };
 
+function shiftMonth(m: string, delta: number): string {
+  const [y, mm] = m.split("-").map(Number);
+  const d = new Date(Date.UTC(y, mm - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 export function BillGenerationTester() {
   const { lang } = useLang();
-  const [month, setMonth] = useState(currentMonth());
+  const [billedMonths, setBilledMonths] = useState<Set<string>>(new Set());
+  const [loadingMonths, setLoadingMonths] = useState(true);
+  const [month, setMonth] = useState<string>("");
   const [eidOverride, setEidOverride] = useState(false);
   const [forceEid, setForceEid] = useState(false);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
+  // Build a window of candidate months (last 12 + current + next 1) and exclude already-billed ones.
+  const now = currentMonth();
+  const candidates: string[] = [];
+  for (let i = -12; i <= 1; i++) candidates.push(shiftMonth(now, i));
+  const availableMonths = candidates.filter((m) => !billedMonths.has(m));
+
+  const loadBilled = async () => {
+    setLoadingMonths(true);
+    const { data } = await supabase.from("bills").select("month");
+    const set = new Set<string>((data ?? []).map((r: any) => r.month as string));
+    setBilledMonths(set);
+    setLoadingMonths(false);
+    // pick default month: latest available <= current, else first available
+    setMonth((prev) => {
+      if (prev && !set.has(prev)) return prev;
+      const preferred = [...candidates].reverse().find((m) => !set.has(m) && m <= now);
+      return preferred ?? candidates.find((m) => !set.has(m)) ?? "";
+    });
+  };
+
+  useEffect(() => { loadBilled(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
   const run = async () => {
     if (!/^\d{4}-\d{2}$/.test(month)) return;
+    if (billedMonths.has(month)) return;
     setRunning(true);
     setResult(null);
     const startedAt = new Date().toISOString();
@@ -43,6 +75,8 @@ export function BillGenerationTester() {
       } else {
         setResult({ ok: true, status: 200, durationMs, startedAt, data });
       }
+      // Refresh billed months so generated month disappears from picker
+      await loadBilled();
     } catch (e) {
       setResult({
         ok: false, status: 0, durationMs: Math.round(performance.now() - t0),
@@ -61,17 +95,32 @@ export function BillGenerationTester() {
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           {lang === "bn"
-            ? "নির্বাচিত মাসের জন্য বিল জেনারেট করে। ইতিমধ্যে বিল আছে এমন ফ্ল্যাট স্কিপ হবে।"
-            : "Generates bills for the selected month. Flats already billed will be skipped."}
+            ? "যে মাসের বিল ইতিমধ্যে জেনারেট হয়েছে সেটি তালিকায় দেখাবে না।"
+            : "Months that already have bills are hidden from the picker."}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
         <div>
           <Label className="text-xs">{lang === "bn" ? "মাস" : "Month"}</Label>
-          <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+          <Select value={month} onValueChange={setMonth} disabled={loadingMonths || availableMonths.length === 0}>
+            <SelectTrigger>
+              <SelectValue placeholder={
+                loadingMonths
+                  ? (lang === "bn" ? "লোড হচ্ছে…" : "Loading…")
+                  : availableMonths.length === 0
+                    ? (lang === "bn" ? "কোনো মাস বাকি নেই" : "No months left")
+                    : (lang === "bn" ? "মাস নির্বাচন করুন" : "Select month")
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMonths.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Button onClick={run} disabled={running} className="gap-2 gradient-primary text-primary-foreground">
+        <Button onClick={run} disabled={running || !month || billedMonths.has(month)} className="gap-2 gradient-primary text-primary-foreground">
           {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
           {lang === "bn" ? "টেস্ট চালান" : "Run test"}
         </Button>
