@@ -17,6 +17,7 @@ import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from 
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { round2 } from "@/lib/bkashMath";
 import { residentName } from "@/lib/displayName";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 function paymentStatusOf(billed: number, collected: number): FlatStatus {
   if (billed <= 0) return "unpaid";
