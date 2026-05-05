@@ -150,6 +150,15 @@ userManagement: { bn: "ইউজার ব্যবস্থাপনা", en: "
   recentActivity: { bn: "সাম্প্রতিক কার্যক্রম", en: "Recent Activity" },
   collectionRate: { bn: "আদায়ের হার", en: "Collection Rate" },
   taka: { bn: "৳", en: "৳" },
+
+  // Sidebar groups
+  groupOverview: { bn: "সারসংক্ষেপ", en: "Overview" },
+  groupProperties: { bn: "সম্পত্তি", en: "Properties" },
+  groupFinance: { bn: "আর্থিক", en: "Finance" },
+  groupReports: { bn: "রিপোর্ট ও নোটিশ", en: "Reports & Notices" },
+  groupPeople: { bn: "মানুষ ও রোল", en: "People & Roles" },
+  groupSystem: { bn: "সিস্টেম", en: "System" },
+  groupAccount: { bn: "আমার অ্যাকাউন্ট", en: "My Account" },
 };
 
 export type TKey = keyof typeof translations;
