@@ -364,6 +364,8 @@ export default function AdminSettings() {
 
             <OwnerReportStyleCard />
 
+            <ReportPadSettingsCard />
+
             <BkashSettingsCard />
 
             <BillGenerationTester />
