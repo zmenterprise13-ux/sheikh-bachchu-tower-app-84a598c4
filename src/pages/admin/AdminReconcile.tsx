@@ -88,6 +88,8 @@ export default function AdminReconcile() {
     const s = q.toLowerCase().trim();
     return rows.filter((r) => {
       if (onlyIssues && Math.abs(r.delta) < 0.01) return false;
+      if (monthFilter && r.month !== monthFilter) return false;
+      if (flatFilter !== "all" && r.flat_id !== flatFilter) return false;
       if (!s) return true;
       return (
         r.flat_no.toLowerCase().includes(s) ||
@@ -95,7 +97,17 @@ export default function AdminReconcile() {
         r.month.includes(s)
       );
     });
-  }, [rows, q, onlyIssues]);
+  }, [rows, q, onlyIssues, monthFilter, flatFilter]);
+
+  const monthOptions = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.month))).sort().reverse(),
+    [rows]
+  );
+  const flatOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    rows.forEach((r) => { if (!seen.has(r.flat_id)) seen.set(r.flat_id, r.flat_no); });
+    return Array.from(seen.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [rows]);
 
   const issuesCount = rows.filter(r => Math.abs(r.delta) >= 0.01).length;
 
