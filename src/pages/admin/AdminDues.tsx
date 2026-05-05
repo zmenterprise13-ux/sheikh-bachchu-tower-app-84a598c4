@@ -124,7 +124,22 @@ export default function AdminDues() {
 
   useEffect(() => { load(month); }, [month]);
 
-  const isCurrent = month === currentMonth();
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("bills")
+        .select("month")
+        .order("month", { ascending: false })
+        .limit(1);
+      const latest = data?.[0]?.month;
+      if (latest) {
+        setLatestBillMonth(latest);
+        setMonth(latest);
+      }
+    })();
+  }, []);
+
+  const isCurrent = month === latestBillMonth;
 
   const visible = bills.filter((b) => {
     const flat = flats.find((f) => f.id === b.flat_id);
