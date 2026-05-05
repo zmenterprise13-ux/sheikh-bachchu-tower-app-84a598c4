@@ -390,7 +390,7 @@ export default function AdminDues() {
             <Input
               type="month"
               value={month}
-              max={currentMonth()}
+              max={latestBillMonth}
               onChange={(e) => e.target.value && setMonth(e.target.value)}
               className="h-8 w-[150px] border-0 shadow-none focus-visible:ring-0 px-2"
             />
