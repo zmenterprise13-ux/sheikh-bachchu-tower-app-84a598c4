@@ -250,9 +250,11 @@ export default function AdminUserManagement() {
           {!loading && filtered.map((r) => {
             const isSelf = r.user_id === user?.id;
             const isBanned = !!r.banned_until && new Date(r.banned_until) > new Date();
+            const flatOwnerNameBn = r.flats.map((f) => f.owner_name_bn).find(Boolean);
+            const flatOwnerName = r.flats.map((f) => f.owner_name).find(Boolean);
             const name = lang === "bn"
-              ? (r.display_name_bn || r.display_name || r.email || r.user_id.slice(0, 8))
-              : (r.display_name || r.email || r.user_id.slice(0, 8));
+              ? (r.display_name_bn || r.display_name || flatOwnerNameBn || flatOwnerName || r.email || r.user_id.slice(0, 8))
+              : (r.display_name || flatOwnerName || r.email || r.user_id.slice(0, 8));
             const availableRoles: Role[] = (["owner", "accountant", "manager", "admin"] as Role[])
               .filter((x) => !r.roles.includes(x));
 
