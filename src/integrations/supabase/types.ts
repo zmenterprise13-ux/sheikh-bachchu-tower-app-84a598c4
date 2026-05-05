@@ -366,6 +366,7 @@ export type Database = {
           phone: string | null
           service_charge: number
           size: number
+          tenant_user_id: string | null
           updated_at: string
         }
         Insert: {
@@ -391,6 +392,7 @@ export type Database = {
           phone?: string | null
           service_charge?: number
           size?: number
+          tenant_user_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -416,6 +418,7 @@ export type Database = {
           phone?: string | null
           service_charge?: number
           size?: number
+          tenant_user_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1081,7 +1084,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "owner" | "accountant" | "manager"
+      app_role: "admin" | "owner" | "accountant" | "manager" | "tenant"
       bill_generation_status: "generated" | "failed"
       bill_status: "paid" | "unpaid" | "partial"
     }
@@ -1211,7 +1214,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "owner", "accountant", "manager"],
+      app_role: ["admin", "owner", "accountant", "manager", "tenant"],
       bill_generation_status: ["generated", "failed"],
       bill_status: ["paid", "unpaid", "partial"],
     },
