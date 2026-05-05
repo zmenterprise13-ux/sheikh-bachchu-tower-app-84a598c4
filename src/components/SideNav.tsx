@@ -252,16 +252,36 @@ function useAccountName() {
       return;
     }
     (async () => {
-      const { data } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, display_name_bn")
+        .select("display_name, display_name_bn, phone")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      // Try to get a real name from flats (owner or tenant) as fallback
+      const { data: flats } = await supabase
+        .from("flats")
+        .select("owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn, owner_user_id, tenant_user_id")
+        .or(`owner_user_id.eq.${user.id},tenant_user_id.eq.${user.id}`)
+        .limit(1);
+      const flat = flats?.[0];
+      const isTenantUser = flat?.tenant_user_id === user.id;
+      const flatName = flat
+        ? (lang === "bn"
+            ? ((isTenantUser ? (flat.occupant_name_bn || flat.occupant_name) : null)
+                || flat.owner_name_bn || flat.owner_name)
+            : ((isTenantUser ? (flat.occupant_name || flat.occupant_name_bn) : null)
+                || flat.owner_name || flat.owner_name_bn))
+        : null;
+
       if (cancelled) return;
-      const n = lang === "bn"
-        ? (data?.display_name_bn || data?.display_name)
-        : (data?.display_name || data?.display_name_bn);
-      setName(n || user.email || "");
+      const profileName = lang === "bn"
+        ? (profile?.display_name_bn || profile?.display_name)
+        : (profile?.display_name || profile?.display_name_bn);
+      // If profile name is just the phone number (or empty), prefer the flat's real name
+      const isJustPhone = profileName && profile?.phone && profileName.trim() === profile.phone.trim();
+      const finalName = (!profileName || isJustPhone) && flatName ? flatName : (profileName || flatName);
+      setName(finalName || user.email || "");
     })();
     return () => { cancelled = true; };
   }, [user, lang, role]);
