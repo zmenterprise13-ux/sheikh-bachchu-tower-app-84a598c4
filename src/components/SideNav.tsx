@@ -239,16 +239,18 @@ function flattenGroups(groups: NavGroup[]): NavItem[] {
   return groups.flatMap((g) => g.items);
 }
 
-/** Hook to load the current user's display name from profiles. */
+/** Hook to load the current user's display name from profiles + auto-selected flat. */
 function useAccountName() {
   const { user, role } = useAuth();
   const { lang } = useLang();
   const [name, setName] = useState<string>("");
+  const [flatLabel, setFlatLabel] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
     if (!user) {
       setName("");
+      setFlatLabel("");
       return;
     }
     (async () => {
@@ -263,48 +265,85 @@ function useAccountName() {
         : (profile?.display_name || profile?.display_name_bn);
       const phone = (profile?.phone || user.user_metadata?.phone || profileName || "").trim();
 
-      // Try to get a real name from flats (owner or tenant) as fallback
+      const flatCols = "id, flat_no, floor, updated_at, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, owner_user_id, tenant_user_id";
+
+      // Fetch ALL flats matching this user (by id or phone)
       let { data: flats } = await supabase
         .from("flats")
-        .select("owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, owner_user_id, tenant_user_id")
-        .or(`owner_user_id.eq.${user.id},tenant_user_id.eq.${user.id}`)
-        .limit(1);
+        .select(flatCols)
+        .or(`owner_user_id.eq.${user.id},tenant_user_id.eq.${user.id}`);
 
       if ((!flats || flats.length === 0) && phone) {
         const byPhone = await supabase
           .from("flats")
-          .select("owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, owner_user_id, tenant_user_id")
-          .or(`phone.eq.${phone},occupant_phone.eq.${phone}`)
-          .limit(1);
+          .select(flatCols)
+          .or(`phone.eq.${phone},occupant_phone.eq.${phone}`);
         flats = byPhone.data;
       }
 
-      const flat = flats?.[0];
-      const isTenantUser = flat?.tenant_user_id === user.id || (!!phone && flat?.occupant_phone === phone);
-      const flatName = flat
+      let chosen: any = null;
+      if (flats && flats.length > 0) {
+        if (flats.length === 1) {
+          chosen = flats[0];
+        } else {
+          // Auto-select: prefer flat with current unpaid dues; tie-break by most recently updated
+          const ids = flats.map((f: any) => f.id);
+          const { data: bills } = await supabase
+            .from("bills")
+            .select("flat_id, status, total, paid_amount, arrears, updated_at")
+            .in("flat_id", ids)
+            .neq("status", "paid");
+          const dueMap = new Map<string, { due: number; latest: number }>();
+          (bills || []).forEach((b: any) => {
+            const due = Number(b.total || 0) + Number(b.arrears || 0) - Number(b.paid_amount || 0);
+            const ts = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+            const cur = dueMap.get(b.flat_id) || { due: 0, latest: 0 };
+            dueMap.set(b.flat_id, { due: cur.due + Math.max(0, due), latest: Math.max(cur.latest, ts) });
+          });
+          const scored = flats.map((f: any) => {
+            const d = dueMap.get(f.id) || { due: 0, latest: 0 };
+            return {
+              flat: f,
+              due: d.due,
+              activity: Math.max(d.latest, f.updated_at ? new Date(f.updated_at).getTime() : 0),
+            };
+          });
+          scored.sort((a, b) => (b.due - a.due) || (b.activity - a.activity));
+          chosen = scored[0].flat;
+        }
+      }
+
+      const isTenantUser = chosen?.tenant_user_id === user.id || (!!phone && chosen?.occupant_phone === phone);
+      const flatName = chosen
         ? (lang === "bn"
-            ? ((isTenantUser ? (flat.occupant_name_bn || flat.occupant_name) : null)
-                || flat.owner_name_bn || flat.owner_name)
-            : ((isTenantUser ? (flat.occupant_name || flat.occupant_name_bn) : null)
-                || flat.owner_name || flat.owner_name_bn))
+            ? ((isTenantUser ? (chosen.occupant_name_bn || chosen.occupant_name) : null)
+                || chosen.owner_name_bn || chosen.owner_name)
+            : ((isTenantUser ? (chosen.occupant_name || chosen.occupant_name_bn) : null)
+                || chosen.owner_name || chosen.owner_name_bn))
         : null;
 
       if (cancelled) return;
-      // If profile name is just the phone number (or empty), prefer the flat's real name
       const isJustPhone = !!profileName && !!phone && profileName.trim() === phone;
       const finalName = (!profileName || isJustPhone) && flatName ? flatName : (profileName || flatName);
       setName(finalName || user.email || "");
+      if (chosen) {
+        const totalFlats = flats?.length || 1;
+        const base = `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${chosen.flat_no}`;
+        setFlatLabel(totalFlats > 1 ? `${base} (+${totalFlats - 1})` : base);
+      } else {
+        setFlatLabel("");
+      }
     })();
     return () => { cancelled = true; };
   }, [user, lang, role]);
 
-  return name;
+  return { name, flatLabel };
 }
 
 function AccountHeader() {
-  const name = useAccountName();
+  const { name, flatLabel } = useAccountName();
   const { role } = useAuth();
-  const { t, lang } = useLang();
+  const { t } = useLang();
   if (!name) return null;
   const roleText = role ? t(role as TKey) : "";
   return (
@@ -315,8 +354,10 @@ function AccountHeader() {
         </div>
         <div className="min-w-0 leading-tight">
           <div className="text-sm font-semibold text-foreground truncate">{name}</div>
-          {roleText && (
-            <div className="text-[11px] text-muted-foreground truncate">{roleText}</div>
+          {(roleText || flatLabel) && (
+            <div className="text-[11px] text-muted-foreground truncate">
+              {[roleText, flatLabel].filter(Boolean).join(" · ")}
+            </div>
           )}
         </div>
       </div>
