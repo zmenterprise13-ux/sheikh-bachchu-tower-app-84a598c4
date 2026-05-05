@@ -105,7 +105,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean };
   const incomeRows: Row[] = [];
   incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, muted: true });
-  incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true });
+  incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true, category: true });
   flatBuckets.forEach((r) => {
     incomeRows.push({
       label: `${formatMoney(r.amount, lang)} × ${formatNumber(r.count, lang)}`,
@@ -114,14 +114,14 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
     });
   });
   if (Number(snap.loan_taken) > 0) {
-    incomeRows.push({ label: lang === "bn" ? "লোন নেয়া" : "Loan Taken", amount: Number(snap.loan_taken), bold: true });
+    incomeRows.push({ label: lang === "bn" ? "লোন নেয়া" : "Loan Taken", amount: Number(snap.loan_taken), bold: true, category: true });
     (snap.loan_by_lender ?? []).forEach((l) => {
       const name = (lang === "bn" ? (l.lender_bn || l.lender) : (l.lender || l.lender_bn)) || (lang === "bn" ? "অজ্ঞাত" : "Unknown");
       incomeRows.push({ label: name, amount: Number(l.amount), sub: true });
     });
   }
   if (Number(snap.other_income) > 0 || (snap.by_income_category ?? []).length > 0) {
-    incomeRows.push({ label: lang === "bn" ? "অন্যান্য আয়" : "Other Income", amount: Number(snap.other_income) || 0, bold: true });
+    incomeRows.push({ label: lang === "bn" ? "অন্যান্য আয়" : "Other Income", amount: Number(snap.other_income) || 0, bold: true, category: true });
     (snap.by_income_category ?? []).forEach((r) => {
       incomeRows.push({ label: oiCatLabel[r.category]?.[lang] ?? r.category, amount: Number(r.amount), sub: true });
     });
@@ -131,7 +131,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
     const rows = snap.bill_components?.[sec.key] ?? [];
     const subtotal = rows.reduce((s, r) => s + Number(r.rate) * Number(r.count), 0);
     if (rows.length === 0 && subtotal === 0) return;
-    incomeRows.push({ label: sec.label, amount: subtotal, muted: true });
+    incomeRows.push({ label: sec.label, amount: subtotal, category: true });
     rows.forEach((r) => {
       incomeRows.push({
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
