@@ -547,6 +547,28 @@ export default function OwnerDashboard() {
           )}
         </div>
 
+        <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 p-4 sm:p-5 shadow-soft flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-foreground">
+                {lang === "bn" ? "মাসিক আয়-ব্যয় রিপোর্ট" : "Monthly Finance Report"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {lang === "bn" ? "অ্যাডমিনের প্রকাশিত পূর্ণ আয়-ব্যয় চার্ট ও টেবিল দেখুন" : "View admin's full income-expense charts & tables"}
+              </div>
+            </div>
+          </div>
+          <Link to="/owner/finance-report">
+            <Button size="sm" className="gap-1.5">
+              {lang === "bn" ? "ফুল রিপোর্ট" : "Full Report"}
+              <TrendingUp className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
+
         <MonthlyFinanceSummary month={month} variant="owner" />
       </div>
     </AppShell>
