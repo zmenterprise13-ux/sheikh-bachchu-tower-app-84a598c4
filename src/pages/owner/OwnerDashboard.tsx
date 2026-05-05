@@ -439,7 +439,7 @@ export default function OwnerDashboard() {
           </div>
 
           <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
               <h2 className="font-semibold text-foreground flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-accent" /> {t("recentNotices")}
               </h2>
