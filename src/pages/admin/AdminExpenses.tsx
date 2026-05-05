@@ -504,20 +504,27 @@ export default function AdminExpenses() {
               {!loading && items.map((e) => (
                 <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center">
                   <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
                       <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                     </span>
                   </div>
-                  <div className="md:col-span-4 text-sm text-foreground">{e.description}</div>
-                  <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                  <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                  <div className="md:col-span-3">
+                    <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
+                  </div>
+                  <div className="md:col-span-1 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
                   <div className="md:col-span-1 flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {role !== "accountant" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
