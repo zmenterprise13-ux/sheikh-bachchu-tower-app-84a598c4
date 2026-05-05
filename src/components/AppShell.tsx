@@ -2,12 +2,10 @@ import { ReactNode } from "react";
 import { TopBar } from "./TopBar";
 import { MobileNav, SideNav } from "./SideNav";
 import { NoticeTicker } from "./NoticeTicker";
-import { ReportPadDebugProbe } from "./ReportPadDebugProbe";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <ReportPadDebugProbe />
       <TopBar />
       <NoticeTicker />
       <div className="container flex-1 py-6">
