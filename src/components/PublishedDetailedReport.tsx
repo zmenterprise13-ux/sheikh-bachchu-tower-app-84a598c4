@@ -18,9 +18,11 @@ type Snapshot = {
   flat_buckets?: { amount: number; count: number }[];
   bill_components?: Record<string, { rate: number; count: number }[]>;
   loan_by_lender?: { lender: string; lender_bn: string | null; amount: number }[];
+  outstanding_loans?: { lender: string; lender_bn: string | null; outstanding: number }[];
   opening_cash?: number;
   published?: boolean;
   published_at?: string | null;
+  notes?: string | null;
 };
 
 const oiCatLabel: Record<string, { bn: string; en: string }> = {
