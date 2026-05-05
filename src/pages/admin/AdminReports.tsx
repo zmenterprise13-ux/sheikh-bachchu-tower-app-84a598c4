@@ -408,9 +408,14 @@ export default function AdminReports() {
           <div className="flex items-baseline justify-between gap-4">
             <div>
               <div className="text-base font-bold">
-                {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
+                {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
               </div>
-              <div className="text-xs">
+              <div className="text-[10px] leading-tight">
+                {lang === "bn"
+                  ? "১৪/২, শেখ বাচ্চু টাওয়ার, মোক্তারবাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।"
+                  : "14/2, Sheikh Bachchu Tower, Moktarbari Road, Auchpara, Tongi, Gazipur."}
+              </div>
+              <div className="text-xs mt-0.5">
                 {t("monthlyReport")} — {rangeLabel}
               </div>
             </div>
@@ -440,7 +445,39 @@ export default function AdminReports() {
         </div>
 
         {/* Spacer so first-page content clears the running header */}
-        <div className="hidden print:block" style={{ height: "18mm" }} />
+        <div className="hidden print:block" style={{ height: "22mm" }} />
+
+        {/* Print-only consolidated cash summary (Opening → +Income → +Other → +Loan In − Expense − Loan Out → Closing) */}
+        <div className="hidden print:block rounded-2xl border border-border p-3">
+          <div className="text-sm font-bold mb-2 border-b border-border pb-1">
+            {lang === "bn" ? "ক্যাশ সারসংক্ষেপ" : "Cash Summary"}
+            <span className="ml-2 text-xs font-normal opacity-70">({rangeLabel})</span>
+          </div>
+          <table className="w-full text-xs">
+            <tbody>
+              <tr><td className="py-0.5">{lang === "bn" ? "আগের ক্যাশ (Opening)" : "Opening Cash"}</td>
+                  <td className="py-0.5 text-right font-semibold">{formatMoney(openingCash, lang)}</td></tr>
+              <tr><td className="py-0.5">+ {lang === "bn" ? "বিল আদায় (Collected)" : "Bill Collection"}</td>
+                  <td className="py-0.5 text-right">{formatMoney(totalIncome, lang)}</td></tr>
+              <tr><td className="py-0.5">+ {lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</td>
+                  <td className="py-0.5 text-right">{formatMoney(totalOtherIn, lang)}</td></tr>
+              <tr><td className="py-0.5">+ {lang === "bn" ? "লোন গ্রহণ (Loan In)" : "Loan Taken (In)"}</td>
+                  <td className="py-0.5 text-right">{formatMoney(totalLoanIn, lang)}</td></tr>
+              <tr><td className="py-0.5">− {lang === "bn" ? "মোট খরচ" : "Total Expense"}</td>
+                  <td className="py-0.5 text-right">{formatMoney(totalExpense, lang)}</td></tr>
+              <tr><td className="py-0.5">− {lang === "bn" ? "লোন পরিশোধ (Loan Out)" : "Loan Repaid (Out)"}</td>
+                  <td className="py-0.5 text-right">{formatMoney(totalLoanOut, lang)}</td></tr>
+              <tr className="border-t border-border">
+                <td className="py-1 font-semibold">{lang === "bn" ? "নিট ক্যাশ ফ্লো (Net)" : "Net Cash Flow"}</td>
+                <td className={`py-1 text-right font-semibold ${balance >= 0 ? "" : "text-destructive"}`}>{formatMoney(balance, lang)}</td>
+              </tr>
+              <tr className="border-t-2 border-foreground/40">
+                <td className="py-1 font-bold">{lang === "bn" ? "শেষ ব্যালেন্স (Closing)" : "Closing Balance"}</td>
+                <td className={`py-1 text-right font-bold ${closingBalance >= 0 ? "" : "text-destructive"}`}>{formatMoney(closingBalance, lang)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
 
         {/* Filters */}
