@@ -380,7 +380,7 @@ function AccountHeader() {
   );
 }
 
-function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void }) {
+function NavGroupBlock({ group, t, onNavigate, badges }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void; badges?: Partial<Record<string, number>> }) {
   const [open, setOpen] = useState(true);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
@@ -389,7 +389,9 @@ function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey)
         <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "rotate-0" : "-rotate-90")} />
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-1">
-        {group.items.map(({ to, key, icon: Icon }) => (
+        {group.items.map(({ to, key, icon: Icon }) => {
+          const badge = badges?.[key as string] ?? 0;
+          return (
           <NavLink
             key={to}
             to={to}
@@ -405,9 +407,15 @@ function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey)
             }
           >
             <Icon className="h-4 w-4" />
-            <span>{t(key)}</span>
+            <span className="flex-1">{t(key)}</span>
+            {badge > 0 && (
+              <span className="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold animate-pulse">
+                {badge}
+              </span>
+            )}
           </NavLink>
-        ))}
+          );
+        })}
       </CollapsibleContent>
     </Collapsible>
   );
