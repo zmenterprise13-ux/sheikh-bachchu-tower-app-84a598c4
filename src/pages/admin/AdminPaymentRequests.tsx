@@ -28,7 +28,8 @@ type PR = {
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canReview = role === "admin" || role === "manager";
   const [rows, setRows] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending"|"all"|"approved"|"rejected">("pending");
