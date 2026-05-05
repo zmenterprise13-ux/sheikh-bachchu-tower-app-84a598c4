@@ -28,6 +28,7 @@ import {
   KeyRound,
   UserCircle,
   UserSquare2,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -53,6 +54,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/notices", key: "notices", icon: Megaphone },
   { to: "/admin/committee", key: "committee" as TKey, icon: Users },
   { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+  { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
   { to: "/admin/settings", key: "settings", icon: SettingsIcon },
   { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
