@@ -14,15 +14,15 @@ export function ReportPadDebugProbe() {
 
   useEffect(() => {
     const enabled = new URLSearchParams(window.location.search).get(DEBUG_PARAM) === "1";
-    if (!enabled || !settings.url) return;
+    if (!enabled) return;
 
     const touched = new Map<HTMLElement, { outline: string; boxShadow: string }>();
-    const padFile = decodeURIComponent(settings.url.split("?")[0].split("/").pop() || "");
+    const padFile = settings.url ? decodeURIComponent(settings.url.split("?")[0].split("/").pop() || "") : "";
     const matchesPad = (value: string) =>
-      value && value !== "none" && (value.includes(settings.url) || (!!padFile && value.includes(padFile)));
+      value && value !== "none" && ((!!settings.url && value.includes(settings.url)) || (!!padFile && value.includes(padFile)));
 
     const scan = () => {
-      const suspects = Array.from(document.querySelectorAll<HTMLElement>("body, body *"))
+      const allBackgrounds = Array.from(document.querySelectorAll<HTMLElement>("body, body *"))
         .map((el) => ({
           el,
           selector: getSelector(el),
@@ -30,7 +30,11 @@ export function ReportPadDebugProbe() {
           computedBackground: window.getComputedStyle(el).backgroundImage,
           rect: el.getBoundingClientRect(),
         }))
+        .filter((item) => item.inlineBackground || (item.computedBackground && item.computedBackground !== "none"));
+      const suspects = allBackgrounds
         .filter((item) => matchesPad(item.inlineBackground) || matchesPad(item.computedBackground));
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>("#owner-finance-print-inner, #report-printable, .print-area"))
+        .map((el) => ({ selector: getSelector(el), rect: el.getBoundingClientRect(), inlineBackground: el.style.backgroundImage }));
 
       touched.forEach((style, el) => {
         if (!suspects.some((item) => item.el === el)) {
@@ -44,11 +48,12 @@ export function ReportPadDebugProbe() {
         if (!touched.has(el)) {
           touched.set(el, { outline: el.style.outline, boxShadow: el.style.boxShadow });
         }
-        el.style.outline = "3px solid hsl(var(--destructive))";
-        el.style.boxShadow = "0 0 0 6px hsl(var(--destructive) / 0.2)";
+        if (el.style.outline !== "3px solid hsl(var(--destructive))") el.style.outline = "3px solid hsl(var(--destructive))";
+        if (el.style.boxShadow !== "0 0 0 6px hsl(var(--destructive) / 0.2)") el.style.boxShadow = "0 0 0 6px hsl(var(--destructive) / 0.2)";
       });
 
       console.groupCollapsed(`[ReportPadDebug] found ${suspects.length} pad background target(s)`);
+      console.info("Pad settings:", settings);
       console.table(
         suspects.map(({ selector, inlineBackground, computedBackground, rect }) => ({
           selector,
@@ -59,7 +64,14 @@ export function ReportPadDebugProbe() {
           left: Math.round(rect.left),
         })),
       );
-      console.info("Pad URL:", settings.url);
+      console.table(candidates.map(({ selector, rect, inlineBackground }) => ({
+        candidate: selector,
+        inlineBackground,
+        size: `${Math.round(rect.width)}×${Math.round(rect.height)}`,
+        top: Math.round(rect.top),
+        left: Math.round(rect.left),
+      })));
+      console.table(allBackgrounds.slice(0, 30).map(({ selector, inlineBackground, computedBackground }) => ({ selector, inlineBackground, computedBackground })));
       console.info("To disable this overlay, remove ?padDebug=1 from the URL.");
       console.groupEnd();
     };
