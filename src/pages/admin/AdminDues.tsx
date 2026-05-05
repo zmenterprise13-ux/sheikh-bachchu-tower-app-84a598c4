@@ -478,8 +478,8 @@ export default function AdminDues() {
                 <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-start hover:bg-secondary/40 transition-base">
                   <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
                   <div className="md:col-span-3 min-w-0">
-                    <div className="font-medium text-foreground truncate">{(lang === "bn" ? flat.owner_name_bn : flat.owner_name) || "—"}</div>
-                    <div className="text-xs text-muted-foreground">{flat.phone || ""}</div>
+                    <div className="font-medium text-foreground truncate">{residentName(flat, lang) || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{(flat.occupant_type === "tenant" ? flat.occupant_phone : flat.phone) || ""}</div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
                       <span className="text-muted-foreground">
                         {lang === "bn" ? "মোট" : "Total"}: <span className="font-semibold text-foreground">{formatMoney(Number(b.total), lang)}</span>
