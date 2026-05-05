@@ -92,6 +92,7 @@ export default function AdminReports() {
   const [bkashByMonth, setBkashByMonth] = useState<Record<string, number>>({});
   const [bkashTotal, setBkashTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showPublishedPreview, setShowPublishedPreview] = useState(false);
   const { settings: bkash } = useBkashSettings();
 
   // Opening cash (carry-forward from before `from`) — backed by DB overrides
