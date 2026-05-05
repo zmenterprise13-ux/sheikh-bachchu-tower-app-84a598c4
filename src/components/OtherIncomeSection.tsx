@@ -298,12 +298,12 @@ export default function OtherIncomeSection() {
                     return (
                       <div key={e.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-center hover:bg-secondary/30 transition-base">
                         <div className="md:col-span-2 text-sm text-muted-foreground">{e.date}</div>
-                        <div className="md:col-span-3">
+                        <div className="md:col-span-2">
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 text-success px-2.5 py-1 text-xs font-semibold border border-success/20">
                             <Icon className="h-3 w-3" /> {catLabel(e.category, lang)}
                           </span>
                         </div>
-                        <div className="md:col-span-4 text-sm text-foreground">
+                        <div className="md:col-span-3 text-sm text-foreground">
                           {e.source_name && <span className="font-semibold">{e.source_name}</span>}
                           {e.source_name && e.description && <span className="text-muted-foreground"> · </span>}
                           {e.description}
@@ -311,14 +311,21 @@ export default function OtherIncomeSection() {
                             <span className="ml-1 text-[11px] text-muted-foreground">#{e.reference}</span>
                           )}
                         </div>
-                        <div className="md:col-span-2 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
+                        <div className="md:col-span-3">
+                          <ApprovalBadge table="other_incomes" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
+                        </div>
+                        <div className="md:col-span-1 md:text-right font-bold text-foreground">{formatMoney(Number(e.amount), lang)}</div>
                         <div className="md:col-span-1 flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {role !== "accountant" && (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     );
