@@ -198,6 +198,7 @@ export function NoticeTicker() {
             style={{
               animationDuration: `${speed}s`,
               animationPlayState: paused ? "paused" : "running",
+              animationDirection: direction === "right" ? "reverse" : "normal",
             }}
           >
             {loop.map((n, idx) => {
