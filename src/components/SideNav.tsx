@@ -341,9 +341,9 @@ function useAccountName() {
 }
 
 function AccountHeader() {
-  const name = useAccountName();
+  const { name, flatLabel } = useAccountName();
   const { role } = useAuth();
-  const { t, lang } = useLang();
+  const { t } = useLang();
   if (!name) return null;
   const roleText = role ? t(role as TKey) : "";
   return (
@@ -354,8 +354,10 @@ function AccountHeader() {
         </div>
         <div className="min-w-0 leading-tight">
           <div className="text-sm font-semibold text-foreground truncate">{name}</div>
-          {roleText && (
-            <div className="text-[11px] text-muted-foreground truncate">{roleText}</div>
+          {(roleText || flatLabel) && (
+            <div className="text-[11px] text-muted-foreground truncate">
+              {[roleText, flatLabel].filter(Boolean).join(" · ")}
+            </div>
           )}
         </div>
       </div>
