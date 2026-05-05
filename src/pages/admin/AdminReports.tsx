@@ -243,6 +243,7 @@ export default function AdminReports() {
   const totalOtherIn = perMonth.reduce((s, r) => s + r.otherIn, 0);
   const totalBilled = perMonth.reduce((s, r) => s + r.billed, 0);
   const totalExpense = perMonth.reduce((s, r) => s + r.expense, 0);
+  const totalExpenseAll = perMonth.reduce((s, r) => s + r.expenseTotal, 0);
   const totalLoanIn = perMonth.reduce((s, r) => s + r.loanIn, 0);
   const totalLoanOut = perMonth.reduce((s, r) => s + r.loanOut, 0);
   const operatingNet = totalIncome + totalOtherIn - totalExpense;
