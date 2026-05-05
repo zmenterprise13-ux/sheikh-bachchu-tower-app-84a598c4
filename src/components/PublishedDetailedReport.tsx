@@ -39,6 +39,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const [loading, setLoading] = useState(true);
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
+  const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     (async () => {
@@ -46,7 +47,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
       const start = `${month}-01`;
       const [y, m] = month.split("-").map(Number);
       const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
-      const [{ data }, catRes, repayRes] = await Promise.all([
+      const [{ data }, catRes, repayRes, expRes] = await Promise.all([
         supabase.rpc("monthly_finance_summary", { _month: month }),
         supabase.from("expense_categories").select("name, name_bn"),
         supabase
@@ -54,7 +55,21 @@ export function PublishedDetailedReport({ month }: { month: string }) {
           .select("amount, loans!inner(lender_name, lender_name_bn)")
           .gte("paid_date", start)
           .lt("paid_date", nextMonth),
+        supabase
+          .from("expenses")
+          .select("category, description")
+          .eq("approval_status", "approved")
+          .gte("date", start)
+          .lt("date", nextMonth),
       ]);
+      const descMap: Record<string, string[]> = {};
+      for (const r of (expRes.data ?? []) as any[]) {
+        const d = (r.description || "").trim();
+        if (!d) continue;
+        if (!descMap[r.category]) descMap[r.category] = [];
+        if (!descMap[r.category].includes(d)) descMap[r.category].push(d);
+      }
+      setExpenseDescByCat(descMap);
       setSnap((data as Snapshot | null) ?? null);
       setExpenseCats((catRes.data ?? []) as any);
       const agg = new Map<string, { lender: string; lender_bn: string | null; amount: number }>();
@@ -267,10 +282,12 @@ export function PublishedDetailedReport({ month }: { month: string }) {
               const max = Math.max(1, ...(snap.by_category ?? []).map((r) => Number(r.amount)));
               return (snap.by_category ?? []).map((r) => {
                 const cd = expenseCats.find((c) => c.name === r.category);
-                const label = lang === "bn" ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category) : (cd?.name || (t(r.category as TKey) as string) || r.category);
+                const baseLabel = lang === "bn" ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category) : (cd?.name || (t(r.category as TKey) as string) || r.category);
+                const descs = expenseDescByCat[r.category] ?? [];
+                const label = descs.length > 0 ? `${baseLabel} : ${descs.join(", ")}` : baseLabel;
                 return (
                   <div key={r.category}>
-                    <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-start justify-between text-sm mb-1 gap-3">
                       <span className="text-muted-foreground">{label}</span>
                       <span className="font-semibold text-foreground">{formatMoney(Number(r.amount), lang)}</span>
                     </div>
