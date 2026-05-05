@@ -227,6 +227,7 @@ export default function AdminLoans() {
       paid_date: repayForm.paid_date,
       note: repayForm.note.trim() || null,
       created_by: user?.id ?? null,
+      ...approvalFieldsForInsert(role, user?.id),
     });
     if (error) {
       setSubmitting(false);
