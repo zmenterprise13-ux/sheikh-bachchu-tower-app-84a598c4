@@ -901,6 +901,16 @@ function BillEditDialog({
                 : "Due date will be set on save based on Settings."}
             </div>
           )}
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "জেনারেট তারিখ" : "Generated date"}</Label>
+            <Input type="date" value={form.generated_at ?? ""}
+              onChange={(e) => set("generated_at", e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</Label>
+            <Input type="date" value={form.paid_at ?? ""}
+              onChange={(e) => set("paid_at", e.target.value || null)} />
+          </div>
           <div className="col-span-2 text-right text-sm">
             {t("total")}: <span className="font-bold">{formatMoney(computedTotal, lang)}</span>
           </div>
