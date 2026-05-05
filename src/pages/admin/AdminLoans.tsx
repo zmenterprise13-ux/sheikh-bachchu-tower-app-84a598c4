@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, HandCoins, ArrowDownCircle, CheckCircle2, RotateCcw, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, HandCoins, ArrowDownCircle, CheckCircle2, RotateCcw, Trash2, ChevronDown, ChevronUp, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
