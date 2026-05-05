@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
+import { usePendingPaymentRequests } from "@/hooks/usePendingPaymentRequests";
 
 type NavItem = { to: string; key: TKey; icon: React.ElementType };
 type NavGroup = { label: TKey; items: NavItem[] };
@@ -380,7 +381,7 @@ function AccountHeader() {
   );
 }
 
-function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void }) {
+function NavGroupBlock({ group, t, onNavigate, badges }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void; badges?: Partial<Record<string, number>> }) {
   const [open, setOpen] = useState(true);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
@@ -389,7 +390,9 @@ function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey)
         <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "rotate-0" : "-rotate-90")} />
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-1">
-        {group.items.map(({ to, key, icon: Icon }) => (
+        {group.items.map(({ to, key, icon: Icon }) => {
+          const badge = badges?.[key as string] ?? 0;
+          return (
           <NavLink
             key={to}
             to={to}
@@ -405,9 +408,15 @@ function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey)
             }
           >
             <Icon className="h-4 w-4" />
-            <span>{t(key)}</span>
+            <span className="flex-1">{t(key)}</span>
+            {badge > 0 && (
+              <span className="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold animate-pulse">
+                {badge}
+              </span>
+            )}
           </NavLink>
-        ))}
+          );
+        })}
       </CollapsibleContent>
     </Collapsible>
   );
@@ -417,13 +426,15 @@ export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
   const groups = groupsFor(role);
+  const pendingPR = usePendingPaymentRequests();
+  const badges = { paymentRequests: pendingPR };
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
       <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
         <AccountHeader />
         {groups.map((group) => (
-          <NavGroupBlock key={group.label} group={group} t={t} />
+          <NavGroupBlock key={group.label} group={group} t={t} badges={badges} />
         ))}
       </nav>
     </aside>
@@ -436,6 +447,8 @@ export function MobileNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const groups = groupsFor(role);
   const all = flattenGroups(groups);
+  const pendingPR = usePendingPaymentRequests();
+  const badges: Partial<Record<string, number>> = { paymentRequests: pendingPR };
   const primaryKeys: TKey[] =
     role === "admin" ? ["dashboard", "dues", "ledger", "expenses"]
     : role === "manager" ? ["dashboard", "flats", "dues", "notices"]
@@ -451,22 +464,32 @@ export function MobileNav() {
   return (
     <nav className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
       <div className="grid grid-cols-5">
-        {primary.map(({ to, key, icon: Icon }) => (
+        {primary.map(({ to, key, icon: Icon }) => {
+          const badge = badges[key as string] ?? 0;
+          return (
           <NavLink
             key={to}
             to={to}
             end
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-base",
+                "relative flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-base",
                 isActive ? "text-primary" : "text-muted-foreground"
               )
             }
           >
-            <Icon className="h-5 w-5" />
+            <div className="relative">
+              <Icon className="h-5 w-5" />
+              {badge > 0 && (
+                <span className="absolute -top-1.5 -right-2 inline-flex items-center justify-center min-w-[1rem] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold animate-pulse">
+                  {badge}
+                </span>
+              )}
+            </div>
             <span className="truncate max-w-full px-1">{t(key)}</span>
           </NavLink>
-        ))}
+          );
+        })}
 
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
@@ -490,7 +513,9 @@ export function MobileNav() {
                     {t(group.label)}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {group.items.map(({ to, key, icon: Icon }) => (
+                    {group.items.map(({ to, key, icon: Icon }) => {
+                      const badge = badges[key as string] ?? 0;
+                      return (
                       <NavLink
                         key={to}
                         to={to}
@@ -498,17 +523,23 @@ export function MobileNav() {
                         onClick={() => setMoreOpen(false)}
                         className={({ isActive }) =>
                           cn(
-                            "flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
+                            "relative flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
                             isActive
                               ? "gradient-primary text-primary-foreground border-transparent shadow-md"
                               : "text-foreground hover:bg-secondary"
                           )
                         }
                       >
+                        {badge > 0 && (
+                          <span className="absolute top-1.5 right-1.5 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold animate-pulse">
+                            {badge}
+                          </span>
+                        )}
                         <Icon className="h-5 w-5" />
                         <span className="text-center leading-tight">{t(key)}</span>
                       </NavLink>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
