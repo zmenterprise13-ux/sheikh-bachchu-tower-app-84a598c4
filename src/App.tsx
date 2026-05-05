@@ -45,6 +45,7 @@ import OwnerLedger from "./pages/owner/OwnerLedger";
 import OwnerReceipts from "./pages/owner/OwnerReceipts";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
+import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <ReportPadDebugProbe />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
