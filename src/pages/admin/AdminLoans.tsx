@@ -423,6 +423,7 @@ export default function AdminLoans() {
                           )}>
                             {l.status}
                           </span>
+                          <ApprovalBadge table="loans" id={l.id} status={l.approval_status} rejectReason={l.reject_reason} onChanged={load} />
                         </div>
                         <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                           {editingDate?.kind === "loan" && editingDate.id === l.id ? (
