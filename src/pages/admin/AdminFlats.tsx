@@ -56,7 +56,7 @@ type Flat = {
 };
 
 const SELECT_COLS =
-  "id, flat_no, holding_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id";
+  "id, flat_no, holding_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, eid_bonus, is_occupied, occupant_type, occupant_name, occupant_name_bn, occupant_phone, occupant_photo_url, owner_photo_url, owner_user_id, tenant_user_id";
 
 export default function AdminFlats() {
   const { t, lang } = useLang();
@@ -104,6 +104,34 @@ export default function AdminFlats() {
     setBulkLoginBusy(false);
     if (ok) toast.success(lang === "bn" ? `${ok} টি লগইন তৈরি (পাসওয়ার্ড: 12345678)` : `Created ${ok} logins (password: 12345678)`);
     if (fail) toast.error(lang === "bn" ? `${fail} টি ব্যর্থ` : `${fail} failed`);
+    await load();
+  };
+
+  const [tenantBusyId, setTenantBusyId] = useState<string | null>(null);
+  const createTenantLogin = async (f: any) => {
+    const phone = (f.occupant_phone ?? "").trim();
+    if (!/^\d{11}$/.test(phone)) {
+      toast.error(lang === "bn" ? "ভাড়াটিয়ার ১১ সংখ্যার মোবাইল নম্বর দরকার" : "Tenant needs an 11-digit mobile number");
+      return;
+    }
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বন্ধ আছে" : "Sign up is disabled");
+      return;
+    }
+    setTenantBusyId(f.id);
+    const { data, error } = await supabase.functions.invoke("tenant-create-account", {
+      body: { phone, flat_id: f.id },
+    });
+    setTenantBusyId(null);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error ?? error?.message ?? "Failed");
+      return;
+    }
+    toast.success(
+      lang === "bn"
+        ? `ভাড়াটিয়া লগইন তৈরি (পাসওয়ার্ড: 12345678)`
+        : `Tenant login created (password: 12345678)`,
+    );
     await load();
   };
 
@@ -235,6 +263,24 @@ export default function AdminFlats() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      {f.occupant_type === "tenant" &&
+                        !f.tenant_user_id &&
+                        /^\d{11}$/.test((f.occupant_phone ?? "").trim()) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => createTenantLogin(f)}
+                            disabled={tenantBusyId === f.id}
+                            className="h-8 w-8 text-warning"
+                            title={lang === "bn" ? "ভাড়াটিয়া লগইন তৈরি" : "Create tenant login"}
+                          >
+                            {tenantBusyId === f.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <KeyRound className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        )}
                       <Button
                         size="icon"
                         variant="ghost"
