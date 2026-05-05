@@ -347,14 +347,6 @@
 
   /* Force every text in the printed report to be solid black & bold-readable */
   #owner-finance-print-inner,
-  #owner-finance-print-inner * {
-    color: #000 !important;
-    -webkit-text-fill-color: #000 !important;
-    opacity: 1 !important;
-    font-style: normal !important;
-  }
-  #owner-finance-print-inner table { font-size: 10.5pt !important; }
-  #owner-finance-print-inner,
   #owner-finance-print-inner *:not(.report-header-title) {
     color: #000 !important;
     -webkit-text-fill-color: #000 !important;
