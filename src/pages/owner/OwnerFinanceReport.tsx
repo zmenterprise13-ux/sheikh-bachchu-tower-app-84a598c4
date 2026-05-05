@@ -27,21 +27,42 @@ export default function OwnerFinanceReport() {
 
   const handlePrint = () => {
     const el = document.getElementById("owner-finance-print");
-    if (el) {
-      // A4 at 96dpi ≈ 794 × 1123px. With ~8mm margins ≈ 764 × 1063px usable.
-      const usableW = 764;
-      const usableH = 1063;
-      // Reset any previous scale so we measure natural size.
+    const inner = document.getElementById("owner-finance-print-inner");
+    if (el && inner) {
+      // Force print-like layout so we measure the actual print height, not screen height.
+      document.body.classList.add("print-measuring");
       el.style.setProperty("--print-scale", "1");
-      const naturalH = el.scrollHeight;
-      const naturalW = el.scrollWidth;
-      const scale = Math.min(1, usableH / naturalH, usableW / naturalW);
-      el.style.setProperty("--print-scale", String(scale));
-    }
-    setTimeout(() => {
+      // A4 usable area at 96dpi after 8mm page margin ≈ 745 × 1060px (we use 740 × 1040 for safety).
+      const usableW = 740;
+      const usableH = 1040;
+      // Force inner to A4 content width during measurement.
+      inner.style.width = `${usableW}px`;
+      // Defer measurement so styles apply.
+      requestAnimationFrame(() => {
+        const naturalH = inner.scrollHeight;
+        const naturalW = inner.scrollWidth;
+        const scale = Math.min(1, usableH / naturalH, usableW / naturalW);
+        el.style.setProperty("--print-scale", String(scale));
+        // Reserve only the scaled box size on the outer wrapper so the
+        // printed layout consumes a single page (transform doesn't shrink layout box).
+        el.style.height = `${Math.ceil(naturalH * scale)}px`;
+        el.style.width = `${Math.ceil(naturalW * scale)}px`;
+        el.style.overflow = "hidden";
+        document.body.classList.remove("print-measuring");
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => {
+            el.style.removeProperty("--print-scale");
+            el.style.removeProperty("height");
+            el.style.removeProperty("width");
+            el.style.removeProperty("overflow");
+            inner.style.removeProperty("width");
+          }, 800);
+        }, 80);
+      });
+    } else {
       window.print();
-      setTimeout(() => el?.style.removeProperty("--print-scale"), 800);
-    }, 50);
+    }
   };
 
   return (
@@ -79,6 +100,7 @@ export default function OwnerFinanceReport() {
         </div>
 
         <div className="print-area print-fit-one-page" id="owner-finance-print">
+          <div id="owner-finance-print-inner">
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
@@ -98,6 +120,7 @@ export default function OwnerFinanceReport() {
               title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
             />
           )}
+          </div>
         </div>
       </div>
     </AppShell>
