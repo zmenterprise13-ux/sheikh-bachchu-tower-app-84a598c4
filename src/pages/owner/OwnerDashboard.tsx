@@ -19,6 +19,7 @@ import { InitialsFallback } from "@/components/InitialsFallback";
 import { useAuth } from "@/context/AuthContext";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { residentName } from "@/lib/displayName";
+import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 
 type Bill = {
   id: string;
