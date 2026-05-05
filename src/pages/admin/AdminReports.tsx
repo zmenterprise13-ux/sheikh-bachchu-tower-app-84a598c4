@@ -376,7 +376,8 @@ export default function AdminReports() {
 
   return (
     <AppShell>
-      <div className="space-y-6 print:space-y-3 print-area" id="report-printable">
+      <div className="space-y-6 print:space-y-3 print-area relative" id="report-printable">
+        <ReportPadBackground />
         <div className="flex flex-wrap items-end justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("monthlyReport")}</h1>
