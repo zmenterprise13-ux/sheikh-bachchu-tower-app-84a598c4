@@ -82,6 +82,11 @@ export default function AdminPaymentRequests() {
   }, [filter, lang]);
 
   const review = async (pr: PR, status: "approved"|"rejected") => {
+    if (!canReview) { toast.error(lang === "bn" ? "শুধু admin/manager অনুমোদন দিতে পারে" : "Only admin/manager can approve"); return; }
+    if (status === "rejected" && !(reviewNote[pr.id] || "").trim()) {
+      toast.error(lang === "bn" ? "বাতিলের কারণ লিখুন" : "Reject reason required");
+      return;
+    }
     const { error } = await supabase.from("payment_requests").update({
       status,
       review_note: reviewNote[pr.id] || null,
