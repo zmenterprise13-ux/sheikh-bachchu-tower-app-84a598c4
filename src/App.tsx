@@ -32,6 +32,8 @@ import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReceipts from "./pages/admin/AdminReceipts";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
+import AccountantDashboard from "./pages/staff/AccountantDashboard";
+import ManagerDashboard from "./pages/staff/ManagerDashboard";
 import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
@@ -59,7 +61,9 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
 
               {/* Admin & staff (manager / accountant) */}
-              <Route path="/admin" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/accountant" element={<ProtectedRoute allowRoles={["admin","accountant"]}><AccountantDashboard /></ProtectedRoute>} />
+              <Route path="/manager" element={<ProtectedRoute allowRoles={["admin","manager"]}><ManagerDashboard /></ProtectedRoute>} />
               <Route path="/admin/flats" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFlats /></ProtectedRoute>} />
               <Route path="/admin/flats/table" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFlatsTable /></ProtectedRoute>} />
               <Route path="/admin/flats/owners" element={<ProtectedRoute><AdminOwnersDirectory /></ProtectedRoute>} />

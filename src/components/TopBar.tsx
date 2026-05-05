@@ -28,7 +28,7 @@ export function TopBar() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center gap-3">
         {role && <MobileSideNavTrigger />}
-        <Link to={role === "admin" ? "/admin" : "/owner"} className="flex items-center gap-2.5 group">
+        <Link to={role === "admin" ? "/admin" : role === "manager" ? "/manager" : role === "accountant" ? "/accountant" : "/owner"} className="flex items-center gap-2.5 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-glow group-hover:scale-105 transition-base">
             <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
