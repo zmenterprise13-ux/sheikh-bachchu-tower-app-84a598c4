@@ -230,7 +230,7 @@ function GroupSection({
         type="button"
         onClick={toggle}
         className={cn(
-          "w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider",
+          "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wide",
           hasActive ? "text-foreground" : "text-muted-foreground",
         )}
       >
