@@ -131,14 +131,30 @@ export default function OwnerDashboard() {
   }, 0);
   const hasMultipleFlats = flats.length > 1;
 
+  const totalBilled = flats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    return sum + (b ? Number(b.total) : 0);
+  }, 0);
+  const totalPaid = flats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    return sum + (b ? Number(b.paid_amount) : 0);
+  }, 0);
+  const payPct = totalBilled > 0 ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) : 0;
+  const currentBillTotal = currentBill ? Number(currentBill.total) : 0;
+  const currentBillPaid = currentBill ? Number(currentBill.paid_amount) : 0;
+  const currentPayPct = currentBillTotal > 0 ? Math.min(100, Math.round((currentBillPaid / currentBillTotal) * 100)) : 0;
+
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div className="rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated">
-          <div className="flex items-start gap-4 flex-wrap">
+      <div className="space-y-6 animate-fade-in">
+        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-6 sm:p-8 shadow-elevated overflow-hidden">
+          {/* decorative orbs */}
+          <div className="pointer-events-none absolute -top-24 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
+          <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-accent/30 blur-3xl" />
+          <div className="relative flex items-start gap-4 flex-wrap">
             <div className="relative shrink-0 group">
               <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
-              <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30">
+              <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30 transition-transform duration-300 group-hover:scale-105">
                 {(profileName.avatar || flat.owner_photo_url) ? (
                   <AvatarImageWithSkeleton
                     src={(profileName.avatar || flat.owner_photo_url) as string}
@@ -154,10 +170,12 @@ export default function OwnerDashboard() {
               </Avatar>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm opacity-90">{t("welcome")},</div>
+              <div className="text-sm opacity-90 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" /> {t("welcome")},
+              </div>
               <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 flex-wrap">
                 <span>{residentName(flat, lang) || profileName.bn || profileName.en || "—"}</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-primary-foreground">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-primary-foreground backdrop-blur">
                   {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
                 </span>
               </h1>
@@ -191,25 +209,62 @@ export default function OwnerDashboard() {
                 )}
                 <span className="opacity-70">· {formatNumber(flat.size, lang)} sqft</span>
               </div>
+
+              {/* Payment progress */}
+              {currentBill && (
+                <div className="mt-4 max-w-md">
+                  <div className="flex justify-between text-[11px] opacity-90 mb-1">
+                    <span>{lang === "bn" ? "এ মাসের পেমেন্ট" : "This month's payment"}</span>
+                    <span className="font-semibold">{formatNumber(currentPayPct, lang)}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-accent to-white rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${currentPayPct}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             {due > 0 && (
               <Button
                 size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2 hover:scale-105 transition-transform"
                 onClick={() => toast.info(lang === "bn" ? "অনলাইন পেমেন্ট শীঘ্রই" : "Online payment coming soon")}
               >
                 <CreditCard className="h-4 w-4" />
-                {t("payNow")} · {formatMoney(due, lang)}
+                {t("payNow")} · <AnimatedNumber value={due} format={(n) => formatMoney(n, lang)} />
               </Button>
             )}
           </div>
+        </div>
+
+        {/* Quick actions */}
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+          {[
+            { to: "/owner/bills", icon: FileText, label: lang === "bn" ? "বিল" : "Bills", color: "text-primary", bg: "bg-primary/10" },
+            { to: "/owner/notices", icon: Bell, label: lang === "bn" ? "নোটিশ" : "Notices", color: "text-accent", bg: "bg-accent/10" },
+            { to: "/owner/finance-report", icon: TrendingUp, label: lang === "bn" ? "রিপোর্ট" : "Reports", color: "text-success", bg: "bg-success/10" },
+            { to: "/owner/profile", icon: Home, label: lang === "bn" ? "প্রোফাইল" : "Profile", color: "text-warning", bg: "bg-warning/10" },
+          ].map((q) => (
+            <Link
+              key={q.to}
+              to={q.to}
+              className="group rounded-2xl border border-border bg-card p-4 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3"
+            >
+              <div className={`h-10 w-10 rounded-xl ${q.bg} ${q.color} flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+                <q.icon className="h-5 w-5" />
+              </div>
+              <span className="font-medium text-sm text-foreground">{q.label}</span>
+            </Link>
+          ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <StatCard
             label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
             value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
-            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : t("month")}
+            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"} · ${formatNumber(payPct, lang)}% paid` : t("month")}
             icon={Receipt}
             variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "warning" : "success"}
           />
