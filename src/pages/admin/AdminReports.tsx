@@ -370,7 +370,16 @@ export default function AdminReports() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("monthlyReport")}</h1>
             <p className="text-sm text-muted-foreground mt-1">{rangeLabel}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant={showPublishedPreview ? "default" : "outline"}
+              className="gap-2"
+              onClick={() => setShowPublishedPreview((v) => !v)}
+              title={lang === "bn" ? "ওনাররা যা দেখবেন" : "What owners see"}
+            >
+              {showPublishedPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {lang === "bn" ? "ওনার-ভিউ" : "Owner view"}
+            </Button>
             <Button variant="outline" className="gap-2" onClick={handleCsvExport}>
               <FileSpreadsheet className="h-4 w-4" /> CSV
             </Button>
@@ -382,6 +391,17 @@ export default function AdminReports() {
             </Button>
           </div>
         </div>
+
+        {showPublishedPreview && (
+          <div className="rounded-2xl border-2 border-dashed border-primary/30 p-3 print:hidden">
+            <div className="text-xs font-semibold text-primary mb-2">
+              {lang === "bn"
+                ? `প্রিভিউ: ওনাররা ${from} মাসে এই রিপোর্ট দেখবেন`
+                : `Preview: owners will see this for ${from}`}
+            </div>
+            <PublishedDetailedReport month={from} />
+          </div>
+        )}
 
         {/* Print-only running header (repeats on every printed page) */}
         <div className="hidden print:block print-running-header">
