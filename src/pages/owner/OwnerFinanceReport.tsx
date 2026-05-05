@@ -8,6 +8,7 @@ import { FileBarChart, Printer } from "lucide-react";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { PublishedSpreadsheetReport } from "@/components/PublishedSpreadsheetReport";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const STORAGE_KEY = "owner_finance_report_month";
