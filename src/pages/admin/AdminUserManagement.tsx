@@ -290,6 +290,16 @@ export default function AdminUserManagement() {
                         <span className="font-medium">{r.flats.map((f) => f.flat_no).join(", ")}</span>
                       </div>
                     )}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground mt-1">
+                      <span className="inline-flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" />
+                        {lang === "bn" ? "রেজিস্টার:" : "Registered:"} {fmtDateTime(r.created_at)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <LogIn className="h-3 w-3" />
+                        {lang === "bn" ? "শেষ লগইন:" : "Last login:"} {fmtDateTime(r.last_sign_in_at)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
