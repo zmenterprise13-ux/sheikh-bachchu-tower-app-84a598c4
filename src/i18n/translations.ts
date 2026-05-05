@@ -33,6 +33,7 @@ export const translations: T = {
 myReceipts: { bn: "রিসিপট ইতিহাস", en: "Receipts" },
 ownerReceipts: { bn: "মালিকদের রিসিপট", en: "Owner Receipts" },
 staffRoles: { bn: "স্টাফ ও রোল", en: "Staff & Roles" },
+userManagement: { bn: "ইউজার ব্যবস্থাপনা", en: "User Management" },
   ledger: { bn: "লেজার", en: "Ledger" },
   reconcile: { bn: "রিকনসাইল", en: "Reconcile" },
   myLedger: { bn: "আমার লেজার", en: "My Ledger" },

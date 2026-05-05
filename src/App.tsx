@@ -31,6 +31,7 @@ import TenantInfoBlankForm from "./pages/TenantInfoBlankForm";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReceipts from "./pages/admin/AdminReceipts";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
@@ -78,6 +79,7 @@ const App = () => (
               <Route path="/admin/notices" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminNotices /></ProtectedRoute>} />
               <Route path="/admin/committee" element={<ProtectedRoute requireRole="admin"><AdminCommittee /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute requireRole="admin"><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/user-management" element={<ProtectedRoute requireRole="admin"><AdminUserManagement /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
 
