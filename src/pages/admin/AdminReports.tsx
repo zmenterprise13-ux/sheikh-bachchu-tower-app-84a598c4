@@ -17,6 +17,7 @@ import { TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, Minus } from 
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { round2 } from "@/lib/bkashMath";
 import { residentName } from "@/lib/displayName";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 function paymentStatusOf(billed: number, collected: number): FlatStatus {
   if (billed <= 0) return "unpaid";
@@ -376,7 +377,8 @@ export default function AdminReports() {
 
   return (
     <AppShell>
-      <div className="space-y-6 print:space-y-3 print-area" id="report-printable">
+      <div className="space-y-6 print:space-y-3 print-area relative isolate" id="report-printable">
+        <ReportPadBackground />
         <div className="flex flex-wrap items-end justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("monthlyReport")}</h1>

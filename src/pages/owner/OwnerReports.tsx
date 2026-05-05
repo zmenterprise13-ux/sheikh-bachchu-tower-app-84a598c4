@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { useOwnerFlat } from "@/hooks/useOwnerFlat";
 import { toast } from "sonner";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 type Bill = {
   id: string;
@@ -119,7 +120,8 @@ export default function OwnerReports() {
           </div>
         </div>
 
-        <div className="print-area space-y-6">
+        <div className="print-area space-y-6 relative isolate">
+          <ReportPadBackground />
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}

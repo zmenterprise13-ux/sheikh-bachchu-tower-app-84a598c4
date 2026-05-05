@@ -21,6 +21,7 @@ import { useTickerSpeed } from "@/hooks/useTickerSpeed";
 import { Slider } from "@/components/ui/slider";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
+import { ReportPadSettingsCard } from "@/components/ReportPadSettingsCard";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -362,6 +363,8 @@ export default function AdminSettings() {
             <TickerSpeedCard />
 
             <OwnerReportStyleCard />
+
+            <ReportPadSettingsCard />
 
             <BkashSettingsCard />
 

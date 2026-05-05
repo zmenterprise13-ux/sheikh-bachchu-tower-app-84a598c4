@@ -8,6 +8,7 @@ import { FileBarChart, Printer } from "lucide-react";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { PublishedSpreadsheetReport } from "@/components/PublishedSpreadsheetReport";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
+import { ReportPadBackground } from "@/components/ReportPadBackground";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const STORAGE_KEY = "owner_finance_report_month";
@@ -99,8 +100,9 @@ export default function OwnerFinanceReport() {
           </div>
         </div>
 
-        <div className="print-area print-fit-one-page" id="owner-finance-print">
-          <div id="owner-finance-print-inner">
+        <div className="print-area print-fit-one-page relative isolate" id="owner-finance-print">
+          <ReportPadBackground />
+          <div id="owner-finance-print-inner" className="relative z-10">
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
