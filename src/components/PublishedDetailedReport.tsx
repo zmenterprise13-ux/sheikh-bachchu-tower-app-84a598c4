@@ -282,10 +282,12 @@ export function PublishedDetailedReport({ month }: { month: string }) {
               const max = Math.max(1, ...(snap.by_category ?? []).map((r) => Number(r.amount)));
               return (snap.by_category ?? []).map((r) => {
                 const cd = expenseCats.find((c) => c.name === r.category);
-                const label = lang === "bn" ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category) : (cd?.name || (t(r.category as TKey) as string) || r.category);
+                const baseLabel = lang === "bn" ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category) : (cd?.name || (t(r.category as TKey) as string) || r.category);
+                const descs = expenseDescByCat[r.category] ?? [];
+                const label = descs.length > 0 ? `${baseLabel} : ${descs.join(", ")}` : baseLabel;
                 return (
                   <div key={r.category}>
-                    <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-start justify-between text-sm mb-1 gap-3">
                       <span className="text-muted-foreground">{label}</span>
                       <span className="font-semibold text-foreground">{formatMoney(Number(r.amount), lang)}</span>
                     </div>
