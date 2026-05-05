@@ -30,7 +30,11 @@ type Bill = {
   total: number;
   paid_amount: number;
   status: FlatStatus;
+  generated_at: string | null;
+  paid_at: string | null;
 };
+
+const BILL_SELECT = "id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status, generated_at, paid_at";
 
 type Flat = {
   id: string;
@@ -86,7 +90,7 @@ export default function AdminDues() {
     const [billsRes, flatsRes] = await Promise.all([
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .eq("month", targetMonth),
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
     ]);
@@ -142,7 +146,7 @@ export default function AdminDues() {
     if (error) { toast.error(error.message); return; }
     toast.success(lang === "bn" ? "পেমেন্ট রেকর্ড হয়েছে" : "Payment recorded");
     setBills((prev) => prev.map((x) => x.id === paying.id
-      ? { ...x, status, paid_amount: newPaid }
+      ? { ...x, status, paid_amount: newPaid, paid_at: payDate }
       : x));
     setPaying(null);
   };
@@ -218,7 +222,7 @@ export default function AdminDues() {
         .from("bills")
         .update(patch)
         .eq("id", b.id)
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .single();
       if (error || !data) { failed++; continue; }
       updated.push(data as Bill);
@@ -263,7 +267,7 @@ export default function AdminDues() {
         .from("bills")
         .update({ status: "paid", paid_amount: total, paid_at: bulkPayDate })
         .eq("id", b.id)
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .single();
       if (error || !data) { failed++; continue; }
       updated.push(data as Bill);
@@ -489,6 +493,14 @@ export default function AdminDues() {
                   <div className="md:col-span-2 md:text-right">
                     <div className="font-bold text-foreground">{formatMoney(Number(b.total), lang)}</div>
                     {due > 0 && <div className="text-xs text-destructive">{t("due")}: {formatMoney(due, lang)}</div>}
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      {lang === "bn" ? "জেনারেট" : "Generated"}: {b.generated_at || "—"}
+                    </div>
+                    {b.paid_at && (
+                      <div className="text-[10px] text-success">
+                        {lang === "bn" ? "পরিশোধ" : "Paid on"}: {b.paid_at}
+                      </div>
+                    )}
                   </div>
                   <div className="md:col-span-2 flex items-center justify-end gap-2 col-span-2">
                     <StatusBadge status={b.status} />
@@ -822,9 +834,11 @@ function BillEditDialog({
         arrears: form.arrears,
         other_note: form.other_note,
         other_due_date: otherDueDate,
+        generated_at: form.generated_at || undefined,
+        paid_at: form.paid_at || null,
       })
       .eq("id", form.id)
-      .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+      .select(BILL_SELECT)
       .single();
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -887,6 +901,16 @@ function BillEditDialog({
                 : "Due date will be set on save based on Settings."}
             </div>
           )}
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "জেনারেট তারিখ" : "Generated date"}</Label>
+            <Input type="date" value={form.generated_at ?? ""}
+              onChange={(e) => set("generated_at", e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "পেমেন্ট তারিখ" : "Payment date"}</Label>
+            <Input type="date" value={form.paid_at ?? ""}
+              onChange={(e) => set("paid_at", e.target.value || null)} />
+          </div>
           <div className="col-span-2 text-right text-sm">
             {t("total")}: <span className="font-bold">{formatMoney(computedTotal, lang)}</span>
           </div>
