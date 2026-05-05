@@ -188,6 +188,7 @@ export default function AdminLoans() {
       note: form.note.trim() || null,
       status: "active",
       created_by: user?.id ?? null,
+      ...approvalFieldsForInsert(role, user?.id),
     });
     setSubmitting(false);
     if (error) {
