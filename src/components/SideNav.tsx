@@ -34,114 +34,240 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
-const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
-  { to: "/admin", key: "dashboard", icon: LayoutDashboard },
-  { to: "/admin/flats", key: "flats", icon: Building },
-  { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
-  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
-  { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
-  { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
-  { to: "/admin/shops", key: "shops", icon: Store },
-  { to: "/admin/parking", key: "parkingNav", icon: Car },
-  { to: "/admin/dues", key: "dues", icon: Receipt },
-  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
-  { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
-  { to: "/admin/ledger", key: "ledger", icon: BookOpen },
-  { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
-  { to: "/admin/expenses", key: "expenses", icon: Wallet },
-  { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
-  { to: "/admin/reports", key: "reports", icon: FileBarChart },
-  { to: "/admin/notices", key: "notices", icon: Megaphone },
-  { to: "/admin/committee", key: "committee" as TKey, icon: Users },
-  { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
-  { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
-  { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
-  { to: "/admin/settings", key: "settings", icon: SettingsIcon },
-  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
-  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+type NavItem = { to: string; key: TKey; icon: React.ElementType };
+type NavGroup = { label: TKey; items: NavItem[] };
+
+const adminGroups: NavGroup[] = [
+  {
+    label: "groupOverview" as TKey,
+    items: [
+      { to: "/admin", key: "dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "groupProperties" as TKey,
+    items: [
+      { to: "/admin/flats", key: "flats", icon: Building },
+      { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
+      { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
+      { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
+      { to: "/admin/shops", key: "shops", icon: Store },
+      { to: "/admin/parking", key: "parkingNav", icon: Car },
+    ],
+  },
+  {
+    label: "groupFinance" as TKey,
+    items: [
+      { to: "/admin/dues", key: "dues", icon: Receipt },
+      { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+      { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
+      { to: "/admin/ledger", key: "ledger", icon: BookOpen },
+      { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
+      { to: "/admin/expenses", key: "expenses", icon: Wallet },
+      { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
+    ],
+  },
+  {
+    label: "groupReports" as TKey,
+    items: [
+      { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/notices", key: "notices", icon: Megaphone },
+    ],
+  },
+  {
+    label: "groupPeople" as TKey,
+    items: [
+      { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+      { to: "/admin/committee", key: "committee" as TKey, icon: Users },
+      { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+      { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
+      { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
+    ],
+  },
+  {
+    label: "groupSystem" as TKey,
+    items: [
+      { to: "/admin/settings", key: "settings", icon: SettingsIcon },
+    ],
+  },
+  {
+    label: "groupAccount" as TKey,
+    items: [
+      { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+      { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+    ],
+  },
 ];
 
-const ownerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
-  { to: "/owner", key: "dashboard", icon: LayoutDashboard },
-  { to: "/owner/dues", key: "myDues", icon: CreditCard },
-  { to: "/owner/payments", key: "myPayments", icon: History },
-  { to: "/owner/receipts", key: "myReceipts" as TKey, icon: ReceiptText },
-  { to: "/owner/ledger", key: "myLedger", icon: BookOpen },
-  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
-  { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
-  { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
-  { to: "/owner/notices", key: "notices", icon: Megaphone },
-  { to: "/owner/reports", key: "reports", icon: FileBarChart },
-  { to: "/owner/finance-report", key: "financeReport" as TKey, icon: FileBarChart },
-  { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
-  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
-  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+const ownerGroups: NavGroup[] = [
+  {
+    label: "groupOverview" as TKey,
+    items: [{ to: "/owner", key: "dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "groupFinance" as TKey,
+    items: [
+      { to: "/owner/dues", key: "myDues", icon: CreditCard },
+      { to: "/owner/payments", key: "myPayments", icon: History },
+      { to: "/owner/receipts", key: "myReceipts" as TKey, icon: ReceiptText },
+      { to: "/owner/ledger", key: "myLedger", icon: BookOpen },
+    ],
+  },
+  {
+    label: "groupProperties" as TKey,
+    items: [
+      { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+      { to: "/admin/building", key: "buildingOverview" as TKey, icon: Building2 },
+      { to: "/admin/building/3d", key: "building3D" as TKey, icon: Box },
+    ],
+  },
+  {
+    label: "groupReports" as TKey,
+    items: [
+      { to: "/owner/notices", key: "notices", icon: Megaphone },
+      { to: "/owner/reports", key: "reports", icon: FileBarChart },
+      { to: "/owner/finance-report", key: "financeReport" as TKey, icon: FileBarChart },
+    ],
+  },
+  {
+    label: "groupPeople" as TKey,
+    items: [{ to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 }],
+  },
+  {
+    label: "groupAccount" as TKey,
+    items: [
+      { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+      { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+    ],
+  },
 ];
 
-const accountantNav: { to: string; key: TKey; icon: React.ElementType }[] = [
-  { to: "/accountant", key: "dashboard", icon: LayoutDashboard },
-  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
-  { to: "/admin/dues", key: "dues", icon: Receipt },
-  { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
-  { to: "/admin/ledger", key: "ledger", icon: BookOpen },
-  { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
-  { to: "/admin/expenses", key: "expenses", icon: Wallet },
-  { to: "/admin/reports", key: "reports", icon: FileBarChart },
-  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
-  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
-  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+const accountantGroups: NavGroup[] = [
+  {
+    label: "groupOverview" as TKey,
+    items: [{ to: "/accountant", key: "dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "groupFinance" as TKey,
+    items: [
+      { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+      { to: "/admin/dues", key: "dues", icon: Receipt },
+      { to: "/admin/receipts", key: "ownerReceipts" as TKey, icon: ReceiptText },
+      { to: "/admin/ledger", key: "ledger", icon: BookOpen },
+      { to: "/admin/reconcile", key: "reconcile" as TKey, icon: ScanSearch },
+      { to: "/admin/expenses", key: "expenses", icon: Wallet },
+    ],
+  },
+  {
+    label: "groupReports" as TKey,
+    items: [{ to: "/admin/reports", key: "reports", icon: FileBarChart }],
+  },
+  {
+    label: "groupPeople" as TKey,
+    items: [{ to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users }],
+  },
+  {
+    label: "groupAccount" as TKey,
+    items: [
+      { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+      { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+    ],
+  },
 ];
 
-const managerNav: { to: string; key: TKey; icon: React.ElementType }[] = [
-  { to: "/manager", key: "dashboard", icon: LayoutDashboard },
-  { to: "/admin/flats", key: "flats", icon: Building },
-  { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
-  { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
-  { to: "/admin/shops", key: "shops", icon: Store },
-  { to: "/admin/parking", key: "parkingNav", icon: Car },
-  { to: "/admin/dues", key: "dues", icon: Receipt },
-  { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
-  { to: "/admin/notices", key: "notices", icon: Megaphone },
-  { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
-  { to: "/admin/reports", key: "reports", icon: FileBarChart },
-  { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
-  { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
-  { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+const managerGroups: NavGroup[] = [
+  {
+    label: "groupOverview" as TKey,
+    items: [{ to: "/manager", key: "dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "groupProperties" as TKey,
+    items: [
+      { to: "/admin/flats", key: "flats", icon: Building },
+      { to: "/admin/flats/table", key: "flatsTable" as TKey, icon: TableIcon },
+      { to: "/admin/shops", key: "shops", icon: Store },
+      { to: "/admin/parking", key: "parkingNav", icon: Car },
+    ],
+  },
+  {
+    label: "groupFinance" as TKey,
+    items: [
+      { to: "/admin/dues", key: "dues", icon: Receipt },
+      { to: "/admin/payment-requests", key: "paymentRequests" as TKey, icon: CreditCard },
+      { to: "/admin/loans", key: "loans" as TKey, icon: HandCoins },
+    ],
+  },
+  {
+    label: "groupReports" as TKey,
+    items: [
+      { to: "/admin/notices", key: "notices", icon: Megaphone },
+      { to: "/admin/reports", key: "reports", icon: FileBarChart },
+    ],
+  },
+  {
+    label: "groupPeople" as TKey,
+    items: [
+      { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
+      { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+    ],
+  },
+  {
+    label: "groupAccount" as TKey,
+    items: [
+      { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
+      { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
+    ],
+  },
 ];
 
-function navFor(role: string | null) {
-  if (role === "admin") return adminNav;
-  if (role === "manager") return managerNav;
-  if (role === "accountant") return accountantNav;
-  if (role === "tenant") return ownerNav.filter((n) => !n.to.startsWith("/admin/"));
-  return ownerNav;
+function groupsFor(role: string | null): NavGroup[] {
+  if (role === "admin") return adminGroups;
+  if (role === "manager") return managerGroups;
+  if (role === "accountant") return accountantGroups;
+  if (role === "tenant") {
+    return ownerGroups
+      .map((g) => ({ ...g, items: g.items.filter((i) => !i.to.startsWith("/admin/")) }))
+      .filter((g) => g.items.length > 0);
+  }
+  return ownerGroups;
+}
+
+function flattenGroups(groups: NavGroup[]): NavItem[] {
+  return groups.flatMap((g) => g.items);
 }
 
 export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
-  const items = navFor(role);
+  const groups = groupsFor(role);
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
-      <nav className="sticky top-20 space-y-1 rounded-2xl bg-card p-3 shadow-soft border border-border">
-        {items.map(({ to, key, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
-                isActive
-                  ? "gradient-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              )
-            }
-          >
-            <Icon className="h-4 w-4" />
-            <span>{t(key)}</span>
-          </NavLink>
+      <nav className="sticky top-20 space-y-4 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
+        {groups.map((group) => (
+          <div key={group.label} className="space-y-1">
+            <div className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {t(group.label)}
+            </div>
+            {group.items.map(({ to, key, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                    isActive
+                      ? "gradient-primary text-primary-foreground shadow-md"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  )
+                }
+              >
+                <Icon className="h-4 w-4" />
+                <span>{t(key)}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
     </aside>
@@ -152,8 +278,8 @@ export function MobileNav() {
   const { t } = useLang();
   const { role } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
-  const all = navFor(role);
-  // Mobile bottom-nav: show the 4 most-used pages; rest go under "More"
+  const groups = groupsFor(role);
+  const all = flattenGroups(groups);
   const primaryKeys: TKey[] =
     role === "admin" ? ["dashboard", "dues", "ledger", "expenses"]
     : role === "manager" ? ["dashboard", "flats", "dues", "notices"]
@@ -161,8 +287,10 @@ export function MobileNav() {
     : ["dashboard", "myDues", "myPayments", "myLedger"];
   const primary = primaryKeys
     .map((k) => all.find((i) => i.key === k))
-    .filter((i): i is typeof all[number] => Boolean(i));
-  const overflow = all.filter((i) => !primaryKeys.includes(i.key));
+    .filter((i): i is NavItem => Boolean(i));
+  const overflowGroups = groups
+    .map((g) => ({ ...g, items: g.items.filter((i) => !primaryKeys.includes(i.key)) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <nav className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
@@ -199,27 +327,36 @@ export function MobileNav() {
             <SheetHeader className="px-4 pt-4 pb-2">
               <SheetTitle>{t("more" as TKey)}</SheetTitle>
             </SheetHeader>
-            <nav className="p-3 grid grid-cols-3 gap-2 overflow-y-auto">
-              {overflow.map(({ to, key, icon: Icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end
-                  onClick={() => setMoreOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
-                      isActive
-                        ? "gradient-primary text-primary-foreground border-transparent shadow-md"
-                        : "text-foreground hover:bg-secondary"
-                    )
-                  }
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-center leading-tight">{t(key)}</span>
-                </NavLink>
+            <div className="p-3 space-y-4 overflow-y-auto">
+              {overflowGroups.map((group) => (
+                <div key={group.label} className="space-y-2">
+                  <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                    {t(group.label)}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {group.items.map(({ to, key, icon: Icon }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        end
+                        onClick={() => setMoreOpen(false)}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
+                            isActive
+                              ? "gradient-primary text-primary-foreground border-transparent shadow-md"
+                              : "text-foreground hover:bg-secondary"
+                          )
+                        }
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="text-center leading-tight">{t(key)}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </nav>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
@@ -231,7 +368,7 @@ export function MobileSideNavTrigger() {
   const { t } = useLang();
   const { role } = useAuth();
   const [open, setOpen] = useState(false);
-  const items = navFor(role);
+  const groups = groupsFor(role);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -244,25 +381,32 @@ export function MobileSideNavTrigger() {
         <SheetHeader className="px-4 pt-4 pb-2">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-          {items.map(({ to, key, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
-                  isActive
-                    ? "gradient-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              <span>{t(key)}</span>
-            </NavLink>
+        <nav className="p-3 space-y-4 overflow-y-auto h-[calc(100vh-4rem)]">
+          {groups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <div className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {t(group.label)}
+              </div>
+              {group.items.map(({ to, key, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                      isActive
+                        ? "gradient-primary text-primary-foreground shadow-md"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{t(key)}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
       </SheetContent>
