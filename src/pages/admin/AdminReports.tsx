@@ -650,7 +650,14 @@ export default function AdminReports() {
                   <td className="py-2 pr-3 text-right text-success">{formatMoney(r.collected, lang)}</td>
                   <td className="py-2 pr-3 text-right text-muted-foreground italic">{formatMoney(bkashByMonth[r.month] || 0, lang)}</td>
                   <td className="py-2 pr-3 text-right text-success">{r.otherIn > 0 ? formatMoney(r.otherIn, lang) : "—"}</td>
-                  <td className="py-2 pr-3 text-right text-warning">{formatMoney(r.expense, lang)}</td>
+                  <td className="py-2 pr-3 text-right text-warning" title={r.loanOut > 0 ? (lang === "bn" ? `নিয়মিত ব্যয়: ${formatMoney(r.expense, lang)} + লোন পরিশোধ: ${formatMoney(r.loanOut, lang)}` : `Regular: ${formatMoney(r.expense, lang)} + Loan repaid: ${formatMoney(r.loanOut, lang)}`) : undefined}>
+                    {formatMoney(r.expenseTotal, lang)}
+                    {r.loanOut > 0 && (
+                      <div className="text-[10px] text-muted-foreground font-normal">
+                        {lang === "bn" ? `+${formatMoney(r.loanOut, lang)} লোন পরিশোধ` : `incl. ${formatMoney(r.loanOut, lang)} loan repaid`}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-2 pr-3 text-right text-success">{r.loanIn > 0 ? formatMoney(r.loanIn, lang) : "—"}</td>
                   <td className="py-2 pr-3 text-right text-warning">{r.loanOut > 0 ? formatMoney(r.loanOut, lang) : "—"}</td>
                   <td className={`py-2 pr-3 text-right font-semibold ${r.balance >= 0 ? "text-foreground" : "text-destructive"}`}>
