@@ -55,7 +55,7 @@ type Expense = { date: string; category: string; amount: number };
 type LoanRow = { loan_date: string; principal: number; lender_name: string | null; lender_name_bn: string | null };
 type RepayRow = { paid_date: string; amount: number };
 type OtherIncomeRow = { date: string; category: string; amount: number };
-type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null };
+type Flat = { id: string; flat_no: string; owner_name: string | null; owner_name_bn: string | null; occupant_type: string | null; occupant_name: string | null; occupant_name_bn: string | null };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const monthsAgo = (n: number) => {
