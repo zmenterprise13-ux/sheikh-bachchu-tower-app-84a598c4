@@ -104,7 +104,7 @@ export default function OwnerFinanceReport() {
           <div id="owner-finance-print-inner" className="relative isolate">
           <ReportPadBackground />
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
-            <h1 className="text-xl font-bold text-black">
+            <h1 className="report-header-title text-2xl font-extrabold">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
             </h1>
             <p className="text-xs text-black mt-1">
