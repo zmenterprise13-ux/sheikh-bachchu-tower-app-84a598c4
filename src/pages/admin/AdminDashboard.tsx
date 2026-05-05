@@ -279,10 +279,11 @@ export default function AdminDashboard() {
         .map((b: any) => {
           const f = flatMap.get(b.flat_id) as any;
           const owner = residentName(f, lang);
+          const roleText = f ? (lang === "bn" ? ((f.occupant_type ?? "").toLowerCase() === "tenant" ? "ভাড়াটিয়া" : "মালিক") : ((f.occupant_type ?? "").toLowerCase() === "tenant" ? "Tenant" : "Owner")) : "";
           const due = Number(b.total) - Number(b.paid_amount);
           return `<tr>
             <td>${esc(f?.flat_no ?? "—")}</td>
-            <td>${esc(owner ?? "")}</td>
+            <td>${esc(owner ?? "")}${roleText ? ` <span style="color:#888;font-size:11px">(${esc(roleText)})</span>` : ""}</td>
             <td class="r">${fmtMoney(Number(b.service_charge))}</td>
             <td class="r">${fmtMoney(Number(b.gas_bill))}</td>
             <td class="r">${fmtMoney(Number(b.parking) + Number(b.eid_bonus) + Number(b.other_charge))}</td>
@@ -795,8 +796,13 @@ export default function AdminDashboard() {
                       {flat?.flat_no ?? "—"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground truncate">
-                        {flat ? (residentName(flat, lang) || "—") : "—"}
+                      <div className="font-medium text-foreground truncate flex items-center gap-2">
+                        <span className="truncate">{flat ? (residentName(flat, lang) || "—") : "—"}</span>
+                        {flat && (
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
+                            {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">

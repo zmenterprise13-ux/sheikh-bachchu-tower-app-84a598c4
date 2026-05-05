@@ -90,6 +90,7 @@ export default function AdminLedger() {
                 <SelectItem key={f.id} value={f.id}>
                   {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {f.flat_no} —{" "}
                   {residentName(f, lang) || "—"}
+                  {" "}({(f.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")})
                 </SelectItem>
               ))}
             </SelectContent>

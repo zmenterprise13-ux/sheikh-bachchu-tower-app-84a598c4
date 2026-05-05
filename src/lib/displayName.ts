@@ -27,3 +27,17 @@ export function residentName(f: FlatLike | null | undefined, lang: Lang): string
 export function residentRoleLabel(f: FlatLike | null | undefined): "tenantLabel" | "ownerLabel" {
   return (f?.occupant_type ?? "").toLowerCase() === "tenant" ? "tenantLabel" : "ownerLabel";
 }
+
+/** Returns localized role label text: 'ভাড়াটিয়া'/'Tenant' or 'মালিক'/'Owner'. */
+export function residentRoleText(f: FlatLike | null | undefined, lang: Lang): string {
+  const isTenant = (f?.occupant_type ?? "").toLowerCase() === "tenant";
+  if (lang === "bn") return isTenant ? "ভাড়াটিয়া" : "মালিক";
+  return isTenant ? "Tenant" : "Owner";
+}
+
+/** Returns "<name> (<role>)" combined. */
+export function residentNameWithRole(f: FlatLike | null | undefined, lang: Lang): string {
+  const n = residentName(f, lang);
+  if (!n) return "";
+  return `${n} (${residentRoleText(f, lang)})`;
+}

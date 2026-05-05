@@ -155,7 +155,12 @@ export default function OwnerDashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm opacity-90">{t("welcome")},</div>
-              <h1 className="text-2xl sm:text-3xl font-bold">{residentName(flat, lang) || profileName.bn || profileName.en || "—"}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 flex-wrap">
+                <span>{residentName(flat, lang) || profileName.bn || profileName.en || "—"}</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-primary-foreground">
+                  {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
+                </span>
+              </h1>
               <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
                 <Building2 className="h-3.5 w-3.5 opacity-80" />
                 {hasMultipleFlats ? (
