@@ -39,6 +39,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const [loading, setLoading] = useState(true);
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
+  const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     (async () => {
