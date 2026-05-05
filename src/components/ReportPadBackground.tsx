@@ -13,6 +13,7 @@ export function ReportPadBackground() {
       aria-hidden
       className="pointer-events-none absolute inset-0 print:block"
       style={{
+        zIndex: -1,
         backgroundImage: `url(${settings.url})`,
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center top",
