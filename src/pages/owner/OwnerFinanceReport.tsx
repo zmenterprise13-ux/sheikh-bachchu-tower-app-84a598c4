@@ -25,7 +25,24 @@ export default function OwnerFinanceReport() {
     window.localStorage.setItem(STORAGE_KEY, month);
   }, [month]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    const el = document.getElementById("owner-finance-print");
+    if (el) {
+      // A4 at 96dpi ≈ 794 × 1123px. With ~8mm margins ≈ 764 × 1063px usable.
+      const usableW = 764;
+      const usableH = 1063;
+      // Reset any previous scale so we measure natural size.
+      el.style.setProperty("--print-scale", "1");
+      const naturalH = el.scrollHeight;
+      const naturalW = el.scrollWidth;
+      const scale = Math.min(1, usableH / naturalH, usableW / naturalW);
+      el.style.setProperty("--print-scale", String(scale));
+    }
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => el?.style.removeProperty("--print-scale"), 800);
+    }, 50);
+  };
 
   return (
     <AppShell>
@@ -61,7 +78,7 @@ export default function OwnerFinanceReport() {
           </div>
         </div>
 
-        <div className="print-area">
+        <div className="print-area print-fit-one-page" id="owner-finance-print">
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
