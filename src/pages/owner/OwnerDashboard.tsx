@@ -21,7 +21,7 @@ import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { Progress } from "@/components/ui/progress";
+
 
 type Bill = {
   id: string;
