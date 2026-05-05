@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { residentName } from "@/lib/displayName";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
+import { useAuth } from "@/context/AuthContext";
 
 type Filter = "all" | FlatStatus;
 
