@@ -291,6 +291,46 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
           <p className="whitespace-pre-wrap">{snap.notes}</p>
         </div>
       )}
+
+      {billBreakdown.length > 0 && (
+        <div className="space-y-1 pt-2">
+          <div className="text-[11px] font-bold text-muted-foreground">
+            {lang === "bn" ? "বিল ব্রেকডাউন (শুধু রেফারেন্স)" : "Bill Breakdown (reference only)"}
+          </div>
+          <table className="w-full border-collapse text-[10.5px] text-foreground/60">
+            <thead>
+              <tr className="bg-secondary/50">
+                <th className={`${cellCls} text-left w-[40%] font-semibold`}>{lang === "bn" ? "বিবরণ" : "Item"}</th>
+                <th className={`${cellCls} ${numCls} w-[30%] font-semibold italic`}>{lang === "bn" ? "(ব্রেকডাউন)" : "(breakdown)"}</th>
+                <th className={`${cellCls} ${numCls} w-[30%] font-semibold`}>{lang === "bn" ? "উপ-মোট" : "Subtotal"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billBreakdown.map((sec, si) => (
+                <Fragment key={si}>
+                  <tr>
+                    <td className={`${cellCls} font-bold text-success`}>{sec.label}</td>
+                    <td className={cellCls}></td>
+                    <td className={`${cellCls} ${numCls} font-bold text-success`}>{formatMoney(sec.subtotal, lang)}</td>
+                  </tr>
+                  {sec.rows.map((r, ri) => (
+                    <tr key={ri}>
+                      <td className={`${cellCls} pl-4 text-[10px]`}>{r.label}</td>
+                      <td className={`${cellCls} ${numCls} italic text-foreground/40 text-[10px]`}>{formatMoney(r.amount, lang)}</td>
+                      <td className={cellCls}></td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-[10px] text-muted-foreground italic">
+            {lang === "bn"
+              ? "* এই ব্রেকডাউন মূল ক্যাশ/কালেকশনের সাথে যোগ হয় না — শুধুমাত্র রেফারেন্সের জন্য।"
+              : "* This breakdown is not added to the main cash/collection — for reference only."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
