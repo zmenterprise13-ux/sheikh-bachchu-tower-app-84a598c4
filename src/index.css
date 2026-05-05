@@ -158,7 +158,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 14mm 12mm 16mm 12mm;
+    margin: 10mm 10mm 10mm 10mm;
   }
   html, body {
     background: #fff !important;
@@ -269,7 +269,13 @@
   #owner-finance-print-inner {
     transform: scale(var(--print-scale, 1));
     transform-origin: top left;
-    width: 740px;
+    width: 718px;
+  }
+  /* Avoid breaking key blocks across pages, but allow the breakdown to flow */
+  #owner-finance-print-inner table,
+  #owner-finance-print-inner > div > table {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   /* Force two-column income/expense layout regardless of viewport width */
   #owner-finance-print-inner .grid.lg\:grid-cols-2 {
@@ -333,7 +339,7 @@
 body.print-measuring #owner-finance-print-inner {
   font-size: 9pt !important;
   line-height: 1.2 !important;
-  width: 740px !important;
+  width: 718px !important;
 }
 body.print-measuring #owner-finance-print-inner .grid.lg\:grid-cols-2 {
   display: grid !important;

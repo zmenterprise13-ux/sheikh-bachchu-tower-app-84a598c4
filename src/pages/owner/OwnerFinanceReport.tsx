@@ -32,9 +32,9 @@ export default function OwnerFinanceReport() {
       // Force print-like layout so we measure the actual print height, not screen height.
       document.body.classList.add("print-measuring");
       el.style.setProperty("--print-scale", "1");
-      // A4 usable area at 96dpi after 8mm page margin ≈ 745 × 1060px (we use 740 × 1040 for safety).
-      const usableW = 740;
-      const usableH = 1040;
+      // A4 usable area at 96dpi after 10mm page margins ≈ 718 × 1047 px.
+      const usableW = 718;
+      const usableH = 1047;
       // Force inner to A4 content width during measurement.
       inner.style.width = `${usableW}px`;
       // Defer measurement so styles apply.
