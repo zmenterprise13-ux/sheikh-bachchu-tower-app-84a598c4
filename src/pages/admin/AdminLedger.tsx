@@ -28,7 +28,7 @@ export default function AdminLedger() {
       setLoading(true);
       const { data } = await supabase
         .from("flats")
-        .select("id, flat_no, floor, size, owner_name, owner_name_bn, occupant_name, occupant_name_bn")
+        .select("id, flat_no, floor, size, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
         .order("floor")
         .order("flat_no");
       setFlats((data ?? []) as LedgerFlat[]);
