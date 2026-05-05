@@ -106,7 +106,7 @@ export default function AdminDues() {
         .from("bills")
         .select(BILL_SELECT)
         .eq("month", targetMonth),
-      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone"),
+      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone, occupant_type, occupant_name, occupant_name_bn, occupant_phone, owner_photo_url, occupant_photo_url"),
     ]);
     if (billsRes.error) toast.error(billsRes.error.message);
     if (flatsRes.error) toast.error(flatsRes.error.message);
