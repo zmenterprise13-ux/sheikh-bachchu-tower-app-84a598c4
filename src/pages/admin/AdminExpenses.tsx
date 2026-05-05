@@ -128,7 +128,7 @@ export default function AdminExpenses() {
     }
   }, [categories]);
 
-  const total = items.reduce((s, e) => s + Number(e.amount), 0);
+  const total = items.filter(e => (e.approval_status ?? "approved") === "approved").reduce((s, e) => s + Number(e.amount), 0);
 
   // Group expenses by month (YYYY-MM)
   const grouped = items.reduce<Record<string, Expense[]>>((acc, e) => {
