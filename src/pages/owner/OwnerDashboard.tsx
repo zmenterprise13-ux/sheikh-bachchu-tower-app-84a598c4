@@ -18,6 +18,7 @@ import { generateBillPdf } from "@/lib/billPdf";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { useAuth } from "@/context/AuthContext";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
+import { cn } from "@/lib/utils";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
