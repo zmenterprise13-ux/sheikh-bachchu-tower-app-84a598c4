@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { TKey } from "@/i18n/translations";
 import {
   LayoutDashboard,
@@ -29,10 +30,12 @@ import {
   UserCircle,
   UserSquare2,
   UserCog,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type NavItem = { to: string; key: TKey; icon: React.ElementType };
 type NavGroup = { label: TKey; items: NavItem[] };
@@ -236,6 +239,92 @@ function flattenGroups(groups: NavGroup[]): NavItem[] {
   return groups.flatMap((g) => g.items);
 }
 
+/** Hook to load the current user's display name from profiles. */
+function useAccountName() {
+  const { user, role } = useAuth();
+  const { lang } = useLang();
+  const [name, setName] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setName("");
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, display_name_bn")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const n = lang === "bn"
+        ? (data?.display_name_bn || data?.display_name)
+        : (data?.display_name || data?.display_name_bn);
+      setName(n || user.email || "");
+    })();
+    return () => { cancelled = true; };
+  }, [user, lang, role]);
+
+  return name;
+}
+
+function AccountHeader() {
+  const name = useAccountName();
+  const { role } = useAuth();
+  const { t, lang } = useLang();
+  if (!name) return null;
+  const roleText = role ? t(role as TKey) : "";
+  return (
+    <div className="px-3 py-2.5 rounded-lg bg-secondary/60 border border-border">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full gradient-primary text-primary-foreground">
+          <UserCircle className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 leading-tight">
+          <div className="text-sm font-semibold text-foreground truncate">{name}</div>
+          {roleText && (
+            <div className="text-[11px] text-muted-foreground truncate">{roleText}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
+      <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-3 pt-1 pb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-base">
+        <span>{t(group.label)}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "rotate-0" : "-rotate-90")} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-1">
+        {group.items.map(({ to, key, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                isActive
+                  ? "gradient-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )
+            }
+          >
+            <Icon className="h-4 w-4" />
+            <span>{t(key)}</span>
+          </NavLink>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
@@ -243,31 +332,10 @@ export function SideNav() {
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
-      <nav className="sticky top-20 space-y-4 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
+      <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <AccountHeader />
         {groups.map((group) => (
-          <div key={group.label} className="space-y-1">
-            <div className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-              {t(group.label)}
-            </div>
-            {group.items.map(({ to, key, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
-                    isActive
-                      ? "gradient-primary text-primary-foreground shadow-md"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  )
-                }
-              >
-                <Icon className="h-4 w-4" />
-                <span>{t(key)}</span>
-              </NavLink>
-            ))}
-          </div>
+          <NavGroupBlock key={group.label} group={group} t={t} />
         ))}
       </nav>
     </aside>
@@ -330,7 +398,7 @@ export function MobileNav() {
             <div className="p-3 space-y-4 overflow-y-auto">
               {overflowGroups.map((group) => (
                 <div key={group.label} className="space-y-2">
-                  <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  <div className="px-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {t(group.label)}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -381,32 +449,10 @@ export function MobileSideNavTrigger() {
         <SheetHeader className="px-4 pt-4 pb-2">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 space-y-4 overflow-y-auto h-[calc(100vh-4rem)]">
+        <nav className="p-3 space-y-3 overflow-y-auto h-[calc(100vh-4rem)]">
+          <AccountHeader />
           {groups.map((group) => (
-            <div key={group.label} className="space-y-1">
-              <div className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                {t(group.label)}
-              </div>
-              {group.items.map(({ to, key, icon: Icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
-                      isActive
-                        ? "gradient-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    )
-                  }
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{t(key)}</span>
-                </NavLink>
-              ))}
-            </div>
+            <NavGroupBlock key={group.label} group={group} t={t} onNavigate={() => setOpen(false)} />
           ))}
         </nav>
       </SheetContent>
