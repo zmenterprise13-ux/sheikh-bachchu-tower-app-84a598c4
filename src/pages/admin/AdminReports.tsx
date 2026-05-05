@@ -273,7 +273,7 @@ export default function AdminReports() {
     for (const f of flats) {
       map.set(f.id, { flat_id: f.id, service: 0, gas: 0, parking: 0, eid: 0, other: 0, billed: 0, paid: 0, due: 0 });
     }
-    for (const b of bills) {
+    for (const b of scopedBills) {
       const row = map.get(b.flat_id);
       if (!row) continue;
       row.service += Number(b.service_charge);
