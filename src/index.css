@@ -291,7 +291,18 @@
 
 /* ===== Compact owner finance report tokens (used both in print and during off-screen measurement) ===== */
 @media print {
-  .print-fit-one-page { font-size: 9pt !important; line-height: 1.2 !important; }
+  .print-fit-one-page { font-size: 9.5pt !important; line-height: 1.2 !important; }
+  /* Header title — bigger, bold, blue (forced print color) */
+  .report-header-title,
+  #owner-finance-print-inner .report-header-title {
+    color: #1d4ed8 !important;
+    -webkit-text-fill-color: #1d4ed8 !important;
+    font-weight: 800 !important;
+    font-size: 18pt !important;
+    letter-spacing: 0.2pt;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
 
 /* The shared compact look — applied when printing OR when body.print-measuring is set */
