@@ -478,8 +478,8 @@ export default function AdminDues() {
                 <div key={b.id} className="grid grid-cols-2 md:grid-cols-12 gap-3 px-5 py-3 items-start hover:bg-secondary/40 transition-base">
                   <div className="md:col-span-1 font-bold text-primary">{flat.flat_no}</div>
                   <div className="md:col-span-3 min-w-0">
-                    <div className="font-medium text-foreground truncate flex items-center gap-2">
-                      <span className="truncate">{residentName(flat, lang) || "—"}</span>
+                    <div className="font-semibold text-foreground flex flex-wrap items-center gap-x-2 gap-y-1 break-words">
+                      <span className="break-words md:truncate">{residentName(flat, lang) || "—"}</span>
                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${(flat.occupant_type ?? "").toLowerCase() === "tenant" ? "bg-accent/15 text-accent" : "bg-success/15 text-success"}`}>
                         {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
                       </span>
