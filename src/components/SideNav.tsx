@@ -55,6 +55,7 @@ const adminNav: { to: string; key: TKey; icon: React.ElementType }[] = [
   { to: "/admin/committee", key: "committee" as TKey, icon: Users },
   { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
   { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
+  { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
   { to: "/admin/settings", key: "settings", icon: SettingsIcon },
   { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
   { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
