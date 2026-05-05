@@ -157,6 +157,10 @@ export default function AdminUserManagement() {
     if (!s) return "—";
     try { return new Date(s).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-GB"); } catch { return s; }
   };
+  const fmtDateTime = (s: string | null) => {
+    if (!s) return lang === "bn" ? "কখনো না" : "Never";
+    try { return new Date(s).toLocaleString(lang === "bn" ? "bn-BD" : "en-GB"); } catch { return s; }
+  };
 
   return (
     <AppShell>
