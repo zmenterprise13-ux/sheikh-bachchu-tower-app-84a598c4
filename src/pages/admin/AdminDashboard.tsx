@@ -43,6 +43,9 @@ type Flat = {
   flat_no: string;
   owner_name: string | null;
   owner_name_bn: string | null;
+  occupant_type: string | null;
+  occupant_name: string | null;
+  occupant_name_bn: string | null;
 };
 
 type Bill = {
