@@ -107,6 +107,34 @@ export default function AdminFlats() {
     await load();
   };
 
+  const [tenantBusyId, setTenantBusyId] = useState<string | null>(null);
+  const createTenantLogin = async (f: any) => {
+    const phone = (f.occupant_phone ?? "").trim();
+    if (!/^\d{11}$/.test(phone)) {
+      toast.error(lang === "bn" ? "ভাড়াটিয়ার ১১ সংখ্যার মোবাইল নম্বর দরকার" : "Tenant needs an 11-digit mobile number");
+      return;
+    }
+    if (!signupEnabled) {
+      toast.error(lang === "bn" ? "সাইন আপ বন্ধ আছে" : "Sign up is disabled");
+      return;
+    }
+    setTenantBusyId(f.id);
+    const { data, error } = await supabase.functions.invoke("tenant-create-account", {
+      body: { phone, flat_id: f.id },
+    });
+    setTenantBusyId(null);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error ?? error?.message ?? "Failed");
+      return;
+    }
+    toast.success(
+      lang === "bn"
+        ? `ভাড়াটিয়া লগইন তৈরি (পাসওয়ার্ড: 12345678)`
+        : `Tenant login created (password: 12345678)`,
+    );
+    await load();
+  };
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
