@@ -100,6 +100,7 @@ export default function AdminDues() {
   const [bulkPayDate, setBulkPayDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [bulkPayScope, setBulkPayScope] = useState<"all" | "filtered">("filtered");
   const [bulkPaySaving, setBulkPaySaving] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = async (targetMonth: string) => {
     setLoading(true);
