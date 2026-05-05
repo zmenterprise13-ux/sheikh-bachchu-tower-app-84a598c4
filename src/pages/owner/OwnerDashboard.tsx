@@ -378,9 +378,14 @@ export default function OwnerDashboard() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+          <div key={flat.id} className="rounded-2xl bg-card border border-border p-6 shadow-soft animate-fade-in">
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <h2 className="font-semibold text-foreground">{t("dues")} — {month}</h2>
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                {t("dues")} — {month}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {flat.flat_no}
+                </span>
+              </h2>
               <div className="flex items-center gap-2">
                 {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
                 {currentBill && (
