@@ -487,6 +487,53 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
+        {/* Recent bills history for the selected flat */}
+        <div key={`recent-${flat.id}`} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden animate-fade-in">
+          <div className="flex items-center justify-between p-5 border-b border-border flex-wrap gap-2">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-primary" />
+              {lang === "bn" ? "সাম্প্রতিক বিল" : "Recent Bills"}
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {flat.flat_no}
+              </span>
+            </h2>
+            <Link to="/owner/bills">
+              <Button variant="ghost" size="sm">{t("viewAll")}</Button>
+            </Link>
+          </div>
+          {recentLoading ? (
+            <div className="p-5 space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+          ) : recentBills.length === 0 ? (
+            <div className="p-6 text-sm text-center text-muted-foreground">{t("noData")}</div>
+          ) : (
+            <div className="divide-y divide-border">
+              {recentBills.map((b) => {
+                const bDue = Math.max(0, Number(b.total) - Number(b.paid_amount));
+                return (
+                  <div key={b.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors">
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm text-foreground">{b.month}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {lang === "bn" ? "মোট" : "Total"}: {formatMoney(Number(b.total), lang)} · {lang === "bn" ? "পরিশোধিত" : "Paid"}: {formatMoney(Number(b.paid_amount), lang)}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {bDue > 0 ? (
+                        <div className="text-sm font-bold text-destructive">{formatMoney(bDue, lang)}</div>
+                      ) : (
+                        <div className="text-xs font-semibold text-success flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         <MonthlyFinanceSummary month={month} variant="owner" />
       </div>
     </AppShell>
