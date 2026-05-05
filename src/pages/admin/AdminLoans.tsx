@@ -53,6 +53,8 @@ type Repayment = {
   amount: number;
   paid_date: string;
   note: string | null;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 type Loan = {
@@ -66,6 +68,8 @@ type Loan = {
   note: string | null;
   status: string;
   created_at: string;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 export default function AdminLoans() {
