@@ -47,6 +47,8 @@ type Flat = {
   occupant_name: string | null;
   occupant_name_bn: string | null;
   occupant_phone: string | null;
+  owner_photo_url: string | null;
+  occupant_photo_url: string | null;
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
