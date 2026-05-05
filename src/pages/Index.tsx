@@ -20,7 +20,7 @@ export default function Index() {
       const dest = role === "admin" ? "/admin"
         : role === "manager" ? "/manager"
         : role === "accountant" ? "/accountant"
-        : "/owner";
+        : "/owner"; // owner & tenant share dashboard
       navigate(dest, { replace: true });
     }
   }, [user, role, loading, navigate]);
