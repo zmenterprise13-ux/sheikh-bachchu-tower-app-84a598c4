@@ -61,7 +61,7 @@ export default function OwnerFinanceReport() {
           </div>
         </div>
 
-        <div className="print-area">
+        <div className="print-area print-fit-one-page" id="owner-finance-print">
           <div className="hidden print:block text-center mb-4 pb-3 border-b-2 border-black">
             <h1 className="text-xl font-bold text-black">
               {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
