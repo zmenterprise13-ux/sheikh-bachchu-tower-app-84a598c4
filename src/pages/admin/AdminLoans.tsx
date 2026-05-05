@@ -515,9 +515,36 @@ export default function AdminLoans() {
                           <ul className="divide-y divide-border">
                             {loanRepays.map((r) => (
                               <li key={r.id} className="p-2.5 flex items-center justify-between gap-2 text-xs">
-                                <div className="flex items-center gap-2 min-w-0">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <ArrowDownCircle className="h-3.5 w-3.5 text-success shrink-0" />
-                                  <span className="font-medium">{r.paid_date}</span>
+                                  {editingDate?.kind === "repay" && editingDate.id === r.id ? (
+                                    <>
+                                      <Input
+                                        type="date"
+                                        value={dateDraft}
+                                        onChange={(e) => setDateDraft(e.target.value)}
+                                        className="h-7 w-36 text-xs"
+                                      />
+                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-success" onClick={saveEditDate}>
+                                        <Check className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditDate}>
+                                        <X className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="font-medium">{r.paid_date}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditDate("repay", r.id, r.paid_date)}
+                                        className="text-primary hover:opacity-70"
+                                        title={lang === "bn" ? "তারিখ পরিবর্তন" : "Edit date"}
+                                      >
+                                        <Pencil className="h-3 w-3" />
+                                      </button>
+                                    </>
+                                  )}
                                   {r.note && <span className="text-muted-foreground italic truncate">· {r.note}</span>}
                                 </div>
                                 <div className="flex items-center gap-2">
