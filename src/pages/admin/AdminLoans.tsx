@@ -153,17 +153,19 @@ export default function AdminLoans() {
   // Per-loan repaid totals
   const repaidByLoan = useMemo(() => {
     const map = new Map<string, number>();
-    repayments.forEach((r) => {
+    repayments.filter(r => (r.approval_status ?? "approved") === "approved").forEach((r) => {
       map.set(r.loan_id, (map.get(r.loan_id) ?? 0) + Number(r.amount || 0));
     });
     return map;
   }, [repayments]);
 
   const totals = useMemo(() => {
-    const principal = loans.reduce((s, l) => s + Number(l.principal || 0), 0);
-    const repaid = repayments.reduce((s, r) => s + Number(r.amount || 0), 0);
+    const approvedLoans = loans.filter(l => (l.approval_status ?? "approved") === "approved");
+    const approvedRepays = repayments.filter(r => (r.approval_status ?? "approved") === "approved");
+    const principal = approvedLoans.reduce((s, l) => s + Number(l.principal || 0), 0);
+    const repaid = approvedRepays.reduce((s, r) => s + Number(r.amount || 0), 0);
     const outstanding = principal - repaid;
-    const activeCount = loans.filter((l) => l.status === "active").length;
+    const activeCount = approvedLoans.filter((l) => l.status === "active").length;
     return { principal, repaid, outstanding, activeCount };
   }, [loans, repayments]);
 
