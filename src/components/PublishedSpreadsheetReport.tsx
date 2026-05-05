@@ -109,8 +109,10 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   flatBuckets.forEach((r) => {
     incomeRows.push({
       label: `${formatMoney(r.amount, lang)} × ${formatNumber(r.count, lang)}`,
-      amount: r.amount * r.count,
+      amount: NaN,
       sub: true,
+      breakdown: true,
+      detail: String(r.amount * r.count),
     });
   });
   if (Number(snap.loan_taken) > 0) {
@@ -137,7 +139,8 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
         label: `${formatMoney(Number(r.rate), lang)} × ${formatNumber(Number(r.count), lang)}`,
         amount: NaN,
         sub: true,
-        muted: true,
+        breakdown: true,
+        detail: String(Number(r.rate) * Number(r.count)),
       });
     });
   });
