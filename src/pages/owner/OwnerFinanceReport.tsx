@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileBarChart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileBarChart, Printer } from "lucide-react";
 import { MonthlyFinanceSummary } from "@/components/MonthlyFinanceSummary";
 import { PublishedDetailedReport } from "@/components/PublishedDetailedReport";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
@@ -24,10 +25,12 @@ export default function OwnerFinanceReport() {
     window.localStorage.setItem(STORAGE_KEY, month);
   }, [month]);
 
+  const handlePrint = () => window.print();
+
   return (
     <AppShell>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
               <FileBarChart className="h-6 w-6 text-primary" />
@@ -39,28 +42,36 @@ export default function OwnerFinanceReport() {
                 : "Published monthly income and expense summary."}
             </p>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">
-              {lang === "bn" ? "মাস" : "Month"}
-            </Label>
-            <Input
-              type="month"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              className="w-44"
-            />
+          <div className="flex items-end gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">
+                {lang === "bn" ? "মাস" : "Month"}
+              </Label>
+              <Input
+                type="month"
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+                className="w-44"
+              />
+            </div>
+            <Button onClick={handlePrint} variant="outline" size="sm" className="gap-1.5">
+              <Printer className="h-4 w-4" />
+              {lang === "bn" ? "প্রিন্ট / পিডিএফ" : "Print / PDF"}
+            </Button>
           </div>
         </div>
 
-        {style === "detailed" ? (
-          <PublishedDetailedReport month={month} />
-        ) : (
-          <MonthlyFinanceSummary
-            month={month}
-            variant="owner"
-            title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
-          />
-        )}
+        <div className="print-area">
+          {style === "detailed" ? (
+            <PublishedDetailedReport month={month} />
+          ) : (
+            <MonthlyFinanceSummary
+              month={month}
+              variant="owner"
+              title={lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary"}
+            />
+          )}
+        </div>
       </div>
     </AppShell>
   );
