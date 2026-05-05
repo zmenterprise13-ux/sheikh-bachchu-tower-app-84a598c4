@@ -513,7 +513,9 @@ export function MobileNav() {
                     {t(group.label)}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {group.items.map(({ to, key, icon: Icon }) => (
+                    {group.items.map(({ to, key, icon: Icon }) => {
+                      const badge = badges[key as string] ?? 0;
+                      return (
                       <NavLink
                         key={to}
                         to={to}
@@ -521,17 +523,23 @@ export function MobileNav() {
                         onClick={() => setMoreOpen(false)}
                         className={({ isActive }) =>
                           cn(
-                            "flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
+                            "relative flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium transition-base",
                             isActive
                               ? "gradient-primary text-primary-foreground border-transparent shadow-md"
                               : "text-foreground hover:bg-secondary"
                           )
                         }
                       >
+                        {badge > 0 && (
+                          <span className="absolute top-1.5 right-1.5 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold animate-pulse">
+                            {badge}
+                          </span>
+                        )}
                         <Icon className="h-5 w-5" />
                         <span className="text-center leading-tight">{t(key)}</span>
                       </NavLink>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
