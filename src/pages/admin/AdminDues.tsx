@@ -90,7 +90,7 @@ export default function AdminDues() {
     const [billsRes, flatsRes] = await Promise.all([
       supabase
         .from("bills")
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .eq("month", targetMonth),
       supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, phone"),
     ]);
@@ -222,7 +222,7 @@ export default function AdminDues() {
         .from("bills")
         .update(patch)
         .eq("id", b.id)
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .single();
       if (error || !data) { failed++; continue; }
       updated.push(data as Bill);
@@ -267,7 +267,7 @@ export default function AdminDues() {
         .from("bills")
         .update({ status: "paid", paid_amount: total, paid_at: bulkPayDate })
         .eq("id", b.id)
-        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+        .select(BILL_SELECT)
         .single();
       if (error || !data) { failed++; continue; }
       updated.push(data as Bill);
@@ -828,7 +828,7 @@ function BillEditDialog({
         other_due_date: otherDueDate,
       })
       .eq("id", form.id)
-      .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, arrears, other_note, other_due_date, total, paid_amount, status")
+      .select(BILL_SELECT)
       .single();
     setSaving(false);
     if (error) { toast.error(error.message); return; }
