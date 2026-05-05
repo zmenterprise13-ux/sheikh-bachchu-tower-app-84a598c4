@@ -92,6 +92,7 @@ export default function AdminDues() {
   const [payAmount, setPayAmount] = useState<string>("");
   const [paySaving, setPaySaving] = useState(false);
   const [month, setMonth] = useState<string>(currentMonth());
+  const [latestBillMonth, setLatestBillMonth] = useState<string>(currentMonth());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkType, setBulkType] = useState<"service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge" | "arrears">("eid_bonus");
   const [bulkAmount, setBulkAmount] = useState<string>("");
@@ -123,7 +124,22 @@ export default function AdminDues() {
 
   useEffect(() => { load(month); }, [month]);
 
-  const isCurrent = month === currentMonth();
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("bills")
+        .select("month")
+        .order("month", { ascending: false })
+        .limit(1);
+      const latest = data?.[0]?.month;
+      if (latest) {
+        setLatestBillMonth(latest);
+        setMonth(latest);
+      }
+    })();
+  }, []);
+
+  const isCurrent = month === latestBillMonth;
 
   const visible = bills.filter((b) => {
     const flat = flats.find((f) => f.id === b.flat_id);
@@ -374,7 +390,7 @@ export default function AdminDues() {
             <Input
               type="month"
               value={month}
-              max={currentMonth()}
+              max={latestBillMonth}
               onChange={(e) => e.target.value && setMonth(e.target.value)}
               className="h-8 w-[150px] border-0 shadow-none focus-visible:ring-0 px-2"
             />
@@ -393,7 +409,7 @@ export default function AdminDues() {
                 size="sm"
                 variant="ghost"
                 className="h-8 px-2 text-xs"
-                onClick={() => setMonth(currentMonth())}
+                onClick={() => setMonth(latestBillMonth)}
               >
                 {lang === "bn" ? "এ মাস" : "This month"}
               </Button>
