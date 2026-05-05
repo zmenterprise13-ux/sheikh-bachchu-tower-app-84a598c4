@@ -164,9 +164,11 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const expenseRows: Row[] = [];
   (snap.by_category ?? []).forEach((r) => {
     const cd = expenseCats.find((c) => c.name === r.category);
-    const label = lang === "bn"
+    const baseLabel = lang === "bn"
       ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category)
       : (cd?.name || (t(r.category as TKey) as string) || r.category);
+    const descs = expenseDescByCat[r.category] || [];
+    const label = descs.length > 0 ? `${baseLabel} : ${descs.join(", ")}` : baseLabel;
     expenseRows.push({ label, amount: Number(r.amount) });
   });
   if (Number(snap.loan_repaid) > 0) {
