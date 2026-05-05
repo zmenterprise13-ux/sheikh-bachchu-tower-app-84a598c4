@@ -185,7 +185,10 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
         {r.label}
       </td>
-      <td className={`${cellCls} ${numCls} text-[10.5px] text-foreground/40 italic font-normal`}>
+      <td
+        className={`${cellCls} ${numCls} text-[10.5px] text-foreground/40 italic font-normal max-w-0 truncate whitespace-nowrap overflow-hidden`}
+        title={r.breakdown && r.detail ? formatMoney(Number(r.detail), lang) : undefined}
+      >
         {r.breakdown && r.detail ? formatMoney(Number(r.detail), lang) : ""}
       </td>
       <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
