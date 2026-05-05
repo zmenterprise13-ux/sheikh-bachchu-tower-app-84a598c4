@@ -63,8 +63,7 @@ export function NoticeTicker() {
       .from("notices")
       .select("id, title, title_bn, body, body_bn, important, date")
       .order("important", { ascending: false })
-      .order("date", { ascending: false })
-      .limit(15);
+      .order("date", { ascending: false });
     const next = (data ?? []) as Notice[];
     setItems(next);
     announceNewNotices(next);
