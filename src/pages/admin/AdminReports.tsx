@@ -408,9 +408,14 @@ export default function AdminReports() {
           <div className="flex items-baseline justify-between gap-4">
             <div>
               <div className="text-base font-bold">
-                {lang === "bn" ? "শেখ বাচ্চু টাওয়ার" : "Sheikh Bachchu Tower"}
+                {lang === "bn" ? "শেখ বাচ্চু টাওয়ার সোসাইটি" : "Sheikh Bachchu Tower Society"}
               </div>
-              <div className="text-xs">
+              <div className="text-[10px] leading-tight">
+                {lang === "bn"
+                  ? "১৪/২, শেখ বাচ্চু টাওয়ার, মোক্তারবাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।"
+                  : "14/2, Sheikh Bachchu Tower, Moktarbari Road, Auchpara, Tongi, Gazipur."}
+              </div>
+              <div className="text-xs mt-0.5">
                 {t("monthlyReport")} — {rangeLabel}
               </div>
             </div>
