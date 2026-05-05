@@ -264,11 +264,25 @@ export function PublishedDetailedReport({ month }: { month: string }) {
               });
             })()}
             {Number(snap.loan_repaid) > 0 && (
-              <div className="pt-2 border-t border-dashed border-border">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{lang === "bn" ? "লোন পরিশোধ (ক্যাশ আউট)" : "Loan Repaid (Cash Out)"}</span>
-                  <span className="font-semibold text-foreground">{formatMoney(Number(snap.loan_repaid), lang)}</span>
+              <div className="pt-2 border-t border-dashed border-border space-y-1.5">
+                <div className="text-xs font-semibold text-muted-foreground">
+                  {lang === "bn" ? "লোন ফেরত" : "Loan Repaid"}
                 </div>
+                {(snap.loan_repaid_by_lender ?? []).length > 0 ? (
+                  (snap.loan_repaid_by_lender ?? []).map((r, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm pl-2">
+                      <span className="text-muted-foreground">
+                        ↳ {lang === "bn" ? (r.lender_bn || r.lender) : r.lender}
+                      </span>
+                      <span className="font-semibold text-foreground">{formatMoney(Number(r.amount), lang)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-between text-sm pl-2">
+                    <span className="text-muted-foreground">↳ {lang === "bn" ? "ক্যাশ আউট" : "Cash Out"}</span>
+                    <span className="font-semibold text-foreground">{formatMoney(Number(snap.loan_repaid), lang)}</span>
+                  </div>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
