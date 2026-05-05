@@ -293,7 +293,7 @@ export default function AdminReports() {
         owner: lang === "bn" ? (f.owner_name_bn || f.owner_name || "") : (f.owner_name || f.owner_name_bn || ""),
       };
     }).filter((r) => r.billed > 0 || r.paid > 0);
-  }, [flats, bills, lang]);
+  }, [flats, scopedBills, lang, flatFilter]);
 
   const totalDue = perFlat.reduce((s, r) => s + r.due, 0);
 
