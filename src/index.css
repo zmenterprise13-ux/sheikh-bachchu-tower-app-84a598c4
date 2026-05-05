@@ -276,10 +276,10 @@
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
   }
-  .print-fit-one-page,
-  .print-fit-one-page * {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+  #owner-finance-print-inner,
+  #owner-finance-print-inner > * {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 }
 
@@ -287,10 +287,6 @@
 @media print {
   .print-fit-one-page { font-size: 9pt !important; line-height: 1.2 !important; }
 }
-.print-fit-one-page.__compact,
-@media print { .print-fit-one-page {
-  /* applied via duplicated rules below */
-} }
 
 /* The shared compact look — applied when printing OR when body.print-measuring is set */
 @media print {
