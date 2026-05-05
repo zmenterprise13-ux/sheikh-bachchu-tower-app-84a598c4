@@ -38,16 +38,34 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
+  const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data }, catRes] = await Promise.all([
+      const start = `${month}-01`;
+      const [y, m] = month.split("-").map(Number);
+      const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+      const [{ data }, catRes, repayRes] = await Promise.all([
         supabase.rpc("monthly_finance_summary", { _month: month }),
         supabase.from("expense_categories").select("name, name_bn"),
+        supabase
+          .from("loan_repayments")
+          .select("amount, loans!inner(lender_name, lender_name_bn)")
+          .gte("paid_date", start)
+          .lt("paid_date", nextMonth),
       ]);
       setSnap((data as Snapshot | null) ?? null);
       setExpenseCats((catRes.data ?? []) as any);
+      const agg = new Map<string, { lender: string; lender_bn: string | null; amount: number }>();
+      for (const r of (repayRes.data ?? []) as any[]) {
+        const key = (r.loans?.lender_name || "") + "|" + (r.loans?.lender_name_bn || "");
+        const prev = agg.get(key);
+        const amt = Number(r.amount) || 0;
+        if (prev) prev.amount += amt;
+        else agg.set(key, { lender: r.loans?.lender_name || "", lender_bn: r.loans?.lender_name_bn || null, amount: amt });
+      }
+      setLiveRepayLenders(Array.from(agg.values()).filter(x => x.amount > 0));
       setLoading(false);
     })();
   }, [month]);
