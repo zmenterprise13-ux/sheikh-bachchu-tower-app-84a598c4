@@ -87,7 +87,7 @@ export default function OtherIncomeSection() {
     setLoading(true);
     const { data, error } = await supabase
       .from("other_incomes")
-      .select("id, date, category, amount, source_name, description, reference")
+      .select("id, date, category, amount, source_name, description, reference, approval_status, reject_reason")
       .order("date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data ?? []) as Income[]);
