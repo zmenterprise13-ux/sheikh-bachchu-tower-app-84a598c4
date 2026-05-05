@@ -32,6 +32,8 @@ type Expense = {
   category: string;
   description: string;
   amount: number;
+  approval_status?: string | null;
+  reject_reason?: string | null;
 };
 
 export default function AdminExpenses() {
