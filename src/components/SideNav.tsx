@@ -119,7 +119,7 @@ function navFor(role: string | null) {
 export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
-  const items = role === "admin" ? adminNav : ownerNav;
+  const items = navFor(role);
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
@@ -151,10 +151,12 @@ export function MobileNav() {
   const { t } = useLang();
   const { role } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
-  const all = role === "admin" ? adminNav : ownerNav;
+  const all = navFor(role);
   // Mobile bottom-nav: show the 4 most-used pages; rest go under "More"
-  const primaryKeys: TKey[] = role === "admin"
-    ? ["dashboard", "dues", "ledger", "expenses"]
+  const primaryKeys: TKey[] =
+    role === "admin" ? ["dashboard", "dues", "ledger", "expenses"]
+    : role === "manager" ? ["dashboard", "flats", "dues", "notices"]
+    : role === "accountant" ? ["dashboard", "paymentRequests" as TKey, "dues", "ownerReceipts" as TKey]
     : ["dashboard", "myDues", "myPayments", "myLedger"];
   const primary = primaryKeys
     .map((k) => all.find((i) => i.key === k))
@@ -228,7 +230,7 @@ export function MobileSideNavTrigger() {
   const { t } = useLang();
   const { role } = useAuth();
   const [open, setOpen] = useState(false);
-  const items = role === "admin" ? adminNav : ownerNav;
+  const items = navFor(role);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
