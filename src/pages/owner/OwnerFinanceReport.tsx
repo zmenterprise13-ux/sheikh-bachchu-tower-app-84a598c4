@@ -112,7 +112,7 @@ export default function OwnerFinanceReport() {
             </p>
           </div>
           {style === "detailed" ? (
-            <PublishedDetailedReport month={month} />
+            <PublishedSpreadsheetReport month={month} />
           ) : (
             <MonthlyFinanceSummary
               month={month}
