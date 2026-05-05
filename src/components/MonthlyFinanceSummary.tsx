@@ -75,7 +75,7 @@ export function MonthlyFinanceSummary({ month, variant = "owner", title }: Props
 
   const totalIncome = collected + otherIncome;
   const net = totalIncome - expense;
-  const netCash = net + loanTaken - loanRepaid;
+  const netCash = openingCash + net + loanTaken - loanRepaid;
   const heading = title ?? (lang === "bn" ? "আয়-ব্যয়ের হিসাব" : "Income & Expense Summary");
   const reportLink = variant === "admin" ? "/admin/reports" : "/owner/reports";
   const isAdmin = variant === "admin";
