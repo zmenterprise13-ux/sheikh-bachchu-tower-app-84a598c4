@@ -263,6 +263,24 @@ export default function AdminFlats() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      {f.occupant_type === "tenant" &&
+                        !f.tenant_user_id &&
+                        /^\d{11}$/.test((f.occupant_phone ?? "").trim()) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => createTenantLogin(f)}
+                            disabled={tenantBusyId === f.id}
+                            className="h-8 w-8 text-warning"
+                            title={lang === "bn" ? "ভাড়াটিয়া লগইন তৈরি" : "Create tenant login"}
+                          >
+                            {tenantBusyId === f.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <KeyRound className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        )}
                       <Button
                         size="icon"
                         variant="ghost"
