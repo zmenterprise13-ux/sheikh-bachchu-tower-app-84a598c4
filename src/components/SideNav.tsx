@@ -384,7 +384,7 @@ function NavGroupBlock({ group, t, onNavigate }: { group: NavGroup; t: (k: TKey)
   const [open, setOpen] = useState(true);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
-      <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-3 pt-1 pb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-base">
+      <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-3 pt-1 pb-1 text-sm font-bold tracking-wide text-foreground hover:text-primary transition-base">
         <span>{t(group.label)}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "rotate-0" : "-rotate-90")} />
       </CollapsibleTrigger>
