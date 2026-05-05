@@ -173,7 +173,7 @@ function NavItem({
       onClick={onClick}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-base",
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
           isActive
             ? "gradient-primary text-primary-foreground shadow-md"
             : "text-muted-foreground hover:bg-secondary hover:text-foreground"
