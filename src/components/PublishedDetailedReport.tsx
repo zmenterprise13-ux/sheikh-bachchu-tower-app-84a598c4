@@ -275,6 +275,39 @@ export function PublishedDetailedReport({ month }: { month: string }) {
           </div>
         </div>
       </div>
+
+      {/* Net Balance summary */}
+      {(() => {
+        const net = opening + totalCollection - totalExpense;
+        return (
+          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
+            <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <FileBarChart className="h-4 w-4 text-primary" />
+              {lang === "bn" ? "নিট ব্যালেন্স" : "Net Balance"}
+            </h2>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash"}</span>
+                <span className="tabular-nums font-semibold">{formatMoney(opening, lang)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{lang === "bn" ? "+ সর্বমোট কালেকশন" : "+ Total Collection"}</span>
+                <span className="tabular-nums font-semibold text-success">{formatMoney(totalCollection, lang)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{lang === "bn" ? "− সর্বমোট ব্যয়" : "− Total Expense"}</span>
+                <span className="tabular-nums font-semibold text-warning">{formatMoney(totalExpense, lang)}</span>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/20">
+                <span className="font-bold">{lang === "bn" ? "নিট ব্যালেন্স" : "Net Balance"}</span>
+                <span className={`font-bold text-lg tabular-nums ${net < 0 ? "text-destructive" : "text-success"}`}>
+                  {formatMoney(net, lang)}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
