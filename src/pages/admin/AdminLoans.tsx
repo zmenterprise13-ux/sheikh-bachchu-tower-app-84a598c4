@@ -558,10 +558,13 @@ export default function AdminLoans() {
                                   {r.note && <span className="text-muted-foreground italic truncate">· {r.note}</span>}
                                 </div>
                                 <div className="flex items-center gap-2">
+                                  <ApprovalBadge table="loan_repayments" id={r.id} status={r.approval_status} rejectReason={r.reject_reason} onChanged={load} />
                                   <span className="font-bold text-success">{formatMoney(r.amount, lang)}</span>
-                                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeRepayment(r.id)}>
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                  {role !== "accountant" && (
+                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeRepayment(r.id)}>
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  )}
                                 </div>
                               </li>
                             ))}
