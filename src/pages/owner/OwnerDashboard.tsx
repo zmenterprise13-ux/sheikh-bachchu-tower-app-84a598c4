@@ -269,7 +269,7 @@ export default function OwnerDashboard() {
             value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
             hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"} · ${formatNumber(payPct, lang)}% paid` : t("month")}
             icon={Receipt}
-            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "warning" : "success"}
+            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "destructive" : "success"}
           />
           <StatCard label={t("serviceCharge")} value={formatMoney(Number(flat.service_charge), lang)} icon={Home} />
           <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
