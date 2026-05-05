@@ -129,7 +129,7 @@ export default function AdminDashboard() {
     setPrevMonth(prevTarget);
 
     const [flatsRes, billsRes, prevBillsRes, noticesRes] = await Promise.all([
-      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn"),
+      supabase.from("flats").select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn"),
       supabase
         .from("bills")
         .select("id, flat_id, month, service_charge, gas_bill, parking, total, paid_amount, status, generation_status")
