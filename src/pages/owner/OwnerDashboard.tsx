@@ -286,7 +286,10 @@ export default function OwnerDashboard() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {flats.map((f) => {
                 const b = allBills[f.id];
-                const fDue = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                const fTotal = b ? Number(b.total) : 0;
+                const fPaid = b ? Number(b.paid_amount) : 0;
+                const fDue = Math.max(0, fTotal - fPaid);
+                const fPct = fTotal > 0 ? Math.min(100, Math.round((fPaid / fTotal) * 100)) : 0;
                 const isActive = f.id === flat.id;
                 const hasBill = !!b;
                 return (
@@ -294,22 +297,25 @@ export default function OwnerDashboard() {
                     key={f.id}
                     type="button"
                     onClick={() => setSelectedFlatId(f.id)}
-                    className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
+                    className={`group relative overflow-hidden text-left rounded-xl border p-4 transition-all duration-300 hover:shadow-elegant hover:-translate-y-0.5 ${
                       isActive
                         ? "border-primary bg-primary/5 ring-2 ring-primary/30"
                         : "border-border bg-background hover:border-primary/40"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    {isActive && (
+                      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+                    )}
+                    <div className="relative flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center text-xs font-bold transition-transform duration-300 group-hover:scale-110">
                           {f.flat_no}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)}
                         </div>
                       </div>
-                      {isActive && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                      {isActive && <CheckCircle2 className="h-4 w-4 text-primary animate-in zoom-in" />}
                     </div>
                     <div className="text-xs text-muted-foreground mb-1">
                       {lang === "bn" ? "এ মাসের বকেয়া" : "This month due"}
@@ -324,6 +330,22 @@ export default function OwnerDashboard() {
                       <div className="text-sm font-semibold text-success flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                      </div>
+                    )}
+                    {hasBill && (
+                      <div className="mt-3">
+                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ease-out ${
+                              fPct >= 100 ? "bg-success" : fPct > 0 ? "bg-primary" : "bg-destructive"
+                            }`}
+                            style={{ width: `${Math.max(4, fPct)}%` }}
+                          />
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-1 flex justify-between">
+                          <span>{formatMoney(fPaid, lang)} / {formatMoney(fTotal, lang)}</span>
+                          <span className="font-semibold">{formatNumber(fPct, lang)}%</span>
+                        </div>
                       </div>
                     )}
                   </button>
