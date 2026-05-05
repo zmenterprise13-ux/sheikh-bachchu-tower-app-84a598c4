@@ -48,7 +48,6 @@ type Notice = {
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
-const SELECTED_FLAT_KEY = "owner_dashboard_flat_id";
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
@@ -64,10 +63,7 @@ export default function OwnerDashboard() {
         if (data) setProfileName({ en: data.display_name, bn: data.display_name_bn, avatar: (data as any).avatar_url });
       });
   }, [user]);
-  const [selectedFlatId, setSelectedFlatId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return window.localStorage.getItem(SELECTED_FLAT_KEY);
-  });
+  const { selectedFlatId, setSelectedFlatId } = useSelectedFlatId();
   const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,9 +74,10 @@ export default function OwnerDashboard() {
     return found ?? flats[0];
   }, [flats, selectedFlatId]);
 
+  // Persist the resolved flat id (covers fallback case where stored id is missing)
   useEffect(() => {
-    if (flat) window.localStorage.setItem(SELECTED_FLAT_KEY, flat.id);
-  }, [flat]);
+    if (flat && flat.id !== selectedFlatId) setSelectedFlatId(flat.id);
+  }, [flat, selectedFlatId, setSelectedFlatId]);
 
   useEffect(() => {
     if (flats.length === 0) {
