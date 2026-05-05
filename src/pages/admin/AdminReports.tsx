@@ -211,6 +211,11 @@ export default function AdminReports() {
 
   const months = useMemo(() => validRange ? enumerateMonths(from, to) : [], [from, to, validRange]);
 
+  const scopedBills = useMemo(
+    () => flatFilter === "all" ? bills : bills.filter((b) => b.flat_id === flatFilter),
+    [bills, flatFilter]
+  );
+
   // Per-month aggregation
   const perMonth = useMemo(() => {
     return months.map((m) => {
