@@ -271,6 +271,11 @@
     transform-origin: top left;
     width: 740px;
   }
+  /* Force two-column income/expense layout regardless of viewport width */
+  #owner-finance-print-inner .grid.lg\:grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
   .print-fit-one-page,
   .print-fit-one-page * {
     page-break-inside: avoid !important;
@@ -333,6 +338,10 @@ body.print-measuring #owner-finance-print-inner {
   font-size: 9pt !important;
   line-height: 1.2 !important;
   width: 740px !important;
+}
+body.print-measuring #owner-finance-print-inner .grid.lg\:grid-cols-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
 }
 body.print-measuring .print-fit-one-page h1 { font-size: 13pt !important; }
 body.print-measuring .print-fit-one-page h2 { font-size: 11pt !important; }
