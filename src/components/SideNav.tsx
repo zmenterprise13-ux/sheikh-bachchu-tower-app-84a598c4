@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
+import { usePendingPaymentRequests } from "@/hooks/usePendingPaymentRequests";
 
 type NavItem = { to: string; key: TKey; icon: React.ElementType };
 type NavGroup = { label: TKey; items: NavItem[] };
