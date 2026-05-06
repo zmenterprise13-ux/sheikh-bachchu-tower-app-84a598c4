@@ -169,7 +169,14 @@ export default function OwnerDashboard() {
   const currentPayPct = currentBillTotal > 0 ? Math.min(100, Math.round((currentBillPaid / currentBillTotal) * 100)) : 0;
 
   const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
-  const scopeFlats = isTenant ? [flat] : flats;
+  // Split flats: where the user resides vs flats they own but rented out to others
+  const ownResidenceFlats = flats.filter(f => {
+    if (user && f.tenant_user_id === user.id) return true; // tenant of this flat
+    if (user && f.owner_user_id === user.id && (!f.tenant_user_id || f.tenant_user_id === user.id)) return true;
+    return false;
+  });
+  const rentedOutFlats = flats.filter(f => user && f.owner_user_id === user.id && f.tenant_user_id && f.tenant_user_id !== user.id);
+  const scopeFlats = ownResidenceFlats.length > 0 ? ownResidenceFlats : [flat];
   const totalDueScoped = scopeFlats.reduce((sum, f) => {
     const b = allBills[f.id];
     if (!b) return sum;
@@ -186,6 +193,11 @@ export default function OwnerDashboard() {
   const scopedPct = totalBilledScoped > 0 ? Math.min(100, Math.round((totalPaidScoped / totalBilledScoped) * 100)) : 0;
   const isPaid = totalDueScoped <= 0 && totalBilledScoped > 0;
   const showFlatSwitcher = scopeFlats.length > 1;
+  const totalRentedDue = rentedOutFlats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    if (!b) return sum;
+    return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+  }, 0);
 
   // Item-wise breakdown across scoped flats (current month)
   const billItems = (() => {
