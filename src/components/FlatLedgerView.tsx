@@ -51,9 +51,19 @@ const monthKey = (d: Date) =>
 const startOfMonthUTC = (d: Date) =>
   new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 
+type BillPayment = {
+  id: string;
+  bill_id: string;
+  amount: number;
+  method: string;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
 export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
   const { lang } = useLang();
   const [bills, setBills] = useState<LedgerBill[]>([]);
+  const [payments, setPayments] = useState<BillPayment[]>([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date>(() => {
     const d = new Date();
@@ -75,10 +85,30 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
         .lte("month", toMonth)
         .order("month", { ascending: true });
       if (error) toast.error(error.message);
-      setBills((data ?? []) as LedgerBill[]);
+      const billRows = (data ?? []) as LedgerBill[];
+      setBills(billRows);
+      // Fetch approved payments for these bills
+      if (billRows.length > 0) {
+        const { data: pr } = await supabase
+          .from("payment_requests")
+          .select("id, bill_id, amount, method, reviewed_at, created_at")
+          .in("bill_id", billRows.map(b => b.id))
+          .eq("status", "approved")
+          .order("reviewed_at", { ascending: true });
+        setPayments((pr ?? []) as BillPayment[]);
+      } else {
+        setPayments([]);
+      }
       setLoading(false);
     })();
   }, [flat.id, fromMonth, toMonth]);
+
+  // Map of bill_id -> approved payments (sorted)
+  const paymentsByBill = useMemo(() => {
+    const m: Record<string, BillPayment[]> = {};
+    payments.forEach(p => { (m[p.bill_id] ??= []).push(p); });
+    return m;
+  }, [payments]);
 
   // Summary
   const summary = useMemo(() => {
@@ -88,6 +118,7 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
     const unpaidCount = bills.filter((b) => b.status !== "paid").length;
     return { totalBilled, totalPaid, balance, unpaidCount, billCount: bills.length };
   }, [bills]);
+
 
   // Timeline (interleaved bills + payments) sorted by date, with running balance
   const timeline = useMemo(() => {
