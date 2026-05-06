@@ -239,10 +239,16 @@ export default function OwnerDashboard() {
   return (
     <AppShell>
       <div
-        className="space-y-4 sm:space-y-5 animate-fade-in -m-2 sm:-m-4 p-2 sm:p-4 rounded-2xl border-l-4 transition-colors duration-500"
-        style={{ ...flatTintStyle, ...flatAccentStyle }}
-        key={flat.id}
+        className="relative space-y-4 sm:space-y-5 animate-fade-in -m-2 sm:-m-4 p-2 sm:p-4 rounded-2xl border-l-4 overflow-hidden"
+        style={{ transition: "border-color 600ms ease", ...flatAccentStyle }}
       >
+        {/* Smoothly crossfading tint layer keyed by flat */}
+        <div
+          key={flat.id}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 rounded-2xl animate-fade-in"
+          style={{ ...flatTintStyle, transition: "opacity 600ms ease" }}
+        />
         {/* Compact greeting header */}
         <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-5 shadow-elevated overflow-hidden">
           <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
