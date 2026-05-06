@@ -42,13 +42,13 @@ type Bill = {
   generation_status: GenerationStatus;
 };
 
-const currentMonth = () => new Date().toISOString().slice(0, 7);
+const calendarMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
   const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
-  const month = currentMonth();
+  const [month, setMonth] = useState<string>(calendarMonth());
   const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null; avatar: string | null }>({ en: null, bn: null, avatar: null });
 
   useEffect(() => {
@@ -75,6 +75,21 @@ export default function OwnerDashboard() {
   useEffect(() => {
     if (flat && flat.id !== selectedFlatId) setSelectedFlatId(flat.id);
   }, [flat, selectedFlatId, setSelectedFlatId]);
+
+  // Resolve current ledger month = latest bill month available across user's flats
+  useEffect(() => {
+    if (flats.length === 0) return;
+    (async () => {
+      const flatIds = flats.map(f => f.id);
+      const { data } = await supabase
+        .from("bills")
+        .select("month")
+        .in("flat_id", flatIds)
+        .order("month", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) setMonth(data[0].month);
+    })();
+  }, [flats]);
 
   useEffect(() => {
     if (flats.length === 0) {
