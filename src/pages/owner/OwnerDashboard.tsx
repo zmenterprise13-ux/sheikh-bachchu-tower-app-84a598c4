@@ -41,15 +41,6 @@ type Bill = {
   status: FlatStatus;
   generation_status: GenerationStatus;
 };
-type Notice = {
-  id: string;
-  title: string;
-  title_bn: string;
-  body: string;
-  body_bn: string;
-  important: boolean;
-  date: string;
-};
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
