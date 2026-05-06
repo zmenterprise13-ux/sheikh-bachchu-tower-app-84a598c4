@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { CommitteeSection } from "@/components/CommitteeSection";
+
 
 
 type Bill = {
