@@ -51,9 +51,19 @@ const monthKey = (d: Date) =>
 const startOfMonthUTC = (d: Date) =>
   new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 
+type BillPayment = {
+  id: string;
+  bill_id: string;
+  amount: number;
+  method: string;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
 export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
   const { lang } = useLang();
   const [bills, setBills] = useState<LedgerBill[]>([]);
+  const [payments, setPayments] = useState<BillPayment[]>([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date>(() => {
     const d = new Date();
@@ -75,10 +85,30 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
         .lte("month", toMonth)
         .order("month", { ascending: true });
       if (error) toast.error(error.message);
-      setBills((data ?? []) as LedgerBill[]);
+      const billRows = (data ?? []) as LedgerBill[];
+      setBills(billRows);
+      // Fetch approved payments for these bills
+      if (billRows.length > 0) {
+        const { data: pr } = await supabase
+          .from("payment_requests")
+          .select("id, bill_id, amount, method, reviewed_at, created_at")
+          .in("bill_id", billRows.map(b => b.id))
+          .eq("status", "approved")
+          .order("reviewed_at", { ascending: true });
+        setPayments((pr ?? []) as BillPayment[]);
+      } else {
+        setPayments([]);
+      }
       setLoading(false);
     })();
   }, [flat.id, fromMonth, toMonth]);
+
+  // Map of bill_id -> approved payments (sorted)
+  const paymentsByBill = useMemo(() => {
+    const m: Record<string, BillPayment[]> = {};
+    payments.forEach(p => { (m[p.bill_id] ??= []).push(p); });
+    return m;
+  }, [payments]);
 
   // Summary
   const summary = useMemo(() => {
@@ -88,6 +118,7 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
     const unpaidCount = bills.filter((b) => b.status !== "paid").length;
     return { totalBilled, totalPaid, balance, unpaidCount, billCount: bills.length };
   }, [bills]);
+
 
   // Timeline (interleaved bills + payments) sorted by date, with running balance
   const timeline = useMemo(() => {
@@ -260,70 +291,98 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
         ) : (
           <>
             {/* Monthly bill breakdown */}
-            <div className="rounded-lg border border-border overflow-x-auto">
-              <div className="px-3 py-2 bg-muted/50 text-sm font-semibold border-b border-border">
+            <div className="rounded-xl border border-border overflow-hidden bg-card shadow-soft">
+              <div className="px-4 py-2.5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent text-sm font-semibold border-b border-border flex items-center gap-2">
+                <Receipt className="h-4 w-4 text-primary" />
                 {lang === "bn" ? "মাসভিত্তিক বিল" : "Monthly Bills"}
               </div>
-              <table className="w-full text-xs">
-                <thead className="bg-muted/30">
-                  <tr>
-                    <th className="text-left p-2 font-medium">{lang === "bn" ? "মাস" : "Month"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "সার্ভিস" : "Service"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "গ্যাস" : "Gas"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "পার্কিং" : "Parking"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "ঈদ" : "Eid"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "অন্যান্য" : "Other"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "মোট" : "Total"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "পেইড" : "Paid"}</th>
-                    <th className="text-right p-2 font-medium">{lang === "bn" ? "বকেয়া" : "Due"}</th>
-                    <th className="text-left p-2 font-medium">{lang === "bn" ? "স্ট্যাটাস" : "Status"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bills.map((b) => {
-                    const due = Number(b.total) - Number(b.paid_amount);
-                    return (
-                      <tr key={b.id} className="border-t border-border">
-                        <td className="p-2 font-medium">{b.month}</td>
-                        <td className="p-2 text-right">{formatMoney(b.service_charge, lang)}</td>
-                        <td className="p-2 text-right">{formatMoney(b.gas_bill, lang)}</td>
-                        <td className="p-2 text-right">{formatMoney(b.parking, lang)}</td>
-                        <td className="p-2 text-right">{Number(b.eid_bonus) > 0 ? formatMoney(b.eid_bonus, lang) : "—"}</td>
-                        <td className="p-2 text-right">{Number(b.other_charge) > 0 ? formatMoney(b.other_charge, lang) : "—"}</td>
-                        <td className="p-2 text-right font-semibold">{formatMoney(b.total, lang)}</td>
-                        <td className="p-2 text-right text-success">{formatMoney(b.paid_amount, lang)}</td>
-                        <td className={"p-2 text-right font-semibold " + (due > 0 ? "text-destructive" : "")}>
-                          {formatMoney(due, lang)}
-                        </td>
-                        <td className="p-2">
-                          <span className={
-                            "inline-block px-2 py-0.5 rounded text-[10px] font-bold " +
-                            (b.status === "paid"
-                              ? "bg-success/15 text-success"
-                              : b.status === "partial"
-                              ? "bg-warning/15 text-warning"
-                              : "bg-destructive/15 text-destructive")
-                          }>
-                            {b.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="bg-muted/40 font-semibold">
-                  <tr>
-                    <td className="p-2">{lang === "bn" ? "মোট" : "Total"}</td>
-                    <td colSpan={5}></td>
-                    <td className="p-2 text-right">{formatMoney(summary.totalBilled, lang)}</td>
-                    <td className="p-2 text-right text-success">{formatMoney(summary.totalPaid, lang)}</td>
-                    <td className={"p-2 text-right " + (summary.balance > 0 ? "text-destructive" : "")}>
-                      {formatMoney(summary.balance, lang)}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "মাস" : "Month"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "সার্ভিস" : "Service"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "গ্যাস" : "Gas"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "পার্কিং" : "Parking"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "ঈদ" : "Eid"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "অন্যান্য" : "Other"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "মোট" : "Total"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "পেইড" : "Paid"}</th>
+                      <th className="text-left p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "পেমেন্ট" : "Payments"}</th>
+                      <th className="text-right p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "বকেয়া" : "Due"}</th>
+                      <th className="text-left p-2.5 font-semibold uppercase tracking-wide">{lang === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bills.map((b, idx) => {
+                      const due = Number(b.total) - Number(b.paid_amount);
+                      const ps = paymentsByBill[b.id] ?? [];
+                      return (
+                        <tr key={b.id} className={cn("border-t border-border hover:bg-muted/30 transition-colors", idx % 2 === 1 && "bg-muted/10")}>
+                          <td className="p-2.5 font-semibold text-foreground whitespace-nowrap">{b.month}</td>
+                          <td className="p-2.5 text-right tabular-nums">{formatMoney(b.service_charge, lang)}</td>
+                          <td className="p-2.5 text-right tabular-nums">{formatMoney(b.gas_bill, lang)}</td>
+                          <td className="p-2.5 text-right tabular-nums">{formatMoney(b.parking, lang)}</td>
+                          <td className="p-2.5 text-right tabular-nums">{Number(b.eid_bonus) > 0 ? formatMoney(b.eid_bonus, lang) : <span className="text-muted-foreground">—</span>}</td>
+                          <td className="p-2.5 text-right tabular-nums">{Number(b.other_charge) > 0 ? formatMoney(b.other_charge, lang) : <span className="text-muted-foreground">—</span>}</td>
+                          <td className="p-2.5 text-right font-bold text-foreground tabular-nums">{formatMoney(b.total, lang)}</td>
+                          <td className="p-2.5 text-right text-success font-semibold tabular-nums">{formatMoney(b.paid_amount, lang)}</td>
+                          <td className="p-2.5 align-top">
+                            {ps.length === 0 ? (
+                              <span className="text-muted-foreground text-[11px] italic">
+                                {lang === "bn" ? "কোনো পেমেন্ট নেই" : "No payments"}
+                              </span>
+                            ) : (
+                              <div className="flex flex-col gap-1 min-w-[140px]">
+                                {ps.map(p => {
+                                  const d = p.reviewed_at ?? p.created_at;
+                                  return (
+                                    <div key={p.id} className="flex items-center justify-between gap-2 rounded-md bg-success/10 border border-success/20 px-2 py-1">
+                                      <div className="flex flex-col leading-tight">
+                                        <span className="text-[10px] text-muted-foreground">{d ? format(new Date(d), "yyyy-MM-dd") : "—"}</span>
+                                        <span className="text-[10px] capitalize font-medium text-foreground/80">{p.method}</span>
+                                      </div>
+                                      <span className="text-[11px] font-bold text-success tabular-nums">{formatMoney(Number(p.amount), lang)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </td>
+                          <td className={"p-2.5 text-right font-bold tabular-nums " + (due > 0 ? "text-destructive" : "text-muted-foreground")}>
+                            {formatMoney(due, lang)}
+                          </td>
+                          <td className="p-2.5">
+                            <span className={
+                              "inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide " +
+                              (b.status === "paid"
+                                ? "bg-success/15 text-success"
+                                : b.status === "partial"
+                                ? "bg-warning/15 text-warning"
+                                : "bg-destructive/15 text-destructive")
+                            }>
+                              {b.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="bg-muted/50 font-bold border-t-2 border-border">
+                    <tr>
+                      <td className="p-2.5">{lang === "bn" ? "মোট" : "Total"}</td>
+                      <td colSpan={5}></td>
+                      <td className="p-2.5 text-right tabular-nums">{formatMoney(summary.totalBilled, lang)}</td>
+                      <td className="p-2.5 text-right text-success tabular-nums">{formatMoney(summary.totalPaid, lang)}</td>
+                      <td></td>
+                      <td className={"p-2.5 text-right tabular-nums " + (summary.balance > 0 ? "text-destructive" : "text-muted-foreground")}>
+                        {formatMoney(summary.balance, lang)}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
 
             {/* Timeline */}
