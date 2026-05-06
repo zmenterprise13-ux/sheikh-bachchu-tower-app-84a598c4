@@ -323,12 +323,14 @@ export default function OwnerDashboard() {
             </div>
             {totalDueScoped > 0 && (
               <Button
+                asChild
                 size="lg"
                 className="gap-2 shadow-glow"
-                onClick={() => toast.info(lang === "bn" ? "অনলাইন পেমেন্ট শীঘ্রই" : "Online payment coming soon")}
               >
-                <CreditCard className="h-4 w-4" />
-                {t("payNow")}
+                <Link to={`/owner/payments?pay=1${showFlatSwitcher ? "" : `&flat=${flat.id}`}`}>
+                  <CreditCard className="h-4 w-4" />
+                  {t("payNow")}
+                </Link>
               </Button>
             )}
             {isPaid && (
