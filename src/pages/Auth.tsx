@@ -68,6 +68,23 @@ export default function Auth() {
     if (!signupEnabled && tab === "signup") setTab("phone");
   }, [signupEnabled, tab]);
 
+  const routeForRoles = (list: string[]) => {
+    if (list.includes("admin")) return "/admin";
+    if (list.includes("manager")) return "/manager";
+    if (list.includes("accountant")) return "/accountant";
+    return "/owner";
+  };
+
+  const navigateAfterLogin = async (userId: string) => {
+    try {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      const list = (data ?? []).map((r: any) => r.role as string);
+      navigate(routeForRoles(list), { replace: true });
+    } catch {
+      navigate("/owner", { replace: true });
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -79,13 +96,15 @@ export default function Auth() {
     }
     setSubmitting(true);
     persistRemember(remember);
-    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPass });
-    setSubmitting(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPass });
     if (error) {
+      setSubmitting(false);
       toast.error(error.message);
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    if (data.user) await navigateAfterLogin(data.user.id);
+    setSubmitting(false);
   };
 
   const handleOwnerPhoneLogin = async (e: React.FormEvent) => {
@@ -115,16 +134,19 @@ export default function Auth() {
       return;
     }
     const session = (data as any).session;
-    const { error: setErr } = await supabase.auth.setSession({
+    const { data: setData, error: setErr } = await supabase.auth.setSession({
       access_token: session.access_token,
       refresh_token: session.refresh_token,
     });
-    setSubmitting(false);
     if (setErr) {
+      setSubmitting(false);
       toast.error(setErr.message);
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    const uid = setData.user?.id;
+    if (uid) await navigateAfterLogin(uid);
+    setSubmitting(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
