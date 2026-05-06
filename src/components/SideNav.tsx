@@ -94,6 +94,7 @@ const adminGroups: NavGroup[] = [
   {
     label: "groupSystem" as TKey,
     items: [
+      { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
       { to: "/admin/settings", key: "settings", icon: SettingsIcon },
     ],
   },
