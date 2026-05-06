@@ -132,7 +132,8 @@ const ownerGroups: NavGroup[] = [
   {
     label: "groupReports" as TKey,
     items: [
-      { to: "/owner/info", key: "notices", icon: Megaphone },
+      { to: "/owner/notices", key: "notices", icon: Megaphone },
+      { to: "/owner/committee", key: "committee" as TKey, icon: Users },
       { to: "/owner/reports", key: "reports", icon: FileBarChart },
       { to: "/owner/finance-report", key: "financeReport" as TKey, icon: FileBarChart },
     ],
