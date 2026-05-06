@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
-import { formatMoney } from "@/i18n/translations";
-import { CheckCircle2, Clock, XCircle, Download, Plus } from "lucide-react";
+import { formatMoney, formatNumber } from "@/i18n/translations";
+import { CheckCircle2, Clock, XCircle, Download, Plus, Building2, Home, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerFlat } from "@/hooks/useOwnerFlat";
+import { useOwnerFlats, OwnerFlat } from "@/hooks/useOwnerFlat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,19 @@ import { useAuth } from "@/context/AuthContext";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { fromDue } from "@/lib/bkashMath";
 import { downloadReceiptPdf } from "@/lib/receiptPdf";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 type Bill = {
   id: string;
+  flat_id: string;
   month: string;
   total: number;
   paid_amount: number;
 };
 type PR = {
   id: string;
+  flat_id: string;
   bill_id: string;
   amount: number;
   method: string;
@@ -42,11 +46,12 @@ type PR = {
 export default function OwnerPayments() {
   const { t, lang } = useLang();
   const { user } = useAuth();
-  const { flat, loading: flatLoading } = useOwnerFlat();
+  const { flats, loading: flatsLoading } = useOwnerFlats();
   const [bills, setBills] = useState<Bill[]>([]);
   const [requests, setRequests] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [submitFlatId, setSubmitFlatId] = useState<string>("");
   const [billId, setBillId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [methodGroup, setMethodGroup] = useState<"bkash"|"others">("bkash");
@@ -57,12 +62,14 @@ export default function OwnerPayments() {
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
-  const refresh = async (fid: string) => {
+  const refresh = async (flatIds: string[]) => {
+    if (flatIds.length === 0) { setLoading(false); return; }
     setLoading(true);
     const [b, r] = await Promise.all([
-      supabase.from("bills").select("id, month, total, paid_amount").eq("flat_id", fid).order("month", { ascending: false }),
-      supabase.from("payment_requests").select("id, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)").eq("flat_id", fid).order("created_at", { ascending: false }),
+      supabase.from("bills").select("id, flat_id, month, total, paid_amount").in("flat_id", flatIds).order("month", { ascending: false }),
+      supabase.from("payment_requests").select("id, flat_id, bill_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month)").in("flat_id", flatIds).order("created_at", { ascending: false }),
     ]);
     if (b.error) toast.error(b.error.message);
     if (r.error) toast.error(r.error.message);
@@ -72,14 +79,27 @@ export default function OwnerPayments() {
   };
 
   useEffect(() => {
-    if (!flat) { setLoading(flatLoading); return; }
-    refresh(flat.id);
-  }, [flat, flatLoading]);
+    if (flats.length === 0) { setLoading(flatsLoading); return; }
+    refresh(flats.map(f => f.id));
+  }, [flats, flatsLoading]);
 
-  const dueBills = useMemo(() => bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0), [bills]);
+  const dueBills = useMemo(
+    () => bills.filter(b => Number(b.total) - Number(b.paid_amount) > 0),
+    [bills]
+  );
 
-  const openSubmit = (b?: Bill) => {
-    const pick = b ?? dueBills[0];
+  const dueBillsByFlat = useMemo(() => {
+    const m: Record<string, Bill[]> = {};
+    flats.forEach(f => { m[f.id] = []; });
+    dueBills.forEach(b => { (m[b.flat_id] ??= []).push(b); });
+    return m;
+  }, [dueBills, flats]);
+
+  const openSubmit = (b?: Bill, fid?: string) => {
+    const flatId = fid ?? b?.flat_id ?? flats.find(f => (dueBillsByFlat[f.id] ?? []).length > 0)?.id ?? flats[0]?.id ?? "";
+    setSubmitFlatId(flatId);
+    const flatDueBills = dueBillsByFlat[flatId] ?? [];
+    const pick = b ?? flatDueBills[0];
     setBillId(pick?.id ?? "");
     setAmount(pick ? String(Number(pick.total) - Number(pick.paid_amount)) : "");
     setMethodGroup("bkash");
@@ -92,7 +112,7 @@ export default function OwnerPayments() {
   const [searchParams, setSearchParams] = useSearchParams();
   const autoOpenedRef = useRef(false);
   useEffect(() => {
-    if (autoOpenedRef.current || loading || !flat) return;
+    if (autoOpenedRef.current || loading || flats.length === 0) return;
     const wantPay = searchParams.get("pay") === "1";
     const wantBill = searchParams.get("bill");
     if (!wantPay && !wantBill) return;
@@ -104,17 +124,14 @@ export default function OwnerPayments() {
       next.delete("pay"); next.delete("bill");
       setSearchParams(next, { replace: true });
     }
-  }, [loading, flat, bills, dueBills, searchParams, setSearchParams]);
+  }, [loading, flats, bills, dueBills, searchParams, setSearchParams]);
 
   const submit = async () => {
-    if (!flat || !billId || !amount) { toast.error(lang === "bn" ? "সব ফিল্ড পূরণ করুন" : "Fill all fields"); return; }
+    if (!submitFlatId || !billId || !amount) { toast.error(lang === "bn" ? "সব ফিল্ড পূরণ করুন" : "Fill all fields"); return; }
     setSubmitting(true);
-    // Store only the base due amount in payment_requests.amount.
-    // The bKash 2% fee goes to bKash, NOT to the society — so it must not
-    // be credited to the bill's paid_amount or counted as income.
     const { error } = await supabase.from("payment_requests").insert({
       bill_id: billId,
-      flat_id: flat.id,
+      flat_id: submitFlatId,
       submitted_by: user?.id,
       amount: Number(amount),
       method, reference: reference || null, note: note || null,
@@ -124,13 +141,64 @@ export default function OwnerPayments() {
     if (error) { toast.error(error.message); return; }
     toast.success(lang === "bn" ? "জমা হয়েছে — অ্যাডমিন রিভিউ করবে" : "Submitted for admin review");
     setOpen(false);
-    refresh(flat.id);
+    refresh(flats.map(f => f.id));
   };
 
-  const downloadReceipt = (pr: PR) =>
-    downloadReceiptPdf(pr as any, flat ? { flat_no: flat.flat_no, owner_name: flat.owner_name } : null, { number: BKASH_NUMBER, fee_pct: BKASH_FEE_PCT });
+  const downloadReceipt = (pr: PR) => {
+    const f = flats.find(x => x.id === pr.flat_id);
+    return downloadReceiptPdf(pr as any, f ? { flat_no: f.flat_no, owner_name: f.owner_name } : null, { number: BKASH_NUMBER, fee_pct: BKASH_FEE_PCT });
+  };
 
   const statusIcon = (s: string) => s === "approved" ? <CheckCircle2 className="h-4 w-4 text-success"/> : s === "rejected" ? <XCircle className="h-4 w-4 text-destructive"/> : <Clock className="h-4 w-4 text-warning"/>;
+
+  // Group requests by flat
+  const groups = useMemo(() => {
+    return flats.map(f => {
+      const list = requests.filter(r => r.flat_id === f.id);
+      const isRented = !!(user && f.owner_user_id === user.id && f.tenant_user_id && f.tenant_user_id !== user.id);
+      return { flat: f, items: list, isRented };
+    });
+  }, [flats, requests, user]);
+
+  // default open: groups with items, or first group
+  useEffect(() => {
+    if (groups.length === 0) return;
+    setOpenMap(prev => {
+      const next = { ...prev };
+      const anyHadItems = groups.some(g => g.items.length > 0);
+      groups.forEach((g, idx) => {
+        if (next[g.flat.id] === undefined) {
+          next[g.flat.id] = anyHadItems ? g.items.length > 0 : idx === 0;
+        }
+      });
+      return next;
+    });
+  }, [groups]);
+
+  const submitFlatDueBills = useMemo(() => dueBillsByFlat[submitFlatId] ?? [], [dueBillsByFlat, submitFlatId]);
+
+  const renderItem = (pr: PR) => (
+    <div key={pr.id} className="p-4 flex items-center gap-3 flex-wrap">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted shrink-0">{statusIcon(pr.status)}</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-foreground text-sm">{pr.bills?.month ?? "-"} · {t(pr.method as any) || pr.method}</div>
+        <div className="text-xs text-muted-foreground mt-0.5">
+          {pr.reference && <>Ref: {pr.reference} · </>}
+          {new Date(pr.created_at).toLocaleString()}
+        </div>
+        {pr.review_note && <div className="text-xs text-muted-foreground mt-0.5 italic">{pr.review_note}</div>}
+      </div>
+      <div className="text-right">
+        <div className="font-bold text-foreground text-sm">{formatMoney(Number(pr.amount), lang)}</div>
+        <div className="text-[11px] text-muted-foreground capitalize">{t(pr.status as any) || pr.status}</div>
+      </div>
+      {pr.status === "approved" && (
+        <Button size="sm" variant="outline" onClick={() => downloadReceipt(pr)} className="gap-1.5">
+          <Download className="h-3.5 w-3.5" /> {t("receipt")}
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <AppShell>
@@ -144,44 +212,89 @@ export default function OwnerPayments() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-card border border-border shadow-soft divide-y divide-border">
-          {loading && <div className="p-5 space-y-3">{Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-12"/>)}</div>}
-          {!loading && requests.length === 0 && <div className="p-12 text-center text-muted-foreground">{t("noData")}</div>}
-          {!loading && requests.map((pr) => (
-            <div key={pr.id} className="p-5 flex items-center gap-4 flex-wrap">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted shrink-0">{statusIcon(pr.status)}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-foreground">{pr.bills?.month ?? "-"} · {t(pr.method as any) || pr.method}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  {pr.reference && <>Ref: {pr.reference} · </>}
-                  {new Date(pr.created_at).toLocaleString()}
-                </div>
-                {pr.review_note && <div className="text-xs text-muted-foreground mt-0.5 italic">{pr.review_note}</div>}
+        {loading && <div className="space-y-3">{Array.from({length:2}).map((_,i)=><Skeleton key={i} className="h-20 rounded-2xl"/>)}</div>}
+
+        {!loading && requests.length === 0 && (
+          <div className="rounded-2xl bg-card border border-border p-12 text-center text-muted-foreground">{t("noData")}</div>
+        )}
+
+        {!loading && requests.length > 0 && flats.length === 1 && (
+          <div className="rounded-2xl bg-card border border-border shadow-soft divide-y divide-border">
+            {requests.map(renderItem)}
+          </div>
+        )}
+
+        {!loading && flats.length > 1 && groups.map((g) => {
+          const isOpen = !!openMap[g.flat.id];
+          return (
+            <Collapsible key={g.flat.id} open={isOpen} onOpenChange={(v) => setOpenMap(p => ({ ...p, [g.flat.id]: v }))}>
+              <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
+                <CollapsibleTrigger className="w-full p-4 flex items-center gap-3 hover:bg-muted/40 transition-colors text-left">
+                  <div className={cn(
+                    "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                    g.isRented ? "bg-accent/20 text-accent-foreground" : "bg-primary/10 text-primary"
+                  )}>
+                    {g.isRented ? <Home className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="font-bold text-foreground">{lang === "bn" ? "ফ্ল্যাট" : "Flat"} {g.flat.flat_no}</div>
+                      {g.isRented && (
+                        <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent-foreground">
+                          {lang === "bn" ? "ভাড়া" : "Rented"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {formatNumber(g.items.length, lang)} {lang === "bn" ? "পেমেন্ট" : "payments"}
+                    </div>
+                  </div>
+                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform shrink-0", isOpen && "rotate-180")} />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="divide-y divide-border border-t border-border">
+                    {g.items.length === 0
+                      ? <div className="p-6 text-center text-sm text-muted-foreground">{t("noData")}</div>
+                      : g.items.map(renderItem)}
+                  </div>
+                </CollapsibleContent>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-foreground">{formatMoney(Number(pr.amount), lang)}</div>
-                <div className="text-[11px] text-muted-foreground capitalize">{t(pr.status as any) || pr.status}</div>
-              </div>
-              {pr.status === "approved" && (
-                <Button size="sm" variant="outline" onClick={() => downloadReceipt(pr)} className="gap-1.5">
-                  <Download className="h-3.5 w-3.5" /> {t("receipt")}
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
+            </Collapsible>
+          );
+        })}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("submitPayment")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
+            {flats.length > 1 && (
+              <div>
+                <Label>{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</Label>
+                <Select value={submitFlatId} onValueChange={(v) => {
+                  setSubmitFlatId(v);
+                  const list = dueBillsByFlat[v] ?? [];
+                  const first = list[0];
+                  setBillId(first?.id ?? "");
+                  setAmount(first ? String(Number(first.total) - Number(first.paid_amount)) : "");
+                }}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    {flats.map(f => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.flat_no} {(dueBillsByFlat[f.id]?.length ?? 0) > 0 ? `· ${formatNumber(dueBillsByFlat[f.id].length, lang)}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>{t("month")} / {t("dues")}</Label>
-              <Select value={billId} onValueChange={(v)=>{setBillId(v); const b = dueBills.find(x=>x.id===v); if (b) setAmount(String(Number(b.total)-Number(b.paid_amount)));}}>
+              <Select value={billId} onValueChange={(v)=>{setBillId(v); const b = submitFlatDueBills.find(x=>x.id===v); if (b) setAmount(String(Number(b.total)-Number(b.paid_amount)));}}>
                 <SelectTrigger><SelectValue/></SelectTrigger>
                 <SelectContent>
-                  {dueBills.map(b => <SelectItem key={b.id} value={b.id}>{b.month} — {formatMoney(Number(b.total)-Number(b.paid_amount), lang)}</SelectItem>)}
+                  {submitFlatDueBills.map(b => <SelectItem key={b.id} value={b.id}>{b.month} — {formatMoney(Number(b.total)-Number(b.paid_amount), lang)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
