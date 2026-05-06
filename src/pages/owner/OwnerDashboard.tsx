@@ -68,8 +68,16 @@ export default function OwnerDashboard() {
   const flat: OwnerFlat | null = useMemo(() => {
     if (flats.length === 0) return null;
     const found = flats.find(f => f.id === selectedFlatId);
-    return found ?? flats[0];
-  }, [flats, selectedFlatId]);
+    if (found) return found;
+    // Prefer a flat the user actually resides in (owner-occupied or tenant)
+    const residence = flats.find(f => {
+      if (!user) return false;
+      if (f.tenant_user_id === user.id) return true;
+      if (f.owner_user_id === user.id && (!f.tenant_user_id || f.tenant_user_id === user.id)) return true;
+      return false;
+    });
+    return residence ?? flats[0];
+  }, [flats, selectedFlatId, user]);
 
   // Persist the resolved flat id (covers fallback case where stored id is missing)
   useEffect(() => {
