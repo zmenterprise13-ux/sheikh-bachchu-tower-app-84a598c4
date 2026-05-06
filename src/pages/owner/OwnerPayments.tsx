@@ -115,13 +115,14 @@ export default function OwnerPayments() {
     if (autoOpenedRef.current || loading || flats.length === 0) return;
     const wantPay = searchParams.get("pay") === "1";
     const wantBill = searchParams.get("bill");
+    const wantFlat = searchParams.get("flat");
     if (!wantPay && !wantBill) return;
     const target = wantBill ? bills.find(b => b.id === wantBill && Number(b.total) - Number(b.paid_amount) > 0) : undefined;
     if (target || dueBills.length > 0) {
-      openSubmit(target);
+      openSubmit(target, wantFlat ?? undefined);
       autoOpenedRef.current = true;
       const next = new URLSearchParams(searchParams);
-      next.delete("pay"); next.delete("bill");
+      next.delete("pay"); next.delete("bill"); next.delete("flat");
       setSearchParams(next, { replace: true });
     }
   }, [loading, flats, bills, dueBills, searchParams, setSearchParams]);
