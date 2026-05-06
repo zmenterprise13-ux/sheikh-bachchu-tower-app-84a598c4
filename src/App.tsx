@@ -100,6 +100,7 @@ const App = () => (
               <Route path="/owner/reports" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerReports /></ProtectedRoute>} />
               <Route path="/owner/finance-report" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerFinanceReport /></ProtectedRoute>} />
               <Route path="/owner/info" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerInfo /></ProtectedRoute>} />
+              <Route path="/owner/committee" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerCommittee /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
 
