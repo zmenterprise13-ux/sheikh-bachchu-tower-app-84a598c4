@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { residentName } from "@/lib/displayName";
 import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { CommitteeSection } from "@/components/CommitteeSection";
+
 
 
 type Bill = {
@@ -40,15 +40,6 @@ type Bill = {
   generated_at: string | null;
   status: FlatStatus;
   generation_status: GenerationStatus;
-};
-type Notice = {
-  id: string;
-  title: string;
-  title_bn: string;
-  body: string;
-  body_bn: string;
-  important: boolean;
-  date: string;
 };
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -71,7 +62,7 @@ export default function OwnerDashboard() {
   const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
   const [recentBills, setRecentBills] = useState<Bill[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
-  const [notices, setNotices] = useState<Notice[]>([]);
+  
   const [loading, setLoading] = useState(true);
 
   const flat: OwnerFlat | null = useMemo(() => {
@@ -93,21 +84,15 @@ export default function OwnerDashboard() {
     (async () => {
       setLoading(true);
       const flatIds = flats.map(f => f.id);
-      const [billsRes, noticesRes] = await Promise.all([
-        supabase.from("bills")
-          .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
-          .in("flat_id", flatIds).eq("month", month),
-        supabase.from("notices")
-          .select("id, title, title_bn, body, body_bn, important, date")
-          .order("date", { ascending: false }).limit(3),
-      ]);
+      const billsRes = await supabase.from("bills")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+        .in("flat_id", flatIds).eq("month", month);
       const map: Record<string, Bill | null> = {};
       flatIds.forEach(id => { map[id] = null; });
       ((billsRes.data ?? []) as (Bill & { flat_id: string })[]).forEach(b => {
         map[b.flat_id] = b;
       });
       setAllBills(map);
-      setNotices((noticesRes.data ?? []) as Notice[]);
       setLoading(false);
     })();
   }, [flats, flatsLoading, month]);
@@ -263,17 +248,72 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard
-            label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
-            value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
-            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"} · ${formatNumber(payPct, lang)}% paid` : t("month")}
-            icon={Receipt}
-            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "destructive" : "success"}
-          />
-          <StatCard label={t("serviceCharge")} value={formatMoney(Number(flat.service_charge), lang)} icon={Home} />
-          <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
-        </div>
+        {(() => {
+          const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
+          const scopeFlats = isTenant ? [flat] : flats;
+          const totalDueScoped = scopeFlats.reduce((sum, f) => {
+            const b = allBills[f.id];
+            if (!b) return sum;
+            return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+          }, 0);
+          const totalPaidScoped = scopeFlats.reduce((sum, f) => {
+            const b = allBills[f.id];
+            return sum + (b ? Number(b.paid_amount) : 0);
+          }, 0);
+          const totalServiceCharge = scopeFlats.reduce((sum, f) => sum + Number(f.service_charge || 0), 0);
+          const dueLabel = isTenant
+            ? (lang === "bn" ? "আপনার মোট বকেয়া" : "Your Total Due")
+            : (scopeFlats.length > 1
+                ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)")
+                : t("due"));
+          return (
+            <div className="space-y-4">
+              <StatCard
+                label={dueLabel}
+                value={formatMoney(totalDueScoped, lang)}
+                hint={scopeFlats.length > 1
+                  ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}`
+                  : `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${flat.flat_no}`}
+                icon={Receipt}
+                variant={totalDueScoped > 0 ? "destructive" : "success"}
+              />
+              <StatCard
+                label={lang === "bn" ? "এ মাসে পরিশোধিত" : "Paid This Month"}
+                value={formatMoney(totalPaidScoped, lang)}
+                hint={month}
+                icon={CheckCircle2}
+                variant={totalPaidScoped > 0 ? "success" : "default"}
+              />
+              <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 shadow-soft">
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                    <Home className="h-4 w-4 text-primary" />
+                    {lang === "bn" ? "ধার্যকৃত সার্ভিস চার্জের বিবরণ" : "Assigned Service Charge Details"}
+                  </h3>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                    {lang === "bn" ? "মোট" : "Total"}: {formatMoney(totalServiceCharge, lang)}
+                  </span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {scopeFlats.map(f => (
+                    <div key={f.id} className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                          {f.flat_no}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs text-muted-foreground">{lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)} · {formatNumber(f.size, lang)} sqft</div>
+                          <div className="text-[11px] text-muted-foreground">{t("serviceCharge")}</div>
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold text-foreground tabular-nums">{formatMoney(Number(f.service_charge || 0), lang)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {(() => {
           const sumField = (field: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
@@ -403,7 +443,7 @@ export default function OwnerDashboard() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6">
           <div key={flat.id} className="rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-soft animate-fade-in">
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
               <h2 className="font-semibold text-foreground flex items-center gap-2">
@@ -517,33 +557,6 @@ export default function OwnerDashboard() {
               </div>
             )}
           </div>
-
-          <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
-              <h2 className="font-semibold text-foreground flex items-center gap-2">
-                <Megaphone className="h-4 w-4 text-accent" /> {t("recentNotices")}
-              </h2>
-              <Link to="/owner/notices">
-                <Button variant="ghost" size="sm">{t("viewAll")}</Button>
-              </Link>
-            </div>
-            <div className="divide-y divide-border">
-              {loading && <div className="p-5 space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>}
-              {!loading && notices.length === 0 && (
-                <div className="p-6 text-sm text-center text-muted-foreground">{t("noData")}</div>
-              )}
-              {!loading && notices.map((n) => (
-                <div key={n.id} className="p-4 flex items-start gap-2">
-                  {n.important && <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />}
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm text-foreground">{lang === "bn" ? n.title_bn : n.title}</div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{lang === "bn" ? n.body_bn : n.body}</p>
-                    <div className="text-[11px] text-muted-foreground mt-1">{n.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Recent bills history for the selected flat */}
@@ -617,7 +630,27 @@ export default function OwnerDashboard() {
 
         <MonthlyFinanceSummary month={month} variant="owner" />
 
-        <CommitteeSection />
+        <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-4 sm:p-5 shadow-soft flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center shrink-0">
+              <Megaphone className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-foreground">
+                {lang === "bn" ? "নোটিশ ও কমিটি" : "Notices & Committee"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {lang === "bn" ? "সকল উপদেষ্টা, কমিটি ও নোটিশের তালিকা" : "Browse advisors, committee and all notices"}
+              </div>
+            </div>
+          </div>
+          <Link to="/owner/info">
+            <Button size="sm" className="gap-1.5">
+              {lang === "bn" ? "দেখুন" : "View"}
+              <Bell className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </AppShell>
   );
