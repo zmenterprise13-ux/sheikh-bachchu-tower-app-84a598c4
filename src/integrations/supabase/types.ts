@@ -357,6 +357,57 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          admin_reply: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          replied_at: string | null
+          replied_by: string | null
+          status: string
+          subject: string
+          submitter_name: string | null
+          submitter_phone: string | null
+          submitter_role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          replied_at?: string | null
+          replied_by?: string | null
+          status?: string
+          subject: string
+          submitter_name?: string | null
+          submitter_phone?: string | null
+          submitter_role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          replied_at?: string | null
+          replied_by?: string | null
+          status?: string
+          subject?: string
+          submitter_name?: string | null
+          submitter_phone?: string | null
+          submitter_role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flats: {
         Row: {
           created_at: string

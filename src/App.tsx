@@ -45,6 +45,8 @@ import OwnerLedger from "./pages/owner/OwnerLedger";
 import OwnerReceipts from "./pages/owner/OwnerReceipts";
 import OwnerInfo from "./pages/owner/OwnerInfo";
 import OwnerCommittee from "./pages/owner/OwnerCommittee";
+import Feedback from "./pages/Feedback";
+import AdminFeedback from "./pages/admin/AdminFeedback";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
@@ -104,6 +106,8 @@ const App = () => (
               <Route path="/owner/committee" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerCommittee /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
+              <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+              <Route path="/admin/feedback" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFeedback /></ProtectedRoute>} />
 
               {/* Tenant info — accessible to admin and flat owners */}
               <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />

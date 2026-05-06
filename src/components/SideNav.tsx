@@ -31,6 +31,7 @@ import {
   UserSquare2,
   UserCog,
   ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -93,6 +94,7 @@ const adminGroups: NavGroup[] = [
   {
     label: "groupSystem" as TKey,
     items: [
+      { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
       { to: "/admin/settings", key: "settings", icon: SettingsIcon },
     ],
   },
@@ -145,6 +147,7 @@ const ownerGroups: NavGroup[] = [
   {
     label: "groupAccount" as TKey,
     items: [
+      { to: "/feedback", key: "feedback" as TKey, icon: MessageSquare },
       { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
       { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
     ],
@@ -178,6 +181,7 @@ const accountantGroups: NavGroup[] = [
   {
     label: "groupAccount" as TKey,
     items: [
+      { to: "/feedback", key: "feedback" as TKey, icon: MessageSquare },
       { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
       { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
     ],
@@ -211,6 +215,7 @@ const managerGroups: NavGroup[] = [
     items: [
       { to: "/admin/notices", key: "notices", icon: Megaphone },
       { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
     ],
   },
   {
@@ -223,6 +228,7 @@ const managerGroups: NavGroup[] = [
   {
     label: "groupAccount" as TKey,
     items: [
+      { to: "/feedback", key: "feedback" as TKey, icon: MessageSquare },
       { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
       { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
     ],
