@@ -306,7 +306,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
                 <div className="pt-2 border-t border-dashed border-border space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                     <span>{lang === "bn" ? "লোন ফেরত" : "Loan Repaid"}</span>
-                    <span>{formatMoney(Number(snap.loan_repaid), lang)}</span>
+                    <span></span>
                   </div>
                   {lenders.length > 0 ? (
                     lenders.map((r, i) => (

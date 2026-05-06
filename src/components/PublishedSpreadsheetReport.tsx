@@ -172,7 +172,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
     expenseRows.push({ label, amount: Number(r.amount) });
   });
   if (Number(snap.loan_repaid) > 0) {
-    expenseRows.push({ label: lang === "bn" ? "লোন ফেরত" : "Loan Repaid", amount: Number(snap.loan_repaid), bold: true });
+    expenseRows.push({ label: lang === "bn" ? "লোন ফেরত" : "Loan Repaid", amount: NaN, bold: true });
     const lenders = (snap.loan_repaid_by_lender ?? []).length > 0 ? (snap.loan_repaid_by_lender ?? []) : liveRepayLenders;
     lenders.forEach((r) => {
       expenseRows.push({
