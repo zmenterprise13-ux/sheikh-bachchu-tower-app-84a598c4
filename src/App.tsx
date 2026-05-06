@@ -49,6 +49,7 @@ import Feedback from "./pages/Feedback";
 import AdminFeedback from "./pages/admin/AdminFeedback";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
+import Download from "./pages/Download";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 
 const queryClient = new QueryClient();
@@ -112,6 +113,7 @@ const App = () => (
               {/* Tenant info — accessible to admin and flat owners */}
               <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />
               <Route path="/tenant-info/blank-form" element={<TenantInfoBlankForm />} />
+              <Route path="/download" element={<Download />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
