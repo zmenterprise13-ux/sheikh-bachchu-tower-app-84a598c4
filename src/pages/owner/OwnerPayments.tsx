@@ -20,6 +20,7 @@ import { fromDue } from "@/lib/bkashMath";
 import { downloadReceiptPdf } from "@/lib/receiptPdf";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 
 type Bill = {
   id: string;
@@ -46,7 +47,9 @@ type PR = {
 export default function OwnerPayments() {
   const { t, lang } = useLang();
   const { user } = useAuth();
-  const { flats, loading: flatsLoading } = useOwnerFlats();
+  const { flats: allFlats, loading: flatsLoading } = useOwnerFlats();
+  const { selectedFlatId } = useSelectedFlatId();
+  const flats = useMemo(() => (selectedFlatId && allFlats.some(f => f.id === selectedFlatId)) ? allFlats.filter(f => f.id === selectedFlatId) : allFlats, [allFlats, selectedFlatId]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [requests, setRequests] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useLang } from "@/i18n/LangContext";
 import { useOwnerFlats } from "@/hooks/useOwnerFlat";
@@ -8,11 +8,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, Building2, Home, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useSelectedFlatId } from "@/hooks/useSelectedFlatId";
 
 export default function OwnerLedger() {
   const { lang } = useLang();
   const { user } = useAuth();
-  const { flats, loading } = useOwnerFlats();
+  const { flats: allFlats, loading } = useOwnerFlats();
+  const { selectedFlatId } = useSelectedFlatId();
+  const flats = useMemo(() => {
+    if (selectedFlatId && allFlats.some(f => f.id === selectedFlatId)) {
+      return allFlats.filter(f => f.id === selectedFlatId);
+    }
+    return allFlats;
+  }, [allFlats, selectedFlatId]);
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {

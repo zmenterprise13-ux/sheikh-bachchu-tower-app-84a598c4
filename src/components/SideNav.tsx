@@ -440,9 +440,32 @@ export function SideNav() {
     <aside className="hidden lg:block w-60 shrink-0">
       <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
         <AccountHeader />
-        {groups.map((group) => (
-          <NavGroupBlock key={group.label} group={group} t={t} badges={badges} />
-        ))}
+        {groups.map((group) =>
+          group.label === ("groupOverview" as TKey) ? (
+            <div key={group.label} className="space-y-1">
+              {group.items.map(({ to, key, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-base",
+                      isActive
+                        ? "gradient-primary text-primary-foreground shadow-md"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1">{t(key)}</span>
+                </NavLink>
+              ))}
+            </div>
+          ) : (
+            <NavGroupBlock key={group.label} group={group} t={t} badges={badges} />
+          )
+        )}
       </nav>
     </aside>
   );
