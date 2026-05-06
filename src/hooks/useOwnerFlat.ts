@@ -31,7 +31,7 @@ export function useOwnerFlats() {
   const fetchFlats = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from("flats")
-      .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type")
+      .select("id, flat_no, floor, owner_name, owner_name_bn, phone, size, service_charge, gas_bill, parking, is_occupied, owner_photo_url, occupant_photo_url, occupant_name, occupant_name_bn, occupant_type, owner_user_id, tenant_user_id")
       .or(`owner_user_id.eq.${uid},tenant_user_id.eq.${uid}`)
       .order("floor", { ascending: true })
       .order("flat_no", { ascending: true });
