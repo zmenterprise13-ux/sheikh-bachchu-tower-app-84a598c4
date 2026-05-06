@@ -62,7 +62,7 @@ export default function OwnerDashboard() {
   const [allBills, setAllBills] = useState<Record<string, Bill | null>>({});
   const [recentBills, setRecentBills] = useState<Bill[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
-  const [notices, setNotices] = useState<Notice[]>([]);
+  
   const [loading, setLoading] = useState(true);
 
   const flat: OwnerFlat | null = useMemo(() => {
