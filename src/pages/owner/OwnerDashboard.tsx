@@ -203,9 +203,26 @@ export default function OwnerDashboard() {
     ].filter(i => i.value > 0);
   })();
 
+  // Per-flat tint so user visually sees which flat is selected
+  const flatHue = (() => {
+    let h = 0;
+    for (let i = 0; i < flat.id.length; i++) h = (h * 31 + flat.id.charCodeAt(i)) >>> 0;
+    return h % 360;
+  })();
+  const flatTintStyle = {
+    background: `linear-gradient(180deg, hsl(${flatHue} 70% 96%) 0%, hsl(${flatHue} 60% 99%) 60%, hsl(var(--background)) 100%)`,
+  } as React.CSSProperties;
+  const flatAccentStyle = {
+    borderColor: `hsl(${flatHue} 60% 70%)`,
+  } as React.CSSProperties;
+
   return (
     <AppShell>
-      <div className="space-y-4 sm:space-y-5 animate-fade-in">
+      <div
+        className="space-y-4 sm:space-y-5 animate-fade-in -m-2 sm:-m-4 p-2 sm:p-4 rounded-2xl border-l-4 transition-colors duration-500"
+        style={{ ...flatTintStyle, ...flatAccentStyle }}
+        key={flat.id}
+      >
         {/* Compact greeting header */}
         <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-5 shadow-elevated overflow-hidden">
           <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
