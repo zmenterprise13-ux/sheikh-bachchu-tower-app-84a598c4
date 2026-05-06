@@ -84,21 +84,15 @@ export default function OwnerDashboard() {
     (async () => {
       setLoading(true);
       const flatIds = flats.map(f => f.id);
-      const [billsRes, noticesRes] = await Promise.all([
-        supabase.from("bills")
-          .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
-          .in("flat_id", flatIds).eq("month", month),
-        supabase.from("notices")
-          .select("id, title, title_bn, body, body_bn, important, date")
-          .order("date", { ascending: false }).limit(3),
-      ]);
+      const billsRes = await supabase.from("bills")
+        .select("id, flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, paid_at, due_date, generated_at, status, generation_status")
+        .in("flat_id", flatIds).eq("month", month);
       const map: Record<string, Bill | null> = {};
       flatIds.forEach(id => { map[id] = null; });
       ((billsRes.data ?? []) as (Bill & { flat_id: string })[]).forEach(b => {
         map[b.flat_id] = b;
       });
       setAllBills(map);
-      setNotices((noticesRes.data ?? []) as Notice[]);
       setLoading(false);
     })();
   }, [flats, flatsLoading, month]);
