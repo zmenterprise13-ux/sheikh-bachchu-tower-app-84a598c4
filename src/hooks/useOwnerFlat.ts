@@ -19,6 +19,8 @@ export type OwnerFlat = {
   occupant_name: string | null;
   occupant_name_bn: string | null;
   occupant_type: string;
+  owner_user_id: string | null;
+  tenant_user_id: string | null;
 };
 
 export function useOwnerFlats() {
