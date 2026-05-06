@@ -44,6 +44,7 @@ import OwnerFinanceReport from "./pages/owner/OwnerFinanceReport";
 import OwnerLedger from "./pages/owner/OwnerLedger";
 import OwnerReceipts from "./pages/owner/OwnerReceipts";
 import OwnerInfo from "./pages/owner/OwnerInfo";
+import OwnerCommittee from "./pages/owner/OwnerCommittee";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
