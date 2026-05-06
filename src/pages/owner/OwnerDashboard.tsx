@@ -645,7 +645,27 @@ export default function OwnerDashboard() {
 
         <MonthlyFinanceSummary month={month} variant="owner" />
 
-        <CommitteeSection />
+        <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-4 sm:p-5 shadow-soft flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center shrink-0">
+              <Megaphone className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-foreground">
+                {lang === "bn" ? "নোটিশ ও কমিটি" : "Notices & Committee"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {lang === "bn" ? "সকল উপদেষ্টা, কমিটি ও নোটিশের তালিকা" : "Browse advisors, committee and all notices"}
+              </div>
+            </div>
+          </div>
+          <Link to="/owner/info">
+            <Button size="sm" className="gap-1.5">
+              {lang === "bn" ? "দেখুন" : "View"}
+              <Bell className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </AppShell>
   );
