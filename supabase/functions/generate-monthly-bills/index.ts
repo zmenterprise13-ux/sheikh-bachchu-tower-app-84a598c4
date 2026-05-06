@@ -246,6 +246,78 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ============================================================
+    // Auto due-reminder notice (in-app) for the target month.
+    // Inserted once per month — idempotent via a marker tag in body.
+    // ============================================================
+    const reminderTag = `[auto-due-reminder:${month}]`;
+    let reminderCreated = false;
+    let reminderSkipped: string | null = null;
+    try {
+      const { data: existingNotice } = await admin
+        .from("notices")
+        .select("id")
+        .ilike("body", `%${reminderTag}%`)
+        .maybeSingle();
+
+      if (existingNotice) {
+        reminderSkipped = "already_exists";
+      } else {
+        // Find all flats with outstanding dues (any month up to & including target)
+        const { data: dueBills } = await admin
+          .from("bills")
+          .select("flat_id, total, paid_amount")
+          .lte("month", month);
+
+        const dueMap = new Map<string, number>();
+        for (const b of dueBills ?? []) {
+          const d = Number(b.total ?? 0) - Number(b.paid_amount ?? 0);
+          if (d > 0) dueMap.set(b.flat_id, (dueMap.get(b.flat_id) ?? 0) + d);
+        }
+
+        if (dueMap.size > 0) {
+          const flatMap = new Map((flats ?? []).map((f) => [f.id, f.flat_no]));
+          const lines = Array.from(dueMap.entries())
+            .map(([fid, amt]) => ({ flat_no: flatMap.get(fid) ?? "?", amt }))
+            .sort((a, b) => a.flat_no.localeCompare(b.flat_no, undefined, { numeric: true }))
+            .map((x) => `• ফ্ল্যাট ${x.flat_no} — ৳${x.amt.toLocaleString("en-BD")}`);
+          const linesEn = Array.from(dueMap.entries())
+            .map(([fid, amt]) => ({ flat_no: flatMap.get(fid) ?? "?", amt }))
+            .sort((a, b) => a.flat_no.localeCompare(b.flat_no, undefined, { numeric: true }))
+            .map((x) => `• Flat ${x.flat_no} — BDT ${x.amt.toLocaleString("en-BD")}`);
+
+          const totalDue = Array.from(dueMap.values()).reduce((s, n) => s + n, 0);
+          const [yy, mm] = month.split("-");
+          const monthLabel = `${mm}/${yy}`;
+
+          const { error: noticeErr } = await admin.from("notices").insert({
+            title: `বকেয়া পরিশোধের অনুরোধ — ${monthLabel}`,
+            title_bn: `বকেয়া পরিশোধের অনুরোধ — ${monthLabel}`,
+            body:
+              `প্রিয় ফ্ল্যাট মালিকগণ, ${monthLabel} মাসের বিল জেনারেট হয়েছে। ` +
+              `নিম্নলিখিত ফ্ল্যাটসমূহের বকেয়া রয়েছে। দ্রুত পরিশোধের অনুরোধ করা হলো।\n\n` +
+              `${lines.join("\n")}\n\nমোট বকেয়া: ৳${totalDue.toLocaleString("en-BD")}\n\n${reminderTag}`,
+            body_bn:
+              `প্রিয় ফ্ল্যাট মালিকগণ, ${monthLabel} মাসের বিল জেনারেট হয়েছে। ` +
+              `নিম্নলিখিত ফ্ল্যাটসমূহের বকেয়া রয়েছে। দ্রুত পরিশোধের অনুরোধ করা হলো।\n\n` +
+              `${lines.join("\n")}\n\nমোট বকেয়া: ৳${totalDue.toLocaleString("en-BD")}`,
+            important: true,
+            date: today,
+          });
+          if (noticeErr) {
+            reminderSkipped = `insert_error: ${noticeErr.message}`;
+          } else {
+            reminderCreated = true;
+          }
+        } else {
+          reminderSkipped = "no_dues";
+        }
+      }
+    } catch (e) {
+      reminderSkipped = `error: ${(e as Error).message}`;
+      console.error("auto due-reminder notice error", e);
+    }
+
     return new Response(
       JSON.stringify({
         ok: true,
@@ -254,6 +326,7 @@ Deno.serve(async (req) => {
         flats_total: flats?.length ?? 0,
         inserted: totalInserted,
         months: perMonth,
+        reminder_notice: { created: reminderCreated, skipped_reason: reminderSkipped },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
