@@ -134,16 +134,19 @@ export default function Auth() {
       return;
     }
     const session = (data as any).session;
-    const { error: setErr } = await supabase.auth.setSession({
+    const { data: setData, error: setErr } = await supabase.auth.setSession({
       access_token: session.access_token,
       refresh_token: session.refresh_token,
     });
-    setSubmitting(false);
     if (setErr) {
+      setSubmitting(false);
       toast.error(setErr.message);
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    const uid = setData.user?.id;
+    if (uid) await navigateAfterLogin(uid);
+    setSubmitting(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
