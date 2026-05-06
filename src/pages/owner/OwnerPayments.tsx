@@ -47,9 +47,7 @@ type PR = {
 export default function OwnerPayments() {
   const { t, lang } = useLang();
   const { user } = useAuth();
-  const { flats: allFlats, loading: flatsLoading } = useOwnerFlats();
-  const { selectedFlatId } = useSelectedFlatId();
-  const flats = useMemo(() => (selectedFlatId && allFlats.some(f => f.id === selectedFlatId)) ? allFlats.filter(f => f.id === selectedFlatId) : allFlats, [allFlats, selectedFlatId]);
+  const { flats, loading: flatsLoading } = useOwnerFlats();
   const [bills, setBills] = useState<Bill[]>([]);
   const [requests, setRequests] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
