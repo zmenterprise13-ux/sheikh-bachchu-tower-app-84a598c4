@@ -106,6 +106,8 @@ const App = () => (
               <Route path="/owner/committee" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerCommittee /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
+              <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+              <Route path="/admin/feedback" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFeedback /></ProtectedRoute>} />
 
               {/* Tenant info — accessible to admin and flat owners */}
               <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />
