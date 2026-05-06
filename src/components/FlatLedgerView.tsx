@@ -385,60 +385,6 @@ export function FlatLedgerView({ flat }: { flat: LedgerFlat }) {
               </div>
             </div>
 
-            {/* Timeline */}
-            <div className="rounded-lg border border-border">
-              <div className="px-3 py-2 bg-muted/50 text-sm font-semibold border-b border-border">
-                {lang === "bn" ? "টাইমলাইন (বিল ও পেমেন্ট)" : "Timeline (Bills & Payments)"}
-              </div>
-              <ol className="divide-y divide-border">
-                {timeline.map((e, i) => {
-                  const isBill = e.kind === "bill";
-                  return (
-                    <li key={i} className="p-3 flex items-start gap-3">
-                      <div className={cn(
-                        "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
-                        isBill ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
-                      )}>
-                        {isBill ? <ArrowUpCircle className="h-4 w-4" /> : <ArrowDownCircle className="h-4 w-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                          <div className="text-sm font-medium">
-                            {isBill
-                              ? (lang === "bn" ? "বিল জেনারেট" : "Bill Generated")
-                              : (lang === "bn" ? "পেমেন্ট গৃহীত" : "Payment Received")}
-                            <span className="text-xs text-muted-foreground ml-2">{e.month}</span>
-                          </div>
-                          <div className={cn(
-                            "text-sm font-bold",
-                            isBill ? "text-destructive" : "text-success"
-                          )}>
-                            {isBill ? "+" : "−"} {formatMoney(e.amount, lang)}
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-0.5">
-                          <span>{format(new Date(e.date), "PP")}</span>
-                          <span>
-                            {lang === "bn" ? "ব্যালেন্স: " : "Balance: "}
-                            <span className={cn(
-                              "font-semibold",
-                              e.balance > 0 ? "text-destructive" : "text-success"
-                            )}>
-                              {formatMoney(e.balance, lang)}
-                            </span>
-                          </span>
-                        </div>
-                        {isBill && e.bill.other_note && (
-                          <div className="text-[11px] text-muted-foreground mt-1 italic">
-                            {e.bill.other_note}
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
           </>
         )}
       </div>
