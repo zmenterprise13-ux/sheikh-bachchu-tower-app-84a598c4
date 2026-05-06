@@ -572,33 +572,6 @@ export default function OwnerDashboard() {
               </div>
             )}
           </div>
-
-          <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
-              <h2 className="font-semibold text-foreground flex items-center gap-2">
-                <Megaphone className="h-4 w-4 text-accent" /> {t("recentNotices")}
-              </h2>
-              <Link to="/owner/notices">
-                <Button variant="ghost" size="sm">{t("viewAll")}</Button>
-              </Link>
-            </div>
-            <div className="divide-y divide-border">
-              {loading && <div className="p-5 space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>}
-              {!loading && notices.length === 0 && (
-                <div className="p-6 text-sm text-center text-muted-foreground">{t("noData")}</div>
-              )}
-              {!loading && notices.map((n) => (
-                <div key={n.id} className="p-4 flex items-start gap-2">
-                  {n.important && <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />}
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm text-foreground">{lang === "bn" ? n.title_bn : n.title}</div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{lang === "bn" ? n.body_bn : n.body}</p>
-                    <div className="text-[11px] text-muted-foreground mt-1">{n.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Recent bills history for the selected flat */}
