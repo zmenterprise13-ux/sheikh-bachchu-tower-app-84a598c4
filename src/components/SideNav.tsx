@@ -228,6 +228,7 @@ const managerGroups: NavGroup[] = [
   {
     label: "groupAccount" as TKey,
     items: [
+      { to: "/feedback", key: "feedback" as TKey, icon: MessageSquare },
       { to: "/account/profile", key: "myProfile" as TKey, icon: UserCircle },
       { to: "/account/password", key: "changePassword" as TKey, icon: KeyRound },
     ],
