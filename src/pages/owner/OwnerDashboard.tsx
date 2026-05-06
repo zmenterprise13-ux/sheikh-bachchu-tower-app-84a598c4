@@ -42,13 +42,13 @@ type Bill = {
   generation_status: GenerationStatus;
 };
 
-const currentMonth = () => new Date().toISOString().slice(0, 7);
+const calendarMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function OwnerDashboard() {
   const { t, lang } = useLang();
   const { user } = useAuth();
   const { flats, loading: flatsLoading, refetch: refetchFlats } = useOwnerFlats();
-  const month = currentMonth();
+  const [month, setMonth] = useState<string>(calendarMonth());
   const [profileName, setProfileName] = useState<{ en: string | null; bn: string | null; avatar: string | null }>({ en: null, bn: null, avatar: null });
 
   useEffect(() => {
