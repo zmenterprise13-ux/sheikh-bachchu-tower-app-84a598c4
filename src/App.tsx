@@ -99,6 +99,7 @@ const App = () => (
               <Route path="/owner/notices" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerNotices /></ProtectedRoute>} />
               <Route path="/owner/reports" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerReports /></ProtectedRoute>} />
               <Route path="/owner/finance-report" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerFinanceReport /></ProtectedRoute>} />
+              <Route path="/owner/info" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerInfo /></ProtectedRoute>} />
               <Route path="/account/profile" element={<ProtectedRoute><AccountProfile /></ProtectedRoute>} />
               <Route path="/account/password" element={<ProtectedRoute><AccountPassword /></ProtectedRoute>} />
 
