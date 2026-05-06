@@ -68,8 +68,16 @@ export default function OwnerDashboard() {
   const flat: OwnerFlat | null = useMemo(() => {
     if (flats.length === 0) return null;
     const found = flats.find(f => f.id === selectedFlatId);
-    return found ?? flats[0];
-  }, [flats, selectedFlatId]);
+    if (found) return found;
+    // Prefer a flat the user actually resides in (owner-occupied or tenant)
+    const residence = flats.find(f => {
+      if (!user) return false;
+      if (f.tenant_user_id === user.id) return true;
+      if (f.owner_user_id === user.id && (!f.tenant_user_id || f.tenant_user_id === user.id)) return true;
+      return false;
+    });
+    return residence ?? flats[0];
+  }, [flats, selectedFlatId, user]);
 
   // Persist the resolved flat id (covers fallback case where stored id is missing)
   useEffect(() => {
@@ -169,7 +177,14 @@ export default function OwnerDashboard() {
   const currentPayPct = currentBillTotal > 0 ? Math.min(100, Math.round((currentBillPaid / currentBillTotal) * 100)) : 0;
 
   const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
-  const scopeFlats = isTenant ? [flat] : flats;
+  // Split flats: where the user resides vs flats they own but rented out to others
+  const ownResidenceFlats = flats.filter(f => {
+    if (user && f.tenant_user_id === user.id) return true; // tenant of this flat
+    if (user && f.owner_user_id === user.id && (!f.tenant_user_id || f.tenant_user_id === user.id)) return true;
+    return false;
+  });
+  const rentedOutFlats = flats.filter(f => user && f.owner_user_id === user.id && f.tenant_user_id && f.tenant_user_id !== user.id);
+  const scopeFlats = ownResidenceFlats.length > 0 ? ownResidenceFlats : [flat];
   const totalDueScoped = scopeFlats.reduce((sum, f) => {
     const b = allBills[f.id];
     if (!b) return sum;
@@ -186,6 +201,11 @@ export default function OwnerDashboard() {
   const scopedPct = totalBilledScoped > 0 ? Math.min(100, Math.round((totalPaidScoped / totalBilledScoped) * 100)) : 0;
   const isPaid = totalDueScoped <= 0 && totalBilledScoped > 0;
   const showFlatSwitcher = scopeFlats.length > 1;
+  const totalRentedDue = rentedOutFlats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    if (!b) return sum;
+    return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+  }, 0);
 
   // Item-wise breakdown across scoped flats (current month)
   const billItems = (() => {
@@ -345,7 +365,7 @@ export default function OwnerDashboard() {
               </span>
             </div>
             <div className="grid gap-2 grid-cols-2 lg:grid-cols-3">
-              {flats.map((f) => {
+              {scopeFlats.map((f) => {
                 const b = allBills[f.id];
                 const fTotal = b ? Number(b.total) : 0;
                 const fPaid = b ? Number(b.paid_amount) : 0;
@@ -378,6 +398,63 @@ export default function OwnerDashboard() {
             </div>
           </div>
         )}
+
+        {/* Rented-out flats (owner sees tenant-occupied flats and their dues) */}
+        {rentedOutFlats.length > 0 && (
+          <div className="rounded-2xl bg-card border border-border p-4 shadow-soft">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h2 className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                <Home className="h-4 w-4 text-accent-foreground" />
+                {lang === "bn" ? "ভাড়া দেওয়া ফ্ল্যাট" : "Rented Out Flats"}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">
+                  {formatNumber(rentedOutFlats.length, lang)}
+                </span>
+              </h2>
+              {totalRentedDue > 0 && (
+                <span className="text-[11px] font-semibold text-destructive">
+                  {lang === "bn" ? "মোট বকেয়া" : "Total due"}: {formatMoney(totalRentedDue, lang)}
+                </span>
+              )}
+            </div>
+            <div className="grid gap-2 grid-cols-2 lg:grid-cols-3">
+              {rentedOutFlats.map((f) => {
+                const b = allBills[f.id];
+                const fTotal = b ? Number(b.total) : 0;
+                const fPaid = b ? Number(b.paid_amount) : 0;
+                const fDue = Math.max(0, fTotal - fPaid);
+                const isActive = f.id === flat.id;
+                const tenantLabel = (lang === "bn" ? f.occupant_name_bn : f.occupant_name) || f.occupant_name || (lang === "bn" ? "ভাড়াটিয়া" : "Tenant");
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setSelectedFlatId(f.id)}
+                    className={cn(
+                      "text-left rounded-xl border p-3 transition-all hover:-translate-y-0.5 hover:shadow-elegant",
+                      isActive ? "border-accent-foreground/60 bg-accent/10 ring-2 ring-accent-foreground/30" : "border-border bg-background"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-bold text-sm text-foreground">{f.flat_no}</div>
+                      <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent-foreground">
+                        {lang === "bn" ? "ভাড়া" : "Rent"}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate mb-1">{tenantLabel}</div>
+                    {!b ? (
+                      <div className="text-[11px] text-muted-foreground italic">{lang === "bn" ? "বিল নেই" : "No bill"}</div>
+                    ) : fDue > 0 ? (
+                      <div className="text-sm font-bold text-destructive tabular-nums">{formatMoney(fDue, lang)}</div>
+                    ) : (
+                      <div className="text-[11px] font-semibold text-success">{lang === "bn" ? "পরিশোধিত" : "Paid"}</div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
 
         {/* Bill breakdown — service items */}
         <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 shadow-soft">
