@@ -93,10 +93,10 @@ export default function OwnerPayments() {
 
   const dueBillsByFlat = useMemo(() => {
     const m: Record<string, Bill[]> = {};
-    flats.forEach(f => { m[f.id] = []; });
+    allFlats.forEach(f => { m[f.id] = []; });
     dueBills.forEach(b => { (m[b.flat_id] ??= []).push(b); });
     return m;
-  }, [dueBills, flats]);
+  }, [dueBills, allFlats]);
 
   const openSubmit = (b?: Bill, fid?: string) => {
     const flatId = fid ?? b?.flat_id ?? flats.find(f => (dueBillsByFlat[f.id] ?? []).length > 0)?.id ?? flats[0]?.id ?? "";
