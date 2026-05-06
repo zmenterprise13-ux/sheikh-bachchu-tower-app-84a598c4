@@ -395,14 +395,17 @@ function AccountHeader() {
 }
 
 function NavGroupBlock({ group, t, onNavigate, badges }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void; badges?: Partial<Record<string, number>> }) {
-  const [open, setOpen] = useState(true);
+  const { pathname } = useLocation();
+  const hasActive = group.items.some((i) => pathname === i.to || pathname.startsWith(i.to + "/"));
+  const [open, setOpen] = useState(hasActive || true);
+  useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
       <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-3 pt-1 pb-1 text-sm font-bold tracking-wide text-foreground hover:text-primary transition-base">
         <span>{t(group.label)}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "rotate-0" : "-rotate-90")} />
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-1">
+      <CollapsibleContent className="space-y-1 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
         {group.items.map(({ to, key, icon: Icon }) => {
           const badge = badges?.[key as string] ?? 0;
           return (
