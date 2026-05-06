@@ -76,6 +76,21 @@ export default function OwnerDashboard() {
     if (flat && flat.id !== selectedFlatId) setSelectedFlatId(flat.id);
   }, [flat, selectedFlatId, setSelectedFlatId]);
 
+  // Resolve current ledger month = latest bill month available across user's flats
+  useEffect(() => {
+    if (flats.length === 0) return;
+    (async () => {
+      const flatIds = flats.map(f => f.id);
+      const { data } = await supabase
+        .from("bills")
+        .select("month")
+        .in("flat_id", flatIds)
+        .order("month", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) setMonth(data[0].month);
+    })();
+  }, [flats]);
+
   useEffect(() => {
     if (flats.length === 0) {
       setLoading(flatsLoading);
