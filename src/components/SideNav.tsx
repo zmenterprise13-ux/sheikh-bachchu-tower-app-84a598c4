@@ -532,7 +532,7 @@ export function MobileNav() {
               <span className="truncate max-w-full px-1">{t("more" as TKey)}</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[85vh] flex flex-col">
+          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[75vh] flex flex-col">
             <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
               <SheetTitle>{t("more" as TKey)}</SheetTitle>
             </SheetHeader>
