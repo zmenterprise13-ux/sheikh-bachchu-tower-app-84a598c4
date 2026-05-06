@@ -28,6 +28,8 @@ export const translations: T = {
   tenantInfo: { bn: "ভাড়াটিয়া তথ্য", en: "Tenant Info" },
   reports: { bn: "মাসিক রিপোর্ট", en: "Monthly Reports" },
   notices: { bn: "নোটিশ", en: "Notices" },
+  feedback: { bn: "মতামত ও পরামর্শ", en: "Feedback" },
+  userFeedback: { bn: "ইউজার মতামত", en: "User Feedback" },
   myDues: { bn: "আমার বকেয়া", en: "My Dues" },
  myPayments: { bn: "পেমেন্ট হিস্ট্রি", en: "Payment History" },
 myReceipts: { bn: "রিসিপট ইতিহাস", en: "Receipts" },
