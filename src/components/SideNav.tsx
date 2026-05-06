@@ -397,7 +397,7 @@ function AccountHeader() {
 function NavGroupBlock({ group, t, onNavigate, badges }: { group: NavGroup; t: (k: TKey) => string; onNavigate?: () => void; badges?: Partial<Record<string, number>> }) {
   const { pathname } = useLocation();
   const hasActive = group.items.some((i) => pathname === i.to || pathname.startsWith(i.to + "/"));
-  const [open, setOpen] = useState(hasActive || true);
+  const [open, setOpen] = useState<boolean>(true);
   useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="space-y-1">
