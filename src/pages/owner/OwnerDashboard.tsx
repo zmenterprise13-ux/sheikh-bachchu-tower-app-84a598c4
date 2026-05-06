@@ -153,288 +153,192 @@ export default function OwnerDashboard() {
   const currentBillPaid = currentBill ? Number(currentBill.paid_amount) : 0;
   const currentPayPct = currentBillTotal > 0 ? Math.min(100, Math.round((currentBillPaid / currentBillTotal) * 100)) : 0;
 
+  const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
+  const scopeFlats = isTenant ? [flat] : flats;
+  const totalDueScoped = scopeFlats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    if (!b) return sum;
+    return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+  }, 0);
+  const totalPaidScoped = scopeFlats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    return sum + (b ? Number(b.paid_amount) : 0);
+  }, 0);
+  const totalBilledScoped = scopeFlats.reduce((sum, f) => {
+    const b = allBills[f.id];
+    return sum + (b ? Number(b.total) : 0);
+  }, 0);
+  const scopedPct = totalBilledScoped > 0 ? Math.min(100, Math.round((totalPaidScoped / totalBilledScoped) * 100)) : 0;
+  const isPaid = totalDueScoped <= 0 && totalBilledScoped > 0;
+  const showFlatSwitcher = scopeFlats.length > 1;
+
+  // Item-wise breakdown across scoped flats (current month)
+  const billItems = (() => {
+    const sumField = (field: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
+      scopeFlats.reduce((s, f) => {
+        const b = allBills[f.id];
+        return s + (b ? Number(b[field]) : 0);
+      }, 0);
+    return [
+      { key: "service", label: t("serviceCharge"), value: sumField("service_charge"), icon: Home },
+      { key: "gas", label: t("gasBill"), value: sumField("gas_bill"), icon: Receipt },
+      { key: "parking", label: t("parking"), value: sumField("parking"), icon: Receipt },
+      { key: "eid", label: lang === "bn" ? "ঈদ বোনাস" : "Eid Bonus", value: sumField("eid_bonus"), icon: Sparkles },
+      { key: "other", label: t("otherCharge"), value: sumField("other_charge"), icon: Receipt },
+    ].filter(i => i.value > 0);
+  })();
+
   return (
     <AppShell>
-      <div className="space-y-4 sm:space-y-6 animate-fade-in">
-        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-8 shadow-elevated overflow-hidden">
-          {/* decorative orbs */}
-          <div className="pointer-events-none absolute -top-24 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
-          <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-accent/30 blur-3xl" />
-          <div className="relative flex items-start gap-4 flex-wrap">
-            <div className="relative shrink-0 group">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-accent via-white/40 to-primary-foreground/60 opacity-70 blur-md group-hover:opacity-100 transition-opacity" />
-              <Avatar className="relative h-24 w-24 sm:h-28 sm:w-28 border-4 border-white/60 shadow-2xl ring-2 ring-white/30 transition-transform duration-300 group-hover:scale-105">
-                {(profileName.avatar || flat.owner_photo_url) ? (
-                  <AvatarImageWithSkeleton
-                    src={(profileName.avatar || flat.owner_photo_url) as string}
-                    alt={
-                      flat.owner_name
-                        ? (lang === "bn" ? `${flat.owner_name}-এর প্রোফাইল ছবি` : `Profile photo of ${flat.owner_name}`)
-                        : (lang === "bn" ? "মালিকের প্রোফাইল ছবি" : "Owner profile photo")
-                    }
-                    className="object-cover"
-                  />
-                ) : null}
-                <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-2xl ring-2 ring-white/30" />
-              </Avatar>
-            </div>
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
+        {/* Compact greeting header */}
+        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-5 shadow-elevated overflow-hidden">
+          <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+          <div className="relative flex items-center gap-3">
+            <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-white/50 shadow-lg shrink-0">
+              {(profileName.avatar || flat.owner_photo_url) ? (
+                <AvatarImageWithSkeleton
+                  src={(profileName.avatar || flat.owner_photo_url) as string}
+                  alt={flat.owner_name ?? "profile"}
+                  className="object-cover"
+                />
+              ) : null}
+              <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-lg" />
+            </Avatar>
             <div className="flex-1 min-w-0">
-              <div className="text-sm opacity-90 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" /> {t("welcome")},
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 flex-wrap">
-                <span>{residentName(flat, lang) || profileName.bn || profileName.en || "—"}</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-primary-foreground backdrop-blur">
-                  {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}
-                </span>
+              <div className="text-xs opacity-90">{t("welcome")},</div>
+              <h1 className="text-base sm:text-xl font-bold truncate">
+                {residentName(flat, lang) || profileName.bn || profileName.en || "—"}
               </h1>
-              <div className="text-sm opacity-90 mt-1 flex items-center gap-2 flex-wrap">
-                <Building2 className="h-3.5 w-3.5 opacity-80" />
-                {hasMultipleFlats ? (
-                  <>
-                    <span>{lang === "bn" ? "ফ্ল্যাট" : "Flat"}:</span>
-                    <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
-                      <SelectTrigger className="h-7 w-auto min-w-[110px] bg-white/15 border-white/30 text-primary-foreground hover:bg-white/25 px-2 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {flats.map((f) => {
-                          const b = allBills[f.id];
-                          const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
-                          return (
-                            <SelectItem key={f.id} value={f.id}>
-                              {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-xs opacity-80">· {flats.length} {lang === "bn" ? "ফ্ল্যাট" : "flats"}</span>
-                  </>
+              <div className="text-[11px] opacity-90 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <Building2 className="h-3 w-3 opacity-80" />
+                {showFlatSwitcher ? (
+                  <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
+                    <SelectTrigger className="h-6 w-auto bg-white/15 border-white/30 text-primary-foreground hover:bg-white/25 px-2 text-[11px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {flats.map((f) => {
+                        const b = allBills[f.id];
+                        const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                        return (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 ) : (
-                  <>
-                    {t("flatNo")}: <span className="font-bold">{flat.flat_no}</span>
-                  </>
+                  <span>{t("flatNo")}: <span className="font-bold">{flat.flat_no}</span></span>
                 )}
-                <span className="opacity-70">· {formatNumber(flat.size, lang)} sqft</span>
+                <span className="opacity-70">· {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}</span>
               </div>
-
-              {/* Payment progress */}
-              {currentBill && (
-                <div className="mt-4 max-w-md">
-                  <div className="flex justify-between text-[11px] opacity-90 mb-1">
-                    <span>{lang === "bn" ? "এ মাসের পেমেন্ট" : "This month's payment"}</span>
-                    <span className="font-semibold">{formatNumber(currentPayPct, lang)}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/20 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-accent to-white rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${currentPayPct}%` }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
-            {due > 0 && (
-              <Button
-                size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow gap-2 hover:scale-105 transition-transform"
-                onClick={() => toast.info(lang === "bn" ? "অনলাইন পেমেন্ট শীঘ্রই" : "Online payment coming soon")}
-              >
-                <CreditCard className="h-4 w-4" />
-                {t("payNow")} · <AnimatedNumber value={due} format={(n) => formatMoney(n, lang)} />
-              </Button>
-            )}
           </div>
         </div>
 
-        {(() => {
-          const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
-          const scopeFlats = isTenant ? [flat] : flats;
-          const totalDueScoped = scopeFlats.reduce((sum, f) => {
-            const b = allBills[f.id];
-            if (!b) return sum;
-            return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
-          }, 0);
-          const totalPaidScoped = scopeFlats.reduce((sum, f) => {
-            const b = allBills[f.id];
-            return sum + (b ? Number(b.paid_amount) : 0);
-          }, 0);
-          const totalServiceCharge = scopeFlats.reduce((sum, f) => sum + Number(f.service_charge || 0), 0);
-          const dueLabel = isTenant
-            ? (lang === "bn" ? "আপনার মোট বকেয়া" : "Your Total Due")
-            : (scopeFlats.length > 1
-                ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)")
-                : t("due"));
-          return (
-            <div className="space-y-4">
-              <StatCard
-                label={dueLabel}
-                value={formatMoney(totalDueScoped, lang)}
-                hint={scopeFlats.length > 1
-                  ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}`
-                  : `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${flat.flat_no}`}
-                icon={Receipt}
-                variant={totalDueScoped > 0 ? "destructive" : "success"}
-              />
-              <StatCard
-                label={lang === "bn" ? "এ মাসে পরিশোধিত" : "Paid This Month"}
-                value={formatMoney(totalPaidScoped, lang)}
-                hint={month}
-                icon={CheckCircle2}
-                variant={totalPaidScoped > 0 ? "success" : "default"}
-              />
-              <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 shadow-soft">
-                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-                  <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm">
-                    <Home className="h-4 w-4 text-primary" />
-                    {lang === "bn" ? "ধার্যকৃত সার্ভিস চার্জের বিবরণ" : "Assigned Service Charge Details"}
-                  </h3>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {lang === "bn" ? "মোট" : "Total"}: {formatMoney(totalServiceCharge, lang)}
-                  </span>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {scopeFlats.map(f => (
-                    <div key={f.id} className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-3 py-2.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                          {f.flat_no}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs text-muted-foreground">{lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)} · {formatNumber(f.size, lang)} sqft</div>
-                          <div className="text-[11px] text-muted-foreground">{t("serviceCharge")}</div>
-                        </div>
-                      </div>
-                      <span className="text-sm font-bold text-foreground tabular-nums">{formatMoney(Number(f.service_charge || 0), lang)}</span>
-                    </div>
-                  ))}
-                </div>
+        {/* HERO summary card: due / paid / progress */}
+        <div className={cn(
+          "rounded-2xl border-2 p-5 shadow-soft transition-colors",
+          isPaid ? "border-success/40 bg-success/5" : totalDueScoped > 0 ? "border-destructive/40 bg-destructive/5" : "border-border bg-card"
+        )}>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <AlertTriangle className={cn("h-3.5 w-3.5", isPaid ? "text-success" : "text-destructive")} />
+                {isTenant
+                  ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
+                  : showFlatSwitcher
+                    ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)")
+                    : (lang === "bn" ? "মোট বকেয়া" : "Total Due")}
+              </div>
+              <div className={cn(
+                "mt-1 text-3xl sm:text-4xl font-extrabold tabular-nums",
+                isPaid ? "text-success" : totalDueScoped > 0 ? "text-destructive" : "text-foreground"
+              )}>
+                <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${flat.flat_no}`}
               </div>
             </div>
-          );
-        })()}
-
-        {(() => {
-          const sumField = (field: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
-            hasMultipleFlats
-              ? flats.reduce((s, f) => {
-                  const b = allBills[f.id];
-                  return s + (b ? Number(b[field]) : 0);
-                }, 0)
-              : currentBill ? Number(currentBill[field]) : 0;
-          const totalDueShown = hasMultipleFlats ? totalDueAcrossFlats : due;
-          if (totalDueShown <= 0) return null;
-          const items = [
-            { key: "service", label: t("serviceCharge"), value: sumField("service_charge"), icon: Home },
-            { key: "gas", label: t("gasBill"), value: sumField("gas_bill"), icon: Receipt },
-            { key: "parking", label: t("parking"), value: sumField("parking"), icon: Receipt },
-            { key: "other", label: t("otherCharge"), value: sumField("other_charge"), icon: Receipt },
-          ].filter(i => i.value > 0);
-          if (items.length === 0) return null;
-          return (
-            <div className="rounded-2xl bg-card border border-destructive/30 p-4 sm:p-5 shadow-soft">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <h3 className="font-semibold text-foreground text-sm">
-                  {lang === "bn" ? "বকেয়ার আইটেম-ভিত্তিক বিভাজন" : "Dues breakdown by item"}
-                </h3>
-                <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full bg-destructive/15 text-destructive">
-                  {lang === "bn" ? "মোট বকেয়া" : "Total due"}: {formatMoney(totalDueShown, lang)}
-                </span>
+            {totalDueScoped > 0 && (
+              <Button
+                size="lg"
+                className="gap-2 shadow-glow"
+                onClick={() => toast.info(lang === "bn" ? "অনলাইন পেমেন্ট শীঘ্রই" : "Online payment coming soon")}
+              >
+                <CreditCard className="h-4 w-4" />
+                {t("payNow")}
+              </Button>
+            )}
+            {isPaid && (
+              <div className="flex items-center gap-1.5 rounded-full bg-success/15 text-success px-3 py-1.5 text-sm font-bold">
+                <CheckCircle2 className="h-4 w-4" />
+                {lang === "bn" ? "সম্পূর্ণ পরিশোধিত" : "All Paid"}
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {items.map(it => (
-                  <div key={it.key} className="flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="h-8 w-8 rounded-lg bg-destructive/15 text-destructive flex items-center justify-center shrink-0">
-                        <it.icon className="h-4 w-4" />
-                      </div>
-                      <span className="text-sm font-medium text-foreground truncate">{it.label}</span>
-                    </div>
-                    <span className="text-sm font-bold text-destructive">{formatMoney(it.value, lang)}</span>
-                  </div>
-                ))}
+            )}
+          </div>
+
+          {totalBilledScoped > 0 && (
+            <div className="mt-4">
+              <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
+                <span>{lang === "bn" ? "এ মাসে পরিশোধিত" : "Paid this month"}: <span className="font-semibold text-foreground">{formatMoney(totalPaidScoped, lang)}</span> / {formatMoney(totalBilledScoped, lang)}</span>
+                <span className="font-semibold text-foreground">{formatNumber(scopedPct, lang)}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-700",
+                    scopedPct >= 100 ? "bg-success" : scopedPct > 0 ? "bg-primary" : "bg-destructive"
+                  )}
+                  style={{ width: `${Math.max(4, scopedPct)}%` }}
+                />
               </div>
             </div>
-          );
-        })()}
+          )}
+        </div>
 
-        {hasMultipleFlats && (
-          <div className="rounded-2xl bg-card border border-border p-6 shadow-soft">
-            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <h2 className="font-semibold text-foreground flex items-center gap-2">
+        {/* Multi-flat picker (compact) */}
+        {showFlatSwitcher && (
+          <div className="rounded-2xl bg-card border border-border p-4 shadow-soft">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h2 className="font-semibold text-foreground flex items-center gap-2 text-sm">
                 <Building2 className="h-4 w-4 text-primary" />
-                {lang === "bn" ? "আমার সব ফ্ল্যাট" : "My Flats"} — {month}
+                {lang === "bn" ? "আমার ফ্ল্যাট" : "My Flats"}
               </h2>
-              <span className="text-xs text-muted-foreground">
-                {lang === "bn" ? "ফ্ল্যাটে ক্লিক করে সিলেক্ট করুন" : "Click a flat to select"}
+              <span className="text-[11px] text-muted-foreground">
+                {lang === "bn" ? "ক্লিক করে সিলেক্ট করুন" : "Tap to select"}
               </span>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-2 grid-cols-2 lg:grid-cols-3">
               {flats.map((f) => {
                 const b = allBills[f.id];
                 const fTotal = b ? Number(b.total) : 0;
                 const fPaid = b ? Number(b.paid_amount) : 0;
                 const fDue = Math.max(0, fTotal - fPaid);
-                const fPct = fTotal > 0 ? Math.min(100, Math.round((fPaid / fTotal) * 100)) : 0;
                 const isActive = f.id === flat.id;
-                const hasBill = !!b;
                 return (
                   <button
                     key={f.id}
                     type="button"
                     onClick={() => setSelectedFlatId(f.id)}
-                    className={`group relative overflow-hidden text-left rounded-xl border p-4 transition-all duration-300 hover:shadow-elegant hover:-translate-y-0.5 ${
-                      isActive
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/30"
-                        : "border-border bg-background hover:border-primary/40"
-                    }`}
+                    className={cn(
+                      "text-left rounded-xl border p-3 transition-all hover:-translate-y-0.5 hover:shadow-elegant",
+                      isActive ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border bg-background"
+                    )}
                   >
-                    {isActive && (
-                      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
-                    )}
-                    <div className="relative flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center text-xs font-bold transition-transform duration-300 group-hover:scale-110">
-                          {f.flat_no}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)}
-                        </div>
-                      </div>
-                      {isActive && <CheckCircle2 className="h-4 w-4 text-primary animate-in zoom-in" />}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="font-bold text-sm text-foreground">{f.flat_no}</div>
+                      {isActive && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
                     </div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {lang === "bn" ? "এ মাসের বকেয়া" : "This month due"}
-                    </div>
-                    {!hasBill ? (
-                      <div className="text-sm text-muted-foreground italic">
-                        {lang === "bn" ? "বিল তৈরি হয়নি" : "No bill yet"}
-                      </div>
+                    {!b ? (
+                      <div className="text-[11px] text-muted-foreground italic">{lang === "bn" ? "বিল নেই" : "No bill"}</div>
                     ) : fDue > 0 ? (
-                      <div className="text-lg font-bold text-destructive">{formatMoney(fDue, lang)}</div>
+                      <div className="text-sm font-bold text-destructive tabular-nums">{formatMoney(fDue, lang)}</div>
                     ) : (
-                      <div className="text-sm font-semibold text-success flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        {lang === "bn" ? "পরিশোধিত" : "Paid"}
-                      </div>
-                    )}
-                    {hasBill && (
-                      <div className="mt-3">
-                        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ease-out ${
-                              fPct >= 100 ? "bg-success" : fPct > 0 ? "bg-primary" : "bg-destructive"
-                            }`}
-                            style={{ width: `${Math.max(4, fPct)}%` }}
-                          />
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-1 flex justify-between">
-                          <span>{formatMoney(fPaid, lang)} / {formatMoney(fTotal, lang)}</span>
-                          <span className="font-semibold">{formatNumber(fPct, lang)}%</span>
-                        </div>
-                      </div>
+                      <div className="text-[11px] font-semibold text-success">{lang === "bn" ? "পরিশোধিত" : "Paid"}</div>
                     )}
                   </button>
                 );
@@ -443,126 +347,81 @@ export default function OwnerDashboard() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:gap-6">
-          <div key={flat.id} className="rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-soft animate-fade-in">
-            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-              <h2 className="font-semibold text-foreground flex items-center gap-2">
-                {t("dues")} — {month}
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                  {lang === "bn" ? "ফ্ল্যাট" : "Flat"} {flat.flat_no}
-                </span>
-              </h2>
-              <div className="flex items-center gap-2">
-                {currentBill && <CombinedBillStatus generation={currentBill.generation_status} payment={currentBill.status} />}
-                {currentBill && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => {
-                      try {
-                        generateBillPdf({
-                          flatNo: flat.flat_no,
-                          ownerName: flat.owner_name,
-                          month: currentBill.month,
-                          serviceCharge: Number(currentBill.service_charge),
-                          gasBill: Number(currentBill.gas_bill),
-                          parking: Number(currentBill.parking),
-                          eidBonus: Number(currentBill.eid_bonus),
-                          otherCharge: Number(currentBill.other_charge),
-                          total: Number(currentBill.total),
-                          paid: Number(currentBill.paid_amount),
-                          due: Math.max(0, Number(currentBill.total) - Number(currentBill.paid_amount)),
-                          dueDate: currentBill.due_date,
-                          paidAt: currentBill.paid_at,
-                          generatedOn: currentBill.generated_at,
-                        });
-                        toast.success(lang === "bn" ? "PDF ডাউনলোড শুরু হয়েছে" : "PDF download started");
-                      } catch (err: any) {
-                        toast.error(err.message ?? "PDF generation failed");
-                      }
-                    }}
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {t("download")}
-                  </Button>
-                )}
-              </div>
-            </div>
-            {loading ? (
-              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6" />)}</div>
-            ) : !currentBill ? (
-              <div className="text-sm text-muted-foreground py-6 text-center">
-                {lang === "bn" ? "এ মাসের কোনো বিল এখনো তৈরি হয়নি।" : "No bill generated for this month yet."}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className={cn(
-                  "rounded-xl border-2 p-4 space-y-3",
-                  due > 0 ? "border-destructive/40 bg-destructive/5" : "border-success/40 bg-success/5"
-                )}>
-                  <div className="flex items-center justify-between text-xs uppercase tracking-wide font-semibold">
-                    <span className={due > 0 ? "text-destructive" : "text-success"}>
-                      {lang === "bn" ? "এ মাসের বকেয়া" : "This Month's Due"}
-                    </span>
-                    <span className="text-muted-foreground normal-case tracking-normal font-medium">{currentBill.month}</span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-background/80 border border-border p-2.5">
-                      <div className="text-[11px] text-muted-foreground">{t("serviceCharge")}</div>
-                      <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.service_charge), lang)}</div>
-                    </div>
-                    <div className="rounded-lg bg-background/80 border border-border p-2.5">
-                      <div className="text-[11px] text-muted-foreground">{t("gasBill")}</div>
-                      <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.gas_bill), lang)}</div>
-                    </div>
-                    {Number(currentBill.parking) > 0 && (
-                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
-                        <div className="text-[11px] text-muted-foreground">{t("parking")}</div>
-                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.parking), lang)}</div>
-                      </div>
-                    )}
-                    {Number(currentBill.eid_bonus) > 0 && (
-                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
-                        <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "ঈদ বোনাস" : "Eid Bonus"}</div>
-                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.eid_bonus), lang)}</div>
-                      </div>
-                    )}
-                    {Number(currentBill.other_charge) > 0 && (
-                      <div className="rounded-lg bg-background/80 border border-border p-2.5">
-                        <div className="text-[11px] text-muted-foreground">{t("otherCharge")}</div>
-                        <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">{formatMoney(Number(currentBill.other_charge), lang)}</div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                    <span className="text-sm font-semibold text-muted-foreground">{t("total")}</span>
-                    <span className="text-xl sm:text-2xl font-extrabold text-primary tabular-nums">{formatMoney(Number(currentBill.total), lang)}</span>
-                  </div>
-                  {due > 0 ? (
-                    <div className="flex items-center justify-between rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2">
-                      <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
-                        <AlertTriangle className="h-4 w-4" />
-                        {lang === "bn" ? "মোট বাকী" : "Total Due"}
-                      </span>
-                      <span className="text-2xl sm:text-3xl font-extrabold text-destructive tabular-nums">{formatMoney(due, lang)}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 border border-success/30 px-3 py-2 text-success font-bold">
-                      <CheckCircle2 className="h-4 w-4" />
-                      {lang === "bn" ? "সম্পূর্ণ পরিশোধিত" : "Fully Paid"}
-                    </div>
-                  )}
-                </div>
-              </div>
+        {/* Bill breakdown — service items */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="font-semibold text-foreground flex items-center gap-2 text-sm">
+              <Receipt className="h-4 w-4 text-primary" />
+              {lang === "bn" ? "এ মাসের সার্ভিস বিবরণ" : "This Month's Services"}
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">{month}</span>
+            </h2>
+            {currentBill && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 h-8"
+                onClick={() => {
+                  try {
+                    generateBillPdf({
+                      flatNo: flat.flat_no,
+                      ownerName: flat.owner_name,
+                      month: currentBill.month,
+                      serviceCharge: Number(currentBill.service_charge),
+                      gasBill: Number(currentBill.gas_bill),
+                      parking: Number(currentBill.parking),
+                      eidBonus: Number(currentBill.eid_bonus),
+                      otherCharge: Number(currentBill.other_charge),
+                      total: Number(currentBill.total),
+                      paid: Number(currentBill.paid_amount),
+                      due: Math.max(0, Number(currentBill.total) - Number(currentBill.paid_amount)),
+                      dueDate: currentBill.due_date,
+                      paidAt: currentBill.paid_at,
+                      generatedOn: currentBill.generated_at,
+                    });
+                    toast.success(lang === "bn" ? "PDF ডাউনলোড শুরু" : "PDF download started");
+                  } catch (err: any) {
+                    toast.error(err.message ?? "PDF failed");
+                  }
+                }}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {t("download")}
+              </Button>
             )}
           </div>
+          {loading ? (
+            <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+          ) : billItems.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-6 text-center">
+              {lang === "bn" ? "এ মাসের কোনো বিল এখনো তৈরি হয়নি।" : "No bill generated yet for this month."}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {billItems.map(it => (
+                  <div key={it.key} className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-3 py-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <it.icon className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-medium text-foreground truncate">{it.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground tabular-nums">{formatMoney(it.value, lang)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <span className="text-sm font-semibold text-muted-foreground">{t("total")}</span>
+                <span className="text-xl font-extrabold text-primary tabular-nums">{formatMoney(totalBilledScoped, lang)}</span>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Recent bills history for the selected flat */}
-        <div key={`recent-${flat.id}`} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden animate-fade-in">
-          <div className="flex items-center justify-between p-5 border-b border-border flex-wrap gap-2">
-            <h2 className="font-semibold text-foreground flex items-center gap-2">
+        {/* Recent bills */}
+        <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-wrap gap-2">
+            <h2 className="font-semibold text-foreground flex items-center gap-2 text-sm">
               <Receipt className="h-4 w-4 text-primary" />
               {lang === "bn" ? "সাম্প্রতিক বিল" : "Recent Bills"}
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -574,7 +433,7 @@ export default function OwnerDashboard() {
             </Link>
           </div>
           {recentLoading ? (
-            <div className="p-5 space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+            <div className="p-4 space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
           ) : recentBills.length === 0 ? (
             <div className="p-6 text-sm text-center text-muted-foreground">{t("noData")}</div>
           ) : (
@@ -582,23 +441,21 @@ export default function OwnerDashboard() {
               {recentBills.map((b) => {
                 const bDue = Math.max(0, Number(b.total) - Number(b.paid_amount));
                 return (
-                  <div key={b.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors">
+                  <div key={b.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors">
                     <div className="min-w-0">
                       <div className="font-medium text-sm text-foreground">{b.month}</div>
                       <div className="text-[11px] text-muted-foreground mt-0.5">
-                        {lang === "bn" ? "মোট" : "Total"}: {formatMoney(Number(b.total), lang)} · {lang === "bn" ? "পরিশোধিত" : "Paid"}: {formatMoney(Number(b.paid_amount), lang)}
+                        {lang === "bn" ? "মোট" : "Total"}: {formatMoney(Number(b.total), lang)}
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      {bDue > 0 ? (
-                        <div className="text-sm font-bold text-destructive">{formatMoney(bDue, lang)}</div>
-                      ) : (
-                        <div className="text-xs font-semibold text-success flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          {lang === "bn" ? "পরিশোধিত" : "Paid"}
-                        </div>
-                      )}
-                    </div>
+                    {bDue > 0 ? (
+                      <div className="text-sm font-bold text-destructive tabular-nums">{formatMoney(bDue, lang)}</div>
+                    ) : (
+                      <div className="text-xs font-semibold text-success flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -606,51 +463,35 @@ export default function OwnerDashboard() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 p-4 sm:p-5 shadow-soft flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
-              <FileText className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="font-semibold text-foreground">
-                {lang === "bn" ? "মাসিক আয়-ব্যয় রিপোর্ট" : "Monthly Finance Report"}
+        {/* Quick links */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link to="/owner/finance-report" className="group rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 p-4 shadow-soft flex items-center justify-between gap-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5" />
               </div>
-              <div className="text-xs text-muted-foreground">
-                {lang === "bn" ? "অ্যাডমিনের প্রকাশিত পূর্ণ আয়-ব্যয় চার্ট ও টেবিল দেখুন" : "View admin's full income-expense charts & tables"}
+              <div className="min-w-0">
+                <div className="font-semibold text-foreground text-sm">{lang === "bn" ? "মাসিক রিপোর্ট" : "Monthly Report"}</div>
+                <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "আয়-ব্যয়ের পূর্ণ চিত্র" : "Full income & expenses"}</div>
               </div>
             </div>
-          </div>
-          <Link to="/owner/finance-report">
-            <Button size="sm" className="gap-1.5">
-              {lang === "bn" ? "ফুল রিপোর্ট" : "Full Report"}
-              <TrendingUp className="h-3.5 w-3.5" />
-            </Button>
+            <TrendingUp className="h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+          <Link to="/owner/info" className="group rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-4 shadow-soft flex items-center justify-between gap-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center shrink-0">
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold text-foreground text-sm">{lang === "bn" ? "নোটিশ ও কমিটি" : "Notices & Committee"}</div>
+                <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "উপদেষ্টা ও সকল নোটিশ" : "Advisors & all notices"}</div>
+              </div>
+            </div>
+            <Bell className="h-4 w-4 text-accent-foreground group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
         <MonthlyFinanceSummary month={month} variant="owner" />
-
-        <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-4 sm:p-5 shadow-soft flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center shrink-0">
-              <Megaphone className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="font-semibold text-foreground">
-                {lang === "bn" ? "নোটিশ ও কমিটি" : "Notices & Committee"}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {lang === "bn" ? "সকল উপদেষ্টা, কমিটি ও নোটিশের তালিকা" : "Browse advisors, committee and all notices"}
-              </div>
-            </div>
-          </div>
-          <Link to="/owner/info">
-            <Button size="sm" className="gap-1.5">
-              {lang === "bn" ? "দেখুন" : "View"}
-              <Bell className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </div>
       </div>
     </AppShell>
   );
