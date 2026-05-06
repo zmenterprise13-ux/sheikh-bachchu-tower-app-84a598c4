@@ -263,17 +263,72 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard
-            label={hasMultipleFlats ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)") : t("due")}
-            value={formatMoney(hasMultipleFlats ? totalDueAcrossFlats : due, lang)}
-            hint={hasMultipleFlats ? `${flats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"} · ${formatNumber(payPct, lang)}% paid` : t("month")}
-            icon={Receipt}
-            variant={(hasMultipleFlats ? totalDueAcrossFlats : due) > 0 ? "destructive" : "success"}
-          />
-          <StatCard label={t("serviceCharge")} value={formatMoney(Number(flat.service_charge), lang)} icon={Home} />
-          <StatCard label={t("gasBill")} value={formatMoney(Number(flat.gas_bill), lang)} icon={Receipt} />
-        </div>
+        {(() => {
+          const isTenant = (flat.occupant_type ?? "").toLowerCase() === "tenant";
+          const scopeFlats = isTenant ? [flat] : flats;
+          const totalDueScoped = scopeFlats.reduce((sum, f) => {
+            const b = allBills[f.id];
+            if (!b) return sum;
+            return sum + Math.max(0, Number(b.total) - Number(b.paid_amount));
+          }, 0);
+          const totalPaidScoped = scopeFlats.reduce((sum, f) => {
+            const b = allBills[f.id];
+            return sum + (b ? Number(b.paid_amount) : 0);
+          }, 0);
+          const totalServiceCharge = scopeFlats.reduce((sum, f) => sum + Number(f.service_charge || 0), 0);
+          const dueLabel = isTenant
+            ? (lang === "bn" ? "আপনার মোট বকেয়া" : "Your Total Due")
+            : (scopeFlats.length > 1
+                ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)")
+                : t("due"));
+          return (
+            <div className="space-y-4">
+              <StatCard
+                label={dueLabel}
+                value={formatMoney(totalDueScoped, lang)}
+                hint={scopeFlats.length > 1
+                  ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}`
+                  : `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${flat.flat_no}`}
+                icon={Receipt}
+                variant={totalDueScoped > 0 ? "destructive" : "success"}
+              />
+              <StatCard
+                label={lang === "bn" ? "এ মাসে পরিশোধিত" : "Paid This Month"}
+                value={formatMoney(totalPaidScoped, lang)}
+                hint={month}
+                icon={CheckCircle2}
+                variant={totalPaidScoped > 0 ? "success" : "default"}
+              />
+              <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 shadow-soft">
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                    <Home className="h-4 w-4 text-primary" />
+                    {lang === "bn" ? "ধার্যকৃত সার্ভিস চার্জের বিবরণ" : "Assigned Service Charge Details"}
+                  </h3>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                    {lang === "bn" ? "মোট" : "Total"}: {formatMoney(totalServiceCharge, lang)}
+                  </span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {scopeFlats.map(f => (
+                    <div key={f.id} className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                          {f.flat_no}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs text-muted-foreground">{lang === "bn" ? "তলা" : "Floor"} {formatNumber(f.floor, lang)} · {formatNumber(f.size, lang)} sqft</div>
+                          <div className="text-[11px] text-muted-foreground">{t("serviceCharge")}</div>
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold text-foreground tabular-nums">{formatMoney(Number(f.service_charge || 0), lang)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {(() => {
           const sumField = (field: "service_charge" | "gas_bill" | "parking" | "eid_bonus" | "other_charge") =>
