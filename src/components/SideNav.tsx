@@ -215,6 +215,7 @@ const managerGroups: NavGroup[] = [
     items: [
       { to: "/admin/notices", key: "notices", icon: Megaphone },
       { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
     ],
   },
   {
