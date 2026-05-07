@@ -136,6 +136,23 @@ export default function Download() {
     return () => clearInterval(id);
   }, [repoConfigured]);
 
+  // Track latest seen release tag in localStorage to flag "নতুন ভার্সন"
+  const SEEN_KEY = "sbt:lastSeenReleaseTag";
+  const latestTag = useMemo(() => {
+    const stable = releases?.find((r) => !r.prerelease) ?? releases?.[0];
+    return stable?.tag_name ?? null;
+  }, [releases]);
+  const [seenTag, setSeenTag] = useState<string | null>(() => {
+    try { return localStorage.getItem(SEEN_KEY); } catch { return null; }
+  });
+  const hasNewVersion = Boolean(latestTag && latestTag !== seenTag);
+
+  const markAsSeen = () => {
+    if (!latestTag) return;
+    try { localStorage.setItem(SEEN_KEY, latestTag); } catch {}
+    setSeenTag(latestTag);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl py-8 space-y-6">
