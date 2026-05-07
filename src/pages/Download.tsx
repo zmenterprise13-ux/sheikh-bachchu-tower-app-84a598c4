@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Download as DownloadIcon, Github, Package, FileArchive, Loader2, ExternalLink, Smartphone, AlertCircle } from "lucide-react";
+import { Download as DownloadIcon, Github, Package, FileArchive, Loader2, ExternalLink, Smartphone, AlertCircle, CheckCircle2, XCircle, CircleDashed, Clock, RefreshCw, Activity } from "lucide-react";
 
 // === GitHub repo config — update these after connecting your repo ===
 const GITHUB_OWNER = ""; // e.g. "your-username"
@@ -28,6 +28,20 @@ type Release = {
   assets: ReleaseAsset[];
 };
 
+type WorkflowRun = {
+  id: number;
+  name: string;
+  display_title: string;
+  status: string; // queued, in_progress, completed
+  conclusion: string | null; // success, failure, cancelled, skipped, null
+  html_url: string;
+  head_branch: string;
+  event: string;
+  created_at: string;
+  updated_at: string;
+  run_number: number;
+};
+
 const formatBytes = (bytes: number) => {
   if (!bytes) return "—";
   const mb = bytes / (1024 * 1024);
@@ -40,10 +54,44 @@ const assetIcon = (name: string) => {
   return <FileArchive className="h-5 w-5" />;
 };
 
+const runStatusBadge = (run: WorkflowRun) => {
+  if (run.status !== "completed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/15 text-warning-foreground px-2 py-0.5 text-xs font-semibold">
+        <Loader2 className="h-3 w-3 animate-spin" /> {run.status === "queued" ? "queued" : "running"}
+      </span>
+    );
+  }
+  if (run.conclusion === "success") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/15 text-success px-2 py-0.5 text-xs font-semibold">
+        <CheckCircle2 className="h-3 w-3" /> success
+      </span>
+    );
+  }
+  if (run.conclusion === "failure") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/15 text-destructive px-2 py-0.5 text-xs font-semibold">
+        <XCircle className="h-3 w-3" /> failure
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted text-muted-foreground px-2 py-0.5 text-xs font-semibold">
+      <CircleDashed className="h-3 w-3" /> {run.conclusion ?? "unknown"}
+    </span>
+  );
+};
+
 export default function Download() {
   const [releases, setReleases] = useState<Release[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [runs, setRuns] = useState<WorkflowRun[] | null>(null);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [runsError, setRunsError] = useState<string | null>(null);
+  const [runsRefreshTick, setRunsRefreshTick] = useState(0);
 
   const repoConfigured = Boolean(GITHUB_OWNER && GITHUB_REPO);
   const repoUrl = repoConfigured ? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}` : "";
@@ -61,6 +109,31 @@ export default function Download() {
       .then((data: Release[]) => setReleases(data))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+  }, [repoConfigured]);
+
+  // Fetch latest workflow runs (build status) — auto refresh every 30s
+  useEffect(() => {
+    if (!repoConfigured) return;
+    let cancelled = false;
+    setRunsLoading(true);
+    setRunsError(null);
+    fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=5`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+        return r.json();
+      })
+      .then((data: { workflow_runs: WorkflowRun[] }) => {
+        if (!cancelled) setRuns(data.workflow_runs ?? []);
+      })
+      .catch((e) => { if (!cancelled) setRunsError(e.message); })
+      .finally(() => { if (!cancelled) setRunsLoading(false); });
+    return () => { cancelled = true; };
+  }, [repoConfigured, runsRefreshTick]);
+
+  useEffect(() => {
+    if (!repoConfigured) return;
+    const id = setInterval(() => setRunsRefreshTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
   }, [repoConfigured]);
 
   return (
@@ -130,6 +203,72 @@ export default function Download() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Build status (Actions workflow runs) */}
+        {repoConfigured && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="h-5 w-5" /> বিল্ড স্ট্যাটাস
+                  </CardTitle>
+                  <CardDescription>সর্বশেষ Actions ওয়ার্কফ্লো রান (প্রতি ৩০ সেকেন্ডে অটো রিফ্রেশ)</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRunsRefreshTick((t) => t + 1)}
+                  disabled={runsLoading}
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${runsLoading ? "animate-spin" : ""}`} />
+                  রিফ্রেশ
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {runsLoading && !runs && (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> লোড হচ্ছে...
+                </div>
+              )}
+              {runsError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>বিল্ড স্ট্যাটাস লোড করা যায়নি: {runsError}</AlertDescription>
+                </Alert>
+              )}
+              {runs && runs.length === 0 && (
+                <p className="text-sm text-muted-foreground">এখনো কোনো ওয়ার্কফ্লো রান নেই।</p>
+              )}
+              {runs?.map((run) => (
+                <a
+                  key={run.id}
+                  href={run.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-3 p-3 rounded-md border hover:bg-accent transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm truncate">{run.name}</span>
+                      <Badge variant="outline" className="text-[10px]">#{run.run_number}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{run.event}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {run.display_title} · <span className="font-mono">{run.head_branch}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <Clock className="h-3 w-3" />
+                      {new Date(run.updated_at).toLocaleString("bn-BD")}
+                    </p>
+                  </div>
+                  <div className="shrink-0">{runStatusBadge(run)}</div>
+                </a>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Releases list */}
         {repoConfigured && (
