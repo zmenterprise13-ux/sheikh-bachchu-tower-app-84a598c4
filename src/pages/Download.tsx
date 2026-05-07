@@ -54,10 +54,44 @@ const assetIcon = (name: string) => {
   return <FileArchive className="h-5 w-5" />;
 };
 
+const runStatusBadge = (run: WorkflowRun) => {
+  if (run.status !== "completed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/15 text-warning-foreground px-2 py-0.5 text-xs font-semibold">
+        <Loader2 className="h-3 w-3 animate-spin" /> {run.status === "queued" ? "queued" : "running"}
+      </span>
+    );
+  }
+  if (run.conclusion === "success") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/15 text-success px-2 py-0.5 text-xs font-semibold">
+        <CheckCircle2 className="h-3 w-3" /> success
+      </span>
+    );
+  }
+  if (run.conclusion === "failure") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/15 text-destructive px-2 py-0.5 text-xs font-semibold">
+        <XCircle className="h-3 w-3" /> failure
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted text-muted-foreground px-2 py-0.5 text-xs font-semibold">
+      <CircleDashed className="h-3 w-3" /> {run.conclusion ?? "unknown"}
+    </span>
+  );
+};
+
 export default function Download() {
   const [releases, setReleases] = useState<Release[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [runs, setRuns] = useState<WorkflowRun[] | null>(null);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [runsError, setRunsError] = useState<string | null>(null);
+  const [runsRefreshTick, setRunsRefreshTick] = useState(0);
 
   const repoConfigured = Boolean(GITHUB_OWNER && GITHUB_REPO);
   const repoUrl = repoConfigured ? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}` : "";
@@ -75,6 +109,31 @@ export default function Download() {
       .then((data: Release[]) => setReleases(data))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+  }, [repoConfigured]);
+
+  // Fetch latest workflow runs (build status) — auto refresh every 30s
+  useEffect(() => {
+    if (!repoConfigured) return;
+    let cancelled = false;
+    setRunsLoading(true);
+    setRunsError(null);
+    fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=5`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+        return r.json();
+      })
+      .then((data: { workflow_runs: WorkflowRun[] }) => {
+        if (!cancelled) setRuns(data.workflow_runs ?? []);
+      })
+      .catch((e) => { if (!cancelled) setRunsError(e.message); })
+      .finally(() => { if (!cancelled) setRunsLoading(false); });
+    return () => { cancelled = true; };
+  }, [repoConfigured, runsRefreshTick]);
+
+  useEffect(() => {
+    if (!repoConfigured) return;
+    const id = setInterval(() => setRunsRefreshTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
   }, [repoConfigured]);
 
   return (
