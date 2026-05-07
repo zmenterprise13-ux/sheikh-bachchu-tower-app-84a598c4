@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Download as DownloadIcon, Github, Package, FileArchive, Loader2, ExternalLink, Smartphone, AlertCircle, CheckCircle2, XCircle, CircleDashed, Clock, RefreshCw, Activity } from "lucide-react";
+import { Download as DownloadIcon, Github, Package, FileArchive, Loader2, ExternalLink, Smartphone, AlertCircle, CheckCircle2, XCircle, CircleDashed, Clock, RefreshCw, Activity, Settings, ShieldCheck, FileDown, MousePointerClick, Rocket, Lock, Folder } from "lucide-react";
 
 // === GitHub repo config — update these after connecting your repo ===
 const GITHUB_OWNER = ""; // e.g. "your-username"
@@ -346,18 +346,59 @@ export default function Download() {
           </Card>
         )}
 
+        {/* Step-by-step install guide */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">ইনস্টল গাইড</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Smartphone className="h-5 w-5" /> APK ইনস্টল গাইড — ধাপে ধাপে
+            </CardTitle>
+            <CardDescription>প্রথমবার ইনস্টল করার সময় এই ৬টি ধাপ অনুসরণ করুন</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>
-              <strong>APK:</strong> ফোনে ডাউনলোড করে ফাইলটি ট্যাপ করুন। প্রথমবার "Unknown sources"
-              থেকে ইনস্টলের অনুমতি দিতে হতে পারে।
-            </p>
-            <p>
-              <strong>AAB:</strong> এটি Google Play Console এ আপলোডের জন্য — সরাসরি ফোনে ইনস্টলযোগ্য নয়।
-            </p>
+          <CardContent>
+            <ol className="space-y-4">
+              {[
+                { icon: FileDown, title: "১. APK ফাইল ডাউনলোড করুন", desc: "উপরের রিলিজ সেকশন থেকে app-release.apk ফাইলে ট্যাপ করুন। ব্রাউজার ফাইলটি Downloads ফোল্ডারে সেভ করবে।", hint: "নোটিফিকেশন বারে \"Download complete\" দেখলে সেটিতে ট্যাপ করতে পারেন।" },
+                { icon: Folder, title: "২. ফাইল ম্যানেজার থেকে খুলুন", desc: "Files / My Files অ্যাপ খুলে Downloads ফোল্ডারে যান এবং app-release.apk ফাইলে ট্যাপ করুন।" },
+                { icon: ShieldCheck, title: "৩. \"Unknown sources\" এর অনুমতি দিন", desc: "প্রথমবার একটি ডায়ালগ আসবে: \"For your security, your phone is not allowed to install unknown apps from this source.\" — Settings এ ট্যাপ করুন।", hint: "Android 8+: Settings → Apps → Special access → Install unknown apps → আপনার ব্রাউজার (Chrome) → \"Allow from this source\" চালু করুন।" },
+                { icon: Settings, title: "৪. ফিরে এসে Install চাপুন", desc: "ব্যাক বাটন চেপে আবার APK ইনস্টল ডায়ালগে আসুন এবং নিচে \"Install\" বাটনে ট্যাপ করুন।" },
+                { icon: Lock, title: "৫. Play Protect সতর্কতা (যদি আসে)", desc: "\"Blocked by Play Protect\" বার্তা এলে \"More details\" → \"Install anyway\" সিলেক্ট করুন। এটি স্বাভাবিক, কারণ অ্যাপটি Play Store এ নেই।" },
+                { icon: Rocket, title: "৬. অ্যাপ খুলুন", desc: "ইনস্টল শেষ হলে \"Open\" চাপুন বা হোম স্ক্রিন থেকে Sheikh Bachchu Tower আইকনে ট্যাপ করুন।", hint: "প্রথমবার লগইন করতে আপনার ফোন নম্বর / OTP প্রয়োজন হবে।" },
+              ].map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <li key={i} className="flex gap-3">
+                    <div className="shrink-0 h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 pb-3 border-b last:border-b-0 last:pb-0">
+                      <p className="font-semibold text-sm">{step.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{step.desc}</p>
+                      {step.hint && (
+                        <p className="text-xs text-muted-foreground mt-2 p-2 rounded bg-muted/60 border border-border">
+                          💡 {step.hint}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <Alert className="mt-5">
+              <MousePointerClick className="h-4 w-4" />
+              <AlertTitle>আপডেট কীভাবে করবেন?</AlertTitle>
+              <AlertDescription>
+                নতুন রিলিজ এলে শুধু নতুন APK ডাউনলোড করে আবার ইনস্টল করুন — পুরনো ডেটা মুছবে না।
+              </AlertDescription>
+            </Alert>
+
+            <Alert variant="destructive" className="mt-3">
+              <Package className="h-4 w-4" />
+              <AlertTitle>AAB ফাইল?</AlertTitle>
+              <AlertDescription>
+                <code className="px-1 bg-muted rounded">app-release.aab</code> ফাইল সরাসরি ফোনে ইনস্টলযোগ্য নয় — এটি শুধুমাত্র Google Play Console এ আপলোডের জন্য।
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
       </div>
