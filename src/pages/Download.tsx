@@ -28,6 +28,20 @@ type Release = {
   assets: ReleaseAsset[];
 };
 
+type WorkflowRun = {
+  id: number;
+  name: string;
+  display_title: string;
+  status: string; // queued, in_progress, completed
+  conclusion: string | null; // success, failure, cancelled, skipped, null
+  html_url: string;
+  head_branch: string;
+  event: string;
+  created_at: string;
+  updated_at: string;
+  run_number: number;
+};
+
 const formatBytes = (bytes: number) => {
   if (!bytes) return "—";
   const mb = bytes / (1024 * 1024);
