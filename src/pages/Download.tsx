@@ -340,6 +340,9 @@ export default function Download() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">{rel.name || rel.tag_name}</h3>
                         <Badge variant="outline">{rel.tag_name}</Badge>
+                        {rel.tag_name === latestTag && !rel.prerelease && (
+                          <Badge className="bg-primary text-primary-foreground">নতুন</Badge>
+                        )}
                         {rel.prerelease && <Badge variant="secondary">pre-release</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
