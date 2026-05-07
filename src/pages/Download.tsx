@@ -158,8 +158,13 @@ export default function Download() {
       <div className="container max-w-4xl py-8 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-3xl font-bold flex items-center gap-2 flex-wrap">
               <DownloadIcon className="h-7 w-7" /> অ্যাপ ডাউনলোড
+              {hasNewVersion && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/15 text-primary px-2 py-0.5 text-xs font-semibold animate-pulse">
+                  <Rocket className="h-3 w-3" /> নতুন ভার্সন: {latestTag}
+                </span>
+              )}
             </h1>
             <p className="text-muted-foreground mt-1">
               Sheikh Bachchu Tower — Android APK ও Play Store বান্ডল
@@ -169,6 +174,19 @@ export default function Download() {
             <Link to="/">← হোম</Link>
           </Button>
         </div>
+
+        {hasNewVersion && (
+          <Alert className="border-primary/40 bg-primary/5">
+            <Rocket className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">নতুন ভার্সন উপলব্ধ — {latestTag}</AlertTitle>
+            <AlertDescription className="flex items-center justify-between flex-wrap gap-2">
+              <span>সর্বশেষ APK ডাউনলোড করে অ্যাপ আপডেট করুন।</span>
+              <Button size="sm" variant="outline" onClick={markAsSeen}>
+                দেখা হয়েছে চিহ্নিত করুন
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {!repoConfigured && (
           <Alert>
