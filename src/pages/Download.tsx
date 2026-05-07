@@ -204,6 +204,72 @@ export default function Download() {
           </Card>
         </div>
 
+        {/* Build status (Actions workflow runs) */}
+        {repoConfigured && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="h-5 w-5" /> বিল্ড স্ট্যাটাস
+                  </CardTitle>
+                  <CardDescription>সর্বশেষ Actions ওয়ার্কফ্লো রান (প্রতি ৩০ সেকেন্ডে অটো রিফ্রেশ)</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRunsRefreshTick((t) => t + 1)}
+                  disabled={runsLoading}
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${runsLoading ? "animate-spin" : ""}`} />
+                  রিফ্রেশ
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {runsLoading && !runs && (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> লোড হচ্ছে...
+                </div>
+              )}
+              {runsError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>বিল্ড স্ট্যাটাস লোড করা যায়নি: {runsError}</AlertDescription>
+                </Alert>
+              )}
+              {runs && runs.length === 0 && (
+                <p className="text-sm text-muted-foreground">এখনো কোনো ওয়ার্কফ্লো রান নেই।</p>
+              )}
+              {runs?.map((run) => (
+                <a
+                  key={run.id}
+                  href={run.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-3 p-3 rounded-md border hover:bg-accent transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm truncate">{run.name}</span>
+                      <Badge variant="outline" className="text-[10px]">#{run.run_number}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{run.event}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {run.display_title} · <span className="font-mono">{run.head_branch}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <Clock className="h-3 w-3" />
+                      {new Date(run.updated_at).toLocaleString("bn-BD")}
+                    </p>
+                  </div>
+                  <div className="shrink-0">{runStatusBadge(run)}</div>
+                </a>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Releases list */}
         {repoConfigured && (
           <Card>
