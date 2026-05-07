@@ -7,8 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Download as DownloadIcon, Github, Package, FileArchive, Loader2, ExternalLink, Smartphone, AlertCircle, CheckCircle2, XCircle, CircleDashed, Clock, RefreshCw, Activity, Settings, ShieldCheck, FileDown, MousePointerClick, Rocket, Lock, Folder } from "lucide-react";
 
 // === GitHub repo config — update these after connecting your repo ===
-const GITHUB_OWNER = ""; // e.g. "your-username"
-const GITHUB_REPO = "";  // e.g. "sheikh-bachchu-tower"
+const GITHUB_OWNER = "zmenterprise13-ux";
+const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
 // ====================================================================
 
 type ReleaseAsset = {
