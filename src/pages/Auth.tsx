@@ -43,11 +43,11 @@ export default function Auth() {
   };
 
   // owner phone login
-  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState(() => localStorage.getItem("auth.last_phone") || "");
   const [ownerPass, setOwnerPass] = useState("12345678");
 
   // login form
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem("auth.last_email") || "");
   const [loginPass, setLoginPass] = useState("");
 
   // signup form
@@ -103,6 +103,7 @@ export default function Auth() {
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    if (remember) localStorage.setItem("auth.last_email", loginEmail); else localStorage.removeItem("auth.last_email");
     if (data.user) await navigateAfterLogin(data.user.id);
     setSubmitting(false);
   };
@@ -144,6 +145,7 @@ export default function Auth() {
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    if (remember) localStorage.setItem("auth.last_phone", ownerPhone); else localStorage.removeItem("auth.last_phone");
     const uid = setData.user?.id;
     if (uid) await navigateAfterLogin(uid);
     setSubmitting(false);
@@ -265,6 +267,10 @@ export default function Auth() {
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
+                        id="phone-username"
+                        name="username"
+                        type="tel"
+                        autoComplete="username"
                         inputMode="numeric"
                         value={ownerPhone}
                         onChange={e => setOwnerPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
@@ -279,7 +285,7 @@ export default function Auth() {
                     <Label className="text-xs font-medium">{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-                      <PasswordInput value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
+                      <PasswordInput id="phone-password" name="password" autoComplete="current-password" value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
                     </div>
                   </div>
                   <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-phone" />
@@ -304,14 +310,14 @@ export default function Auth() {
                     <Label className="text-xs font-medium">{lang === "bn" ? "ইমেইল" : "Email"}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required maxLength={255} placeholder="you@example.com" className="pl-10 h-11" />
+                      <Input id="email-username" name="email" type="email" autoComplete="username" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required maxLength={255} placeholder="you@example.com" className="pl-10 h-11" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium">{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-                      <PasswordInput value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
+                      <PasswordInput id="email-password" name="password" autoComplete="current-password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
                     </div>
                   </div>
                   <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-email" />
