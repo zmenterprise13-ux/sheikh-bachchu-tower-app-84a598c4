@@ -217,6 +217,7 @@ export default function AdminNotices() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         <div className="grid gap-4">
