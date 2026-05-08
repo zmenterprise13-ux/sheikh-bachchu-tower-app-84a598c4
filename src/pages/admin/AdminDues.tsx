@@ -512,6 +512,31 @@ export default function AdminDues() {
                   {formatMoney(totalPaid, lang)} / {formatMoney(totalBilled, lang)}
                 </div>
               </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "পরিশোধ করেছে" : "Flats paid"}
+                </div>
+                <div className="mt-1 text-xl font-bold text-success tabular-nums">
+                  {lang === "bn" ? paidCount.toLocaleString("bn-BD") : paidCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {partialCount > 0 && (
+                    <>{lang === "bn" ? `আংশিক ${partialCount.toLocaleString("bn-BD")} টি` : `${partialCount} partial`} · </>
+                  )}
+                  {lang === "bn" ? `${visible.length.toLocaleString("bn-BD")} এর মধ্যে` : `of ${visible.length}`}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "পরিশোধ করেনি" : "Flats unpaid"}
+                </div>
+                <div className={cn("mt-1 text-xl font-bold tabular-nums", unpaidCount > 0 ? "text-destructive" : "text-foreground")}>
+                  {lang === "bn" ? unpaidCount.toLocaleString("bn-BD") : unpaidCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {lang === "bn" ? "আংশিকসহ বাকী আছে" : "incl. partial"}
+                </div>
+              </div>
             </div>
           );
         })()}
