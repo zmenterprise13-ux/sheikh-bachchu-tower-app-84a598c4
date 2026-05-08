@@ -528,11 +528,22 @@ export default function AdminDues() {
             <Wallet className="h-3.5 w-3.5" />
             {lang === "bn" ? "বাল্ক পরিশোধ" : "Bulk mark paid"}
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={openNotice}
+            disabled={loading || bills.length === 0}
+          >
+            <Bell className="h-3.5 w-3.5" />
+            {lang === "bn" ? "নোটিশ পাঠান" : "Send notice"}
+          </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
           </div>
         </div>
+
 
         {(() => {
           const totalBilled = visible.reduce((s, b) => s + Number(b.total), 0);
