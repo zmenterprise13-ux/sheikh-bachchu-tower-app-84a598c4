@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
-import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers, Wallet } from "lucide-react";
+import { Search, CheckCircle2, Pencil, ChevronLeft, ChevronRight, Layers, Wallet, Bell } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -105,6 +106,74 @@ export default function AdminDues() {
   const [bulkPayScope, setBulkPayScope] = useState<"all" | "filtered">("filtered");
   const [bulkPaySaving, setBulkPaySaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Dues notification composer
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const [noticeTitle, setNoticeTitle] = useState<string>("");
+  const [noticeBody, setNoticeBody] = useState<string>("");
+  const [noticeScope, setNoticeScope] = useState<"unpaid_partial" | "filtered" | "all">("unpaid_partial");
+  const [noticeSending, setNoticeSending] = useState(false);
+
+  const openNotice = () => {
+    setNoticeTitle(lang === "bn"
+      ? `{month} মাসের বকেয়া পরিশোধের অনুরোধ`
+      : `Pending dues for {month} — please pay`);
+    setNoticeBody(lang === "bn"
+      ? `প্রিয় {owner_name},\n\nফ্ল্যাট {flat_no} এর {month} মাসের বিল ৳{total}, পরিশোধিত ৳{paid}, বকেয়া ৳{due}।\nঅনুগ্রহ করে দ্রুত পরিশোধ করুন।\n\n— ব্যবস্থাপনা`
+      : `Dear {owner_name},\n\nFor flat {flat_no}, {month} bill ৳{total}, paid ৳{paid}, due ৳{due}.\nPlease settle the outstanding amount at the earliest.\n\n— Management`);
+    setNoticeScope("unpaid_partial");
+    setNoticeOpen(true);
+  };
+
+  const renderTpl = (tpl: string, vars: Record<string, string | number>) =>
+    tpl.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? String(vars[k]) : `{${k}}`));
+
+  const sendNotices = async () => {
+    if (!noticeTitle.trim() || !noticeBody.trim()) {
+      toast.error(lang === "bn" ? "শিরোনাম ও বার্তা দিন" : "Provide title and message");
+      return;
+    }
+    let pool: Bill[] = [];
+    if (noticeScope === "filtered") pool = visible;
+    else if (noticeScope === "all") pool = bills;
+    else pool = bills.filter((b) => b.status !== "paid");
+    if (pool.length === 0) {
+      toast.error(lang === "bn" ? "কোনো প্রাপক নেই" : "No recipients");
+      return;
+    }
+    setNoticeSending(true);
+    const monthLabel = formatMonthLabel(month, lang);
+    const rows = pool.map((b) => {
+      const flat = flats.find((f) => f.id === b.flat_id);
+      const ownerName = flat
+        ? (lang === "bn" ? (flat.owner_name_bn || flat.owner_name || "") : (flat.owner_name || flat.owner_name_bn || ""))
+        : "";
+      const due = Math.max(0, Number(b.total) - Number(b.paid_amount));
+      const vars = {
+        flat_no: flat?.flat_no ?? "",
+        owner_name: ownerName,
+        month: monthLabel,
+        total: formatMoney(Number(b.total), lang),
+        paid: formatMoney(Number(b.paid_amount), lang),
+        due: formatMoney(due, lang),
+      };
+      return {
+        flat_id: b.flat_id,
+        bill_id: b.id,
+        month: b.month,
+        title: renderTpl(noticeTitle, vars),
+        body: renderTpl(noticeBody, vars),
+        due_amount: due,
+        created_by: user?.id ?? null,
+      };
+    });
+    const { error } = await supabase.from("dues_notifications").insert(rows);
+    setNoticeSending(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? `${rows.length} টি নোটিশ পাঠানো হয়েছে` : `${rows.length} notices sent`);
+    setNoticeOpen(false);
+  };
+
 
   const load = async (targetMonth: string) => {
     setLoading(true);
@@ -459,11 +528,22 @@ export default function AdminDues() {
             <Wallet className="h-3.5 w-3.5" />
             {lang === "bn" ? "বাল্ক পরিশোধ" : "Bulk mark paid"}
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={openNotice}
+            disabled={loading || bills.length === 0}
+          >
+            <Bell className="h-3.5 w-3.5" />
+            {lang === "bn" ? "নোটিশ পাঠান" : "Send notice"}
+          </Button>
           <div className="relative ml-auto w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "ফ্ল্যাট/নাম..." : "Flat/name..."} className="pl-9" />
           </div>
         </div>
+
 
         {(() => {
           const totalBilled = visible.reduce((s, b) => s + Number(b.total), 0);
@@ -914,6 +994,83 @@ export default function AdminDues() {
               {bulkPaySaving
                 ? (lang === "bn" ? "চলছে..." : "Applying...")
                 : (lang === "bn" ? "এক ক্লিকে পরিশোধ" : "Mark all paid")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={noticeOpen} onOpenChange={(o) => !noticeSending && setNoticeOpen(o)}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{lang === "bn" ? "বকেয়া নোটিশ পাঠান" : "Send dues notice"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "প্রাপক" : "Recipients"}</Label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {([
+                  { k: "unpaid_partial", label: lang === "bn" ? `অপরিশোধিত + আংশিক (${bills.filter((b) => b.status !== "paid").length})` : `Unpaid + partial (${bills.filter((b) => b.status !== "paid").length})` },
+                  { k: "filtered", label: lang === "bn" ? `বর্তমান ফিল্টার (${visible.length})` : `Current filter (${visible.length})` },
+                  { k: "all", label: lang === "bn" ? `এই মাসের সব (${bills.length})` : `All this month (${bills.length})` },
+                ] as const).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setNoticeScope(o.k)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-semibold border",
+                      noticeScope === o.k
+                        ? "gradient-primary text-primary-foreground border-transparent"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "শিরোনাম" : "Title"}</Label>
+              <Input value={noticeTitle} onChange={(e) => setNoticeTitle(e.target.value)} />
+            </div>
+
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "বার্তা" : "Message"}</Label>
+              <Textarea
+                value={noticeBody}
+                onChange={(e) => setNoticeBody(e.target.value)}
+                rows={8}
+                className="font-mono text-xs"
+              />
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {["{flat_no}", "{owner_name}", "{month}", "{total}", "{paid}", "{due}"].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setNoticeBody((b) => b + v)}
+                    className="rounded-md border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-mono hover:bg-secondary"
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {lang === "bn"
+                  ? "প্রতিটি ফ্ল্যাটে স্বয়ংক্রিয়ভাবে মান বসবে।"
+                  : "Variables will be auto-filled per flat."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNoticeOpen(false)} disabled={noticeSending}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={sendNotices} disabled={noticeSending} className="gap-1.5">
+              <Bell className="h-3.5 w-3.5" />
+              {noticeSending
+                ? (lang === "bn" ? "পাঠানো হচ্ছে..." : "Sending...")
+                : (lang === "bn" ? "পাঠান" : "Send")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -279,6 +279,45 @@ export type Database = {
           },
         ]
       }
+      dues_notifications: {
+        Row: {
+          bill_id: string | null
+          body: string
+          created_at: string
+          created_by: string | null
+          due_amount: number
+          flat_id: string
+          id: string
+          month: string | null
+          read_at: string | null
+          title: string
+        }
+        Insert: {
+          bill_id?: string | null
+          body: string
+          created_at?: string
+          created_by?: string | null
+          due_amount?: number
+          flat_id: string
+          id?: string
+          month?: string | null
+          read_at?: string | null
+          title: string
+        }
+        Update: {
+          bill_id?: string | null
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          due_amount?: number
+          flat_id?: string
+          id?: string
+          month?: string | null
+          read_at?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           created_at: string
