@@ -124,6 +124,8 @@ export default function ManagerDashboard() {
           <KPI loading={loading} icon={Wallet} label={lang === "bn" ? "বকেয়া লোন" : "Loan outstanding"} value={stats ? fmtBDT(stats.outstandingLoan) : "—"} />
         </div>
 
+        <BuildingBillingStatusCard />
+
         {/* Two-column: Occupancy panel + Recent notices */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-soft lg:col-span-2">
