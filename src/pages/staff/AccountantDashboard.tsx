@@ -10,6 +10,7 @@ import {
   Wallet, CreditCard, ReceiptText, Receipt, BookOpen, ScanSearch,
   ArrowRight, TrendingUp, AlertCircle, CheckCircle2,
 } from "lucide-react";
+import { BuildingBillingStatusCard } from "@/components/BuildingBillingStatusCard";
 
 type Stats = {
   pendingRequests: number;
