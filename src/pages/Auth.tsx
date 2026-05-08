@@ -103,6 +103,7 @@ export default function Auth() {
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    if (remember) localStorage.setItem("auth.last_email", loginEmail); else localStorage.removeItem("auth.last_email");
     if (data.user) await navigateAfterLogin(data.user.id);
     setSubmitting(false);
   };
