@@ -8,8 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Briefcase, Building, Store, Car, Megaphone, FileBarChart, HandCoins,
   ArrowRight, Users, AlertTriangle, Home, UserCheck, Percent, Wallet,
-  CalendarClock, Bell,
+  CalendarClock, Bell, Receipt,
 } from "lucide-react";
+import { BuildingBillingStatusCard } from "@/components/BuildingBillingStatusCard";
 
 type Stats = {
   flats: number;
