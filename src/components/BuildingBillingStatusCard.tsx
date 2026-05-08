@@ -13,13 +13,21 @@ export function BuildingBillingStatusCard() {
   const [loading, setLoading] = useState(true);
   const [bills, setBills] = useState<Bill[]>([]);
   const [allDue, setAllDue] = useState(0);
-  const month = new Date().toISOString().slice(0, 7);
+  const [month, setMonth] = useState<string>("");
 
   useEffect(() => {
     (async () => {
       setLoading(true);
+      const latest = await supabase
+        .from("bills")
+        .select("month")
+        .order("month", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const m0 = (latest.data?.month as string) || new Date().toISOString().slice(0, 7);
+      setMonth(m0);
       const [m, all] = await Promise.all([
-        supabase.from("bills").select("total, paid_amount, status").eq("month", month),
+        supabase.from("bills").select("total, paid_amount, status").eq("month", m0),
         supabase.from("bills").select("total, paid_amount"),
       ]);
       setBills((m.data ?? []) as Bill[]);
@@ -30,7 +38,7 @@ export function BuildingBillingStatusCard() {
       setAllDue(due);
       setLoading(false);
     })();
-  }, [month]);
+  }, []);
 
   const total = bills.length;
   const paid = bills.filter((b) => b.status === "paid").length;
