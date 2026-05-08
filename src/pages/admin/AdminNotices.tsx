@@ -160,12 +160,22 @@ export default function AdminNotices() {
               {lang === "bn" ? "ফ্ল্যাট ওনারদের জন্য সাম্প্রতিক ঘোষণা" : "Recent announcements for flat owners"}
             </p>
           </div>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingId(null); setForm(emptyForm); } }}>
-            <DialogTrigger asChild>
-              <Button onClick={openCreate} className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
-                <Plus className="h-4 w-4" /> {t("addNotice")}
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              onClick={broadcastUpdate}
+              disabled={broadcasting}
+              variant="outline"
+              className="gap-2"
+            >
+              {broadcasting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+              {lang === "bn" ? "অ্যাপ আপডেট নোটিশ" : "App Update Notice"}
+            </Button>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingId(null); setForm(emptyForm); } }}>
+              <DialogTrigger asChild>
+                <Button onClick={openCreate} className="gradient-primary text-primary-foreground gap-2 shadow-elegant">
+                  <Plus className="h-4 w-4" /> {t("addNotice")}
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>
