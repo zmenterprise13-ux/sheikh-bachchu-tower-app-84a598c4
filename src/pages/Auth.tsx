@@ -267,6 +267,10 @@ export default function Auth() {
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
+                        id="phone-username"
+                        name="username"
+                        type="tel"
+                        autoComplete="username"
                         inputMode="numeric"
                         value={ownerPhone}
                         onChange={e => setOwnerPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
@@ -281,7 +285,7 @@ export default function Auth() {
                     <Label className="text-xs font-medium">{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-                      <PasswordInput value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
+                      <PasswordInput id="phone-password" name="password" autoComplete="current-password" value={ownerPass} onChange={e => setOwnerPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
                     </div>
                   </div>
                   <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-phone" />
