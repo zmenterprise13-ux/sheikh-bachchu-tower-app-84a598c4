@@ -310,14 +310,14 @@ export default function Auth() {
                     <Label className="text-xs font-medium">{lang === "bn" ? "ইমেইল" : "Email"}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required maxLength={255} placeholder="you@example.com" className="pl-10 h-11" />
+                      <Input id="email-username" name="email" type="email" autoComplete="username" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required maxLength={255} placeholder="you@example.com" className="pl-10 h-11" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium">{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-                      <PasswordInput value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
+                      <PasswordInput id="email-password" name="password" autoComplete="current-password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required minLength={6} maxLength={72} className="pl-10 h-11" />
                     </div>
                   </div>
                   <RememberMe value={remember} onChange={setRemember} lang={lang} id="remember-email" />
