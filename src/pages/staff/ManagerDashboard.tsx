@@ -83,6 +83,7 @@ export default function ManagerDashboard() {
   const fmtBDT = (n: number) => `৳ ${Math.round(n).toLocaleString(lang === "bn" ? "bn-BD" : "en-US")}`;
 
   const cards = [
+    { to: "/admin/dues", icon: Receipt, title: lang === "bn" ? "বকেয়া ও বিল" : "Dues & Bills", desc: lang === "bn" ? "মাসিক বিল ও বকেয়া আদায়" : "Monthly bills & dues collection" },
     { to: "/admin/flats", icon: Building, title: lang === "bn" ? "ফ্ল্যাট সমূহ" : "Flats", desc: lang === "bn" ? "ফ্ল্যাট ও মালিক ব্যবস্থাপনা" : "Manage flats and owners" },
     { to: "/admin/flats/owners", icon: Users, title: lang === "bn" ? "মালিক তালিকা" : "Owners List", desc: lang === "bn" ? "সব মালিকের যোগাযোগ" : "Owners directory" },
     { to: "/admin/shops", icon: Store, title: lang === "bn" ? "দোকান" : "Shops", desc: lang === "bn" ? "দোকান ও ভাড়াটিয়া" : "Shops and tenants" },
