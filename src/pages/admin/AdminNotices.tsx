@@ -36,6 +36,46 @@ export default function AdminNotices() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [broadcasting, setBroadcasting] = useState(false);
+
+  const broadcastUpdate = async () => {
+    setBroadcasting(true);
+    try {
+      const res = await fetch(
+        "https://api.github.com/repos/zmenterprise13-ux/sheikh-bachchu-tower-app-4d8f59dd/releases?per_page=5"
+      );
+      if (!res.ok) throw new Error("GitHub API error");
+      const data = await res.json();
+      const latest = data.find((r: any) => !r.prerelease) ?? data[0];
+      if (!latest) {
+        toast.error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
+        return;
+      }
+      const apk = latest.assets?.find((a: any) => a.name.endsWith(".apk"));
+      const downloadUrl = apk?.browser_download_url ?? latest.html_url;
+      const tag = latest.tag_name;
+      const titleBn = `🚀 নতুন অ্যাপ আপডেট — ${tag}`;
+      const titleEn = `🚀 New App Update — ${tag}`;
+      const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। দয়া করে নিচের লিঙ্ক থেকে নতুন APK ডাউনলোড করে ইনস্টল করুন:\n\n${downloadUrl}\n\nএরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।`;
+      const bodyEn = `New app version ${tag} is available. Please download and install the latest APK from:\n\n${downloadUrl}\n\nFuture updates will be notified automatically inside the app.`;
+      const { error } = await supabase.from("notices").insert({
+        title: titleEn,
+        title_bn: titleBn,
+        body: bodyEn,
+        body_bn: bodyBn,
+        important: true,
+        date: new Date().toISOString().slice(0, 10),
+        created_by: user?.id ?? null,
+      });
+      if (error) throw error;
+      toast.success(lang === "bn" ? "আপডেট নোটিশ পাঠানো হয়েছে" : "Update notice broadcasted");
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBroadcasting(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
