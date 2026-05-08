@@ -10,6 +10,7 @@ import {
   Wallet, CreditCard, ReceiptText, Receipt, BookOpen, ScanSearch,
   ArrowRight, TrendingUp, AlertCircle, CheckCircle2,
 } from "lucide-react";
+import { BuildingBillingStatusCard } from "@/components/BuildingBillingStatusCard";
 
 type Stats = {
   pendingRequests: number;
@@ -124,6 +125,8 @@ export default function AccountantDashboard() {
           <KPI loading={loading} icon={TrendingUp} tone="primary" label={lang === "bn" ? "এ মাসে আদায়" : "Collected this month"} value={stats ? formatMoney(stats.collectedThisMonth, lang) : "—"} />
           <KPI loading={loading} icon={Receipt} tone="destructive" label={lang === "bn" ? "মোট বকেয়া" : "Total outstanding"} value={stats ? formatMoney(stats.outstanding, lang) : "—"} />
         </div>
+
+        <BuildingBillingStatusCard />
 
         {/* Action grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

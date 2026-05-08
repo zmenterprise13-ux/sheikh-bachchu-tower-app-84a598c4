@@ -8,8 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Briefcase, Building, Store, Car, Megaphone, FileBarChart, HandCoins,
   ArrowRight, Users, AlertTriangle, Home, UserCheck, Percent, Wallet,
-  CalendarClock, Bell,
+  CalendarClock, Bell, Receipt,
 } from "lucide-react";
+import { BuildingBillingStatusCard } from "@/components/BuildingBillingStatusCard";
 
 type Stats = {
   flats: number;
@@ -82,6 +83,7 @@ export default function ManagerDashboard() {
   const fmtBDT = (n: number) => `৳ ${Math.round(n).toLocaleString(lang === "bn" ? "bn-BD" : "en-US")}`;
 
   const cards = [
+    { to: "/admin/dues", icon: Receipt, title: lang === "bn" ? "বকেয়া ও বিল" : "Dues & Bills", desc: lang === "bn" ? "মাসিক বিল ও বকেয়া আদায়" : "Monthly bills & dues collection" },
     { to: "/admin/flats", icon: Building, title: lang === "bn" ? "ফ্ল্যাট সমূহ" : "Flats", desc: lang === "bn" ? "ফ্ল্যাট ও মালিক ব্যবস্থাপনা" : "Manage flats and owners" },
     { to: "/admin/flats/owners", icon: Users, title: lang === "bn" ? "মালিক তালিকা" : "Owners List", desc: lang === "bn" ? "সব মালিকের যোগাযোগ" : "Owners directory" },
     { to: "/admin/shops", icon: Store, title: lang === "bn" ? "দোকান" : "Shops", desc: lang === "bn" ? "দোকান ও ভাড়াটিয়া" : "Shops and tenants" },
@@ -121,6 +123,8 @@ export default function ManagerDashboard() {
           <KPI loading={loading} icon={AlertTriangle} label={lang === "bn" ? "সক্রিয় লোন" : "Active loans"} value={stats?.activeLoans ?? 0} />
           <KPI loading={loading} icon={Wallet} label={lang === "bn" ? "বকেয়া লোন" : "Loan outstanding"} value={stats ? fmtBDT(stats.outstandingLoan) : "—"} />
         </div>
+
+        <BuildingBillingStatusCard />
 
         {/* Two-column: Occupancy panel + Recent notices */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
