@@ -145,6 +145,7 @@ export default function Auth() {
       return;
     }
     toast.success(lang === "bn" ? "লগইন সফল" : "Logged in");
+    if (remember) localStorage.setItem("auth.last_phone", ownerPhone); else localStorage.removeItem("auth.last_phone");
     const uid = setData.user?.id;
     if (uid) await navigateAfterLogin(uid);
     setSubmitting(false);
