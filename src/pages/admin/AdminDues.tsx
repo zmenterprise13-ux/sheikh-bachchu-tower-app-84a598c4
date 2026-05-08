@@ -999,6 +999,83 @@ export default function AdminDues() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={noticeOpen} onOpenChange={(o) => !noticeSending && setNoticeOpen(o)}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{lang === "bn" ? "বকেয়া নোটিশ পাঠান" : "Send dues notice"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "প্রাপক" : "Recipients"}</Label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {([
+                  { k: "unpaid_partial", label: lang === "bn" ? `অপরিশোধিত + আংশিক (${bills.filter((b) => b.status !== "paid").length})` : `Unpaid + partial (${bills.filter((b) => b.status !== "paid").length})` },
+                  { k: "filtered", label: lang === "bn" ? `বর্তমান ফিল্টার (${visible.length})` : `Current filter (${visible.length})` },
+                  { k: "all", label: lang === "bn" ? `এই মাসের সব (${bills.length})` : `All this month (${bills.length})` },
+                ] as const).map((o) => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    onClick={() => setNoticeScope(o.k)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-semibold border",
+                      noticeScope === o.k
+                        ? "gradient-primary text-primary-foreground border-transparent"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground"
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "শিরোনাম" : "Title"}</Label>
+              <Input value={noticeTitle} onChange={(e) => setNoticeTitle(e.target.value)} />
+            </div>
+
+            <div>
+              <Label className="text-xs">{lang === "bn" ? "বার্তা" : "Message"}</Label>
+              <Textarea
+                value={noticeBody}
+                onChange={(e) => setNoticeBody(e.target.value)}
+                rows={8}
+                className="font-mono text-xs"
+              />
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {["{flat_no}", "{owner_name}", "{month}", "{total}", "{paid}", "{due}"].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setNoticeBody((b) => b + v)}
+                    className="rounded-md border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-mono hover:bg-secondary"
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {lang === "bn"
+                  ? "প্রতিটি ফ্ল্যাটে স্বয়ংক্রিয়ভাবে মান বসবে।"
+                  : "Variables will be auto-filled per flat."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNoticeOpen(false)} disabled={noticeSending}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={sendNotices} disabled={noticeSending} className="gap-1.5">
+              <Bell className="h-3.5 w-3.5" />
+              {noticeSending
+                ? (lang === "bn" ? "পাঠানো হচ্ছে..." : "Sending...")
+                : (lang === "bn" ? "পাঠান" : "Send")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </AppShell>
   );
 }
