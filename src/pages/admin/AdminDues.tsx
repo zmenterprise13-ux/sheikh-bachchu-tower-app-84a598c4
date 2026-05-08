@@ -107,6 +107,74 @@ export default function AdminDues() {
   const [bulkPaySaving, setBulkPaySaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Dues notification composer
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const [noticeTitle, setNoticeTitle] = useState<string>("");
+  const [noticeBody, setNoticeBody] = useState<string>("");
+  const [noticeScope, setNoticeScope] = useState<"unpaid_partial" | "filtered" | "all">("unpaid_partial");
+  const [noticeSending, setNoticeSending] = useState(false);
+
+  const openNotice = () => {
+    setNoticeTitle(lang === "bn"
+      ? `{month} মাসের বকেয়া পরিশোধের অনুরোধ`
+      : `Pending dues for {month} — please pay`);
+    setNoticeBody(lang === "bn"
+      ? `প্রিয় {owner_name},\n\nফ্ল্যাট {flat_no} এর {month} মাসের বিল ৳{total}, পরিশোধিত ৳{paid}, বকেয়া ৳{due}।\nঅনুগ্রহ করে দ্রুত পরিশোধ করুন।\n\n— ব্যবস্থাপনা`
+      : `Dear {owner_name},\n\nFor flat {flat_no}, {month} bill ৳{total}, paid ৳{paid}, due ৳{due}.\nPlease settle the outstanding amount at the earliest.\n\n— Management`);
+    setNoticeScope("unpaid_partial");
+    setNoticeOpen(true);
+  };
+
+  const renderTpl = (tpl: string, vars: Record<string, string | number>) =>
+    tpl.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? String(vars[k]) : `{${k}}`));
+
+  const sendNotices = async () => {
+    if (!noticeTitle.trim() || !noticeBody.trim()) {
+      toast.error(lang === "bn" ? "শিরোনাম ও বার্তা দিন" : "Provide title and message");
+      return;
+    }
+    let pool: Bill[] = [];
+    if (noticeScope === "filtered") pool = visible;
+    else if (noticeScope === "all") pool = bills;
+    else pool = bills.filter((b) => b.status !== "paid");
+    if (pool.length === 0) {
+      toast.error(lang === "bn" ? "কোনো প্রাপক নেই" : "No recipients");
+      return;
+    }
+    setNoticeSending(true);
+    const monthLabel = formatMonthLabel(month, lang);
+    const rows = pool.map((b) => {
+      const flat = flats.find((f) => f.id === b.flat_id);
+      const ownerName = flat
+        ? (lang === "bn" ? (flat.owner_name_bn || flat.owner_name || "") : (flat.owner_name || flat.owner_name_bn || ""))
+        : "";
+      const due = Math.max(0, Number(b.total) - Number(b.paid_amount));
+      const vars = {
+        flat_no: flat?.flat_no ?? "",
+        owner_name: ownerName,
+        month: monthLabel,
+        total: formatMoney(Number(b.total), lang),
+        paid: formatMoney(Number(b.paid_amount), lang),
+        due: formatMoney(due, lang),
+      };
+      return {
+        flat_id: b.flat_id,
+        bill_id: b.id,
+        month: b.month,
+        title: renderTpl(noticeTitle, vars),
+        body: renderTpl(noticeBody, vars),
+        due_amount: due,
+        created_by: user?.id ?? null,
+      };
+    });
+    const { error } = await supabase.from("dues_notifications").insert(rows);
+    setNoticeSending(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(lang === "bn" ? `${rows.length} টি নোটিশ পাঠানো হয়েছে` : `${rows.length} notices sent`);
+    setNoticeOpen(false);
+  };
+
+
   const load = async (targetMonth: string) => {
     setLoading(true);
     const [billsRes, flatsRes] = await Promise.all([
