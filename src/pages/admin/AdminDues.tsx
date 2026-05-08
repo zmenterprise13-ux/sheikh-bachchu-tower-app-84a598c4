@@ -470,11 +470,14 @@ export default function AdminDues() {
           const totalPaid = visible.reduce((s, b) => s + Number(b.paid_amount), 0);
           const totalDue = visible.reduce((s, b) => s + Math.max(0, Number(b.total) - Number(b.paid_amount)), 0);
           const pct = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 0;
+          const paidCount = visible.filter((b) => b.status === "paid").length;
+          const partialCount = visible.filter((b) => b.status === "partial").length;
+          const unpaidCount = visible.filter((b) => b.status !== "paid").length;
           const scopeLabel = filter === "all"
             ? (lang === "bn" ? "সকল ফ্ল্যাট" : "All flats")
             : (lang === "bn" ? "ফিল্টার" : "Filtered");
           return (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
                 <div className="text-[11px] font-semibold uppercase text-muted-foreground">
                   {lang === "bn" ? "মোট বিল (লক্ষ্য)" : "Total billed (target)"}
@@ -507,6 +510,31 @@ export default function AdminDues() {
                 </div>
                 <div className="mt-1.5 text-[10px] text-muted-foreground">
                   {formatMoney(totalPaid, lang)} / {formatMoney(totalBilled, lang)}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "পরিশোধ করেছে" : "Flats paid"}
+                </div>
+                <div className="mt-1 text-xl font-bold text-success tabular-nums">
+                  {lang === "bn" ? paidCount.toLocaleString("bn-BD") : paidCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {partialCount > 0 && (
+                    <>{lang === "bn" ? `আংশিক ${partialCount.toLocaleString("bn-BD")} টি` : `${partialCount} partial`} · </>
+                  )}
+                  {lang === "bn" ? `${visible.length.toLocaleString("bn-BD")} এর মধ্যে` : `of ${visible.length}`}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-card border border-border shadow-soft p-4">
+                <div className="text-[11px] font-semibold uppercase text-muted-foreground">
+                  {lang === "bn" ? "পরিশোধ করেনি" : "Flats unpaid"}
+                </div>
+                <div className={cn("mt-1 text-xl font-bold tabular-nums", unpaidCount > 0 ? "text-destructive" : "text-foreground")}>
+                  {lang === "bn" ? unpaidCount.toLocaleString("bn-BD") : unpaidCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">
+                  {lang === "bn" ? "আংশিকসহ বাকী আছে" : "incl. partial"}
                 </div>
               </div>
             </div>
