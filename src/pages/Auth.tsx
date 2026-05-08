@@ -43,11 +43,11 @@ export default function Auth() {
   };
 
   // owner phone login
-  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState(() => localStorage.getItem("auth.last_phone") || "");
   const [ownerPass, setOwnerPass] = useState("12345678");
 
   // login form
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem("auth.last_email") || "");
   const [loginPass, setLoginPass] = useState("");
 
   // signup form
