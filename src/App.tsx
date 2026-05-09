@@ -50,6 +50,7 @@ import AdminFeedback from "./pages/admin/AdminFeedback";
 import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 import Download from "./pages/Download";
+import UpdateStatus from "./pages/UpdateStatus";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 
 const queryClient = new QueryClient();
