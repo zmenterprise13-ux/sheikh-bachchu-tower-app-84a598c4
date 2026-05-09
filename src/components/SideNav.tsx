@@ -447,7 +447,7 @@ export function SideNav() {
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
-      <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
+      <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain">
         <AccountHeader />
         {groups.map((group) =>
           group.label === ("groupOverview" as TKey) ? (
