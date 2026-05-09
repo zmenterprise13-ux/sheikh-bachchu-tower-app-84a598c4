@@ -7,6 +7,7 @@ const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
 const SEEN_KEY = "sbt:lastSeenReleaseTag";
 const DISMISS_KEY = "sbt:dismissedReleaseTag";
+const INSTALLED_KEY = "sbt:installedReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 type Asset = { name: string; browser_download_url: string };
@@ -17,6 +18,34 @@ type Release = {
   html_url: string;
   assets: Asset[];
 };
+
+/**
+ * Strict version comparator.
+ * Extracts numeric segments from a tag (e.g. "build-25" → [25], "v1.2.3" → [1,2,3])
+ * and returns 1 if a > b, -1 if a < b, 0 if equal.
+ * Returns 0 when either tag has no numeric content (cannot determine).
+ */
+function compareVersions(a: string, b: string): number {
+  const parse = (s: string) => (s.match(/\d+/g) ?? []).map((n) => parseInt(n, 10));
+  const av = parse(a);
+  const bv = parse(b);
+  if (av.length === 0 || bv.length === 0) return 0;
+  const len = Math.max(av.length, bv.length);
+  for (let i = 0; i < len; i++) {
+    const x = av[i] ?? 0;
+    const y = bv[i] ?? 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
+function isNewerThanInstalled(latestTag: string): boolean {
+  const installed = localStorage.getItem(INSTALLED_KEY);
+  // No installed record yet — assume outdated, prompt the user
+  if (!installed) return true;
+  return compareVersions(latestTag, installed) > 0;
+}
 
 export function UpdateBanner() {
   const [release, setRelease] = useState<Release | null>(null);
