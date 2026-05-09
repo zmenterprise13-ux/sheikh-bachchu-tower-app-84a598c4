@@ -55,6 +55,7 @@ type Flat = {
 type FamilyMember = {
   id?: string;
   name: string;
+  relation: string;
   age: number | null;
   occupation: string;
   phone: string;
@@ -150,7 +151,7 @@ const emptyTenant = (flat_id: string): TenantInfo => ({
 });
 
 const emptyMember = (): FamilyMember => ({
-  name: "", age: null, occupation: "", phone: "",
+  name: "", relation: "", age: null, occupation: "", phone: "",
 });
 
 type Kind = "tenant" | "owner";
@@ -224,7 +225,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
         const { data: fm } = await sb.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
-          id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
+          id: m.id, name: m.name ?? "", relation: m.relation ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
       } else {
         setTenant(emptyTenant(selectedFlatId));
@@ -303,7 +304,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         const rows = members.map((m, idx) => ({
           [cfg.familyFk]: tenantId,
           name: m.name,
-          relation: "",
+          relation: m.relation || "",
           age: m.age,
           occupation: m.occupation || null,
           phone: m.phone || null,
@@ -556,6 +557,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                         <tr>
                           <th className="border border-border p-2 text-left w-12">ক্রঃ</th>
                           <th className="border border-border p-2 text-left">নাম</th>
+                          <th className="border border-border p-2 text-left">সম্পর্ক</th>
                           <th className="border border-border p-2 text-left w-20">বয়স</th>
                           <th className="border border-border p-2 text-left">পেশা</th>
                           <th className="border border-border p-2 text-left">মোবাইল নম্বর</th>
@@ -567,6 +569,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                           <tr key={idx}>
                             <td className="border border-border p-1 text-center">{idx + 1}</td>
                             <td className="border border-border p-1"><Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><Input value={m.relation} onChange={(e) => updateMember(idx, { relation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} className="border-0 h-8" /></td>
