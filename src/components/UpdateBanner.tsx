@@ -43,10 +43,26 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
+function getInstalledTag(): string | null {
+  // Migrate legacy SEEN key → INSTALLED key (one-time, lazy)
+  let installed = localStorage.getItem(INSTALLED_KEY);
+  if (!installed) {
+    const legacy = localStorage.getItem(LEGACY_SEEN_KEY);
+    if (legacy) {
+      localStorage.setItem(INSTALLED_KEY, legacy);
+      localStorage.removeItem(LEGACY_SEEN_KEY);
+      installed = legacy;
+    }
+  }
+  return installed;
+}
+
 function isNewerThanInstalled(latestTag: string): boolean {
-  const installed = localStorage.getItem(INSTALLED_KEY);
+  const installed = getInstalledTag();
   // No installed record yet — assume outdated, prompt the user
   if (!installed) return true;
+  // Same tag → already installed, never show again
+  if (installed === latestTag) return false;
   return compareVersions(latestTag, installed) > 0;
 }
 
