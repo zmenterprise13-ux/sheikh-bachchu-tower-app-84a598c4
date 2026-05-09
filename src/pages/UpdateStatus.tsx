@@ -99,7 +99,6 @@ export default function UpdateStatus() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    localStorage.setItem(SEEN_KEY, release.tag_name);
     localStorage.setItem(INSTALLED_KEY, release.tag_name);
     setTimeout(() => setDownloading(false), 1500);
   };
