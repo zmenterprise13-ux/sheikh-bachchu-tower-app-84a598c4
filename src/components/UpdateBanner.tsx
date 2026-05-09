@@ -64,10 +64,13 @@ export function UpdateBanner() {
         const data: Release[] = await res.json();
         const latest = data.find((r) => !r.prerelease) ?? data[0];
         if (!latest || cancelled) return;
-        const seen = localStorage.getItem(SEEN_KEY);
         const dismissed = localStorage.getItem(DISMISS_KEY);
-        if (latest.tag_name !== seen && latest.tag_name !== dismissed) {
+        // Strict check: only show banner if released version is strictly newer
+        // than the installed version, AND the user hasn't dismissed this exact tag.
+        if (isNewerThanInstalled(latest.tag_name) && latest.tag_name !== dismissed) {
           setRelease(latest);
+        } else {
+          setRelease(null);
         }
       } catch {
         // silent
