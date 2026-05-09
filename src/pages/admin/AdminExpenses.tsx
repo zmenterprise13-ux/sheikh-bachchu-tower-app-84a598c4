@@ -113,7 +113,7 @@ export default function AdminExpenses() {
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, date, category, description, amount, approval_status, reject_reason")
+      .select("id, date, category, description, amount, service_month, approval_status, reject_reason")
       .order("date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data ?? []) as Expense[]);
