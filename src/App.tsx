@@ -29,6 +29,8 @@ import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
 import TenantInfoPage from "./pages/TenantInfo";
 import TenantInfoView from "./pages/TenantInfoView";
+import OwnerDetailedInfo from "./pages/OwnerDetailedInfo";
+import OwnerDetailedInfoView from "./pages/OwnerDetailedInfoView";
 import TenantInfoBlankForm from "./pages/TenantInfoBlankForm";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReceipts from "./pages/admin/AdminReceipts";
