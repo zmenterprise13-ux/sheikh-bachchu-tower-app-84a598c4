@@ -154,6 +154,39 @@ const emptyMember = (): FamilyMember => ({
   name: "", relation: "", age: null, occupation: "", phone: "",
 });
 
+const RELATION_OPTIONS = ["স্বামী", "স্ত্রী", "পিতা", "মাতা", "ছেলে", "মেয়ে", "ভাই", "বোন", "দাদা", "দাদী", "নানা", "নানী", "চাচা", "চাচী", "মামা", "মামী"];
+
+function RelationPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const isPreset = !value || RELATION_OPTIONS.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  const selectValue = custom ? "__other__" : (value || "");
+  return (
+    <div className="flex gap-1">
+      <Select
+        value={selectValue}
+        onValueChange={(v) => {
+          if (v === "__other__") { setCustom(true); onChange(""); }
+          else { setCustom(false); onChange(v); }
+        }}
+      >
+        <SelectTrigger className="border-0 h-8 w-[120px]"><SelectValue placeholder="নির্বাচন" /></SelectTrigger>
+        <SelectContent>
+          {RELATION_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+          <SelectItem value="__other__">অন্যান্য…</SelectItem>
+        </SelectContent>
+      </Select>
+      {custom && (
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="সম্পর্ক লিখুন"
+          className="border-0 h-8 flex-1 min-w-0"
+        />
+      )}
+    </div>
+  );
+}
+
 type Kind = "tenant" | "owner";
 type Config = {
   infoTable: "tenant_info" | "owner_info";
@@ -569,7 +602,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                           <tr key={idx}>
                             <td className="border border-border p-1 text-center">{idx + 1}</td>
                             <td className="border border-border p-1"><Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} className="border-0 h-8" /></td>
-                            <td className="border border-border p-1"><Input value={m.relation} onChange={(e) => updateMember(idx, { relation: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><RelationPicker value={m.relation} onChange={(v) => updateMember(idx, { relation: v })} /></td>
                             <td className="border border-border p-1"><Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} className="border-0 h-8" /></td>
