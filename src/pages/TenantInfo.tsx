@@ -573,6 +573,57 @@ export default function TenantInfoPage() {
               </CardContent>
             </Card>
 
+            {/* Tenancy history */}
+            {history.length > 0 && (
+              <Card className="print:hidden">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <History className="h-4 w-4" /> পূর্ববর্তী ভাড়াটিয়া ({history.length} জন)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="border border-border p-2 text-left">নাম</th>
+                          <th className="border border-border p-2 text-left">মোবাইল</th>
+                          <th className="border border-border p-2 text-left">পেশা</th>
+                          <th className="border border-border p-2 text-left">সদস্য</th>
+                          <th className="border border-border p-2 text-left">উঠেছিলেন</th>
+                          <th className="border border-border p-2 text-left">চলে গেছেন</th>
+                          <th className="border border-border p-2 text-left">যে মাসে</th>
+                          <th className="border border-border p-2 text-left">কারণ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((h) => (
+                          <tr key={h.id}>
+                            <td className="border border-border p-2">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-7 w-7">
+                                  {h.photo_url ? <AvatarImage src={h.photo_url} /> : null}
+                                  <InitialsFallback name={h.tenant_name || "?"} />
+                                </Avatar>
+                                <span>{h.tenant_name}</span>
+                              </div>
+                            </td>
+                            <td className="border border-border p-2">{h.phone || "—"}</td>
+                            <td className="border border-border p-2">{h.occupation || "—"}</td>
+                            <td className="border border-border p-2">{h.family_count}</td>
+                            <td className="border border-border p-2">{h.move_in_date || "—"}</td>
+                            <td className="border border-border p-2">{h.move_out_date || "—"}</td>
+                            <td className="border border-border p-2">{h.move_out_month || "—"}</td>
+                            <td className="border border-border p-2 max-w-[220px] truncate" title={h.leave_reason || ""}>{h.leave_reason || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="sticky bottom-0 -mx-2 px-2 py-3 bg-background/95 backdrop-blur border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 print:hidden z-10">
               <p className="text-xs text-muted-foreground">
                 পরিবর্তন সংরক্ষণ করতে নিচের বাটনে ক্লিক করুন।
