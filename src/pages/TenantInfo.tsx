@@ -236,6 +236,8 @@ export default function TenantInfoPage() {
   const save = async () => {
     if (!tenant) return;
     if (!tenant.tenant_name.trim()) return toast.error("ভাড়াটিয়ার নাম দিন");
+    const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
+    if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
     setSaving(true);
     try {
       const payload: any = {
