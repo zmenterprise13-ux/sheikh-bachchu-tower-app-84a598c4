@@ -21,13 +21,9 @@ const DEFAULT_LABELS = {
   buildingAddress: "১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।",
   formTitle: "ভাড়াটিয়া নিবন্ধন ফরম",
   // location row
-  beat: "বিট নং",
-  ward: "ওয়ার্ড নং",
-  flat: "ফ্ল্যাট/তলা",
-  holding: "বাড়ি/হোল্ডিং",
-  road: "রাস্তা",
-  area: "এলাকা",
-  postCode: "পোস্ট কোড",
+  ownerTenantName: "১। ফ্ল্যাট মালিক/ভাড়াটিয়ার নাম",
+  flatNo: "২। ফ্ল্যাট নং",
+  holdingNo: "৩। হোল্ডিং নং",
   // photo
   photoBox: "ছবি (পাসপোর্ট সাইজ)",
   // 1-9
