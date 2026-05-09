@@ -61,14 +61,12 @@ export function DuesPopup() {
   }, [user, role]);
 
   const dismiss = () => {
-    sessionStorage.setItem(SESSION_KEY, "1");
     setOpen(false);
   };
 
   const goPay = () => {
-    sessionStorage.setItem(SESSION_KEY, "1");
     setOpen(false);
-    navigate(role === "tenant" ? "/owner/dues" : "/owner/dues");
+    navigate("/owner/dues");
   };
 
   if (!open) return null;
