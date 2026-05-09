@@ -762,8 +762,8 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
               );
             })()}
 
-            {/* Tenancy history */}
-            {history.length > 0 && (
+            {/* Tenancy history (tenant-only) */}
+            {cfg.archiveEnabled && history.length > 0 && (
               <Card className="print:hidden">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
