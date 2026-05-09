@@ -569,7 +569,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                           <tr key={idx}>
                             <td className="border border-border p-1 text-center">{idx + 1}</td>
                             <td className="border border-border p-1"><Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} className="border-0 h-8" /></td>
-                            <td className="border border-border p-1"><Input value={m.relation} onChange={(e) => updateMember(idx, { relation: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><RelationPicker value={m.relation} onChange={(v) => updateMember(idx, { relation: v })} /></td>
                             <td className="border border-border p-1"><Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} className="border-0 h-8" /></td>
