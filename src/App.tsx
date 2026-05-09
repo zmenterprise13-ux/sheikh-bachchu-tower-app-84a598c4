@@ -51,6 +51,7 @@ import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 import Download from "./pages/Download";
 import UpdateStatus from "./pages/UpdateStatus";
+import VersionInfo from "./pages/VersionInfo";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 
 const queryClient = new QueryClient();
@@ -116,6 +117,7 @@ const App = () => (
               <Route path="/tenant-info/blank-form" element={<TenantInfoBlankForm />} />
               <Route path="/download" element={<Download />} />
               <Route path="/update" element={<ProtectedRoute><UpdateStatus /></ProtectedRoute>} />
+              <Route path="/version" element={<VersionInfo />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

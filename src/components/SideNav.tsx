@@ -450,7 +450,7 @@ function VersionFooter({ onNavigate }: { onNavigate?: () => void }) {
     : null;
   return (
     <NavLink
-      to="/update"
+      to="/version"
       onClick={onNavigate}
       className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-base"
     >
