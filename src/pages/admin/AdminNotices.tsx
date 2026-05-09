@@ -57,8 +57,8 @@ export default function AdminNotices() {
       const tag = latest.tag_name;
       const titleBn = `🚀 নতুন অ্যাপ আপডেট — ${tag}`;
       const titleEn = `🚀 New App Update — ${tag}`;
-      const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। দয়া করে নিচের লিঙ্ক থেকে নতুন APK ডাউনলোড করে ইনস্টল করুন:\n\n${downloadUrl}\n\nএরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।`;
-      const bodyEn = `New app version ${tag} is available. Please download and install the latest APK from:\n\n${downloadUrl}\n\nFuture updates will be notified automatically inside the app.`;
+      const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। নিচের বাটনে ক্লিক করে নতুন APK ডাউনলোড ও ইনস্টল করুন। এরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।\n\n${downloadUrl}`;
+      const bodyEn = `New app version ${tag} is available. Click the button below to download and install the latest APK. Future updates will be notified automatically inside the app.\n\n${downloadUrl}`;
       const { error } = await supabase.from("notices").insert({
         title: titleEn,
         title_bn: titleBn,
