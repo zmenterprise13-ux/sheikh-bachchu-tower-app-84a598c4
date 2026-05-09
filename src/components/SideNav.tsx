@@ -501,7 +501,10 @@ export function MobileNav() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <nav className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
+    <nav
+      className="lg:hidden sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
       <div className="grid grid-cols-5">
         {primary.map(({ to, key, icon: Icon }) => {
           const badge = badges[key as string] ?? 0;
