@@ -6,8 +6,7 @@ const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
 const SEEN_KEY = "sbt:lastSeenReleaseTag";
 const DISMISS_KEY = "sbt:dismissedReleaseTag";
-const CHECK_KEY = "sbt:lastUpdateCheckAt";
-const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 type Asset = { name: string; browser_download_url: string };
 type Release = {
