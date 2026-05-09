@@ -144,8 +144,8 @@ export default function AdminReports() {
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
         supabase.from("expenses")
-          .select("date, category, amount")
-          .gte("date", monthStart).lt("date", monthEnd),
+          .select("date, category, amount, service_month")
+          .or(`and(date.gte.${monthStart},date.lt.${monthEnd}),and(service_month.gte.${from},service_month.lte.${to})`),
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
