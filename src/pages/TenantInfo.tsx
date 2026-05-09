@@ -217,11 +217,11 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
     if (!selectedFlatId) return;
     setLoading(true);
     (async () => {
-      const { data: ti, error } = await supabase.from("tenant_info").select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      const { data: ti, error } = await supabase.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       if (error && error.code !== "PGRST116") toast.error(error.message);
       if (ti) {
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
-        const { data: fm } = await supabase.from("tenant_family_members").select("*").eq("tenant_info_id", (ti as any).id).order("sort_order").order("created_at");
+        const { data: fm } = await supabase.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
           id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
@@ -229,16 +229,21 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         setTenant(emptyTenant(selectedFlatId));
         setMembers([]);
       }
-      const { data: hist } = await supabase
-        .from("tenancy_periods")
-        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
-        .eq("flat_id", selectedFlatId)
-        .order("move_out_date", { ascending: false, nullsFirst: false })
-        .order("archived_at", { ascending: false });
-      setHistory((hist || []) as TenancyPeriod[]);
+      if (cfg.archiveEnabled) {
+        const { data: hist } = await supabase
+          .from("tenancy_periods")
+          .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+          .eq("flat_id", selectedFlatId)
+          .order("move_out_date", { ascending: false, nullsFirst: false })
+          .order("archived_at", { ascending: false });
+        setHistory((hist || []) as TenancyPeriod[]);
+      } else {
+        setHistory([]);
+      }
       setLoading(false);
     })();
-  }, [selectedFlatId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFlatId, kind]);
 
   const updateTenant = (patch: Partial<TenantInfo>) => setTenant((t) => (t ? { ...t, ...patch } : t));
   const addMember = () => setMembers((m) => [...m, emptyMember()]);
@@ -254,7 +259,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
     try {
       const compressed = await compressImage(file, { maxDim: 800, quality: 0.8 });
       const ext = compressed.type === "image/jpeg" ? "jpg" : "png";
-      const path = `tenants/${selectedFlatId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${cfg.photoFolder}/${selectedFlatId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("tenant-photos").upload(path, compressed, { upsert: false, contentType: compressed.type });
       if (error) throw error;
       const { data } = supabase.storage.from("tenant-photos").getPublicUrl(path);
