@@ -42,19 +42,44 @@ export default function AdminNotices() {
   const broadcastUpdate = async () => {
     setBroadcasting(true);
     try {
-      const res = await fetch(
-        "https://api.github.com/repos/zmenterprise13-ux/sheikh-bachchu-tower-app-4d8f59dd/releases?per_page=5"
-      );
-      if (!res.ok) throw new Error("GitHub API error");
-      const data = await res.json();
-      const latest = data.find((r: any) => !r.prerelease) ?? data[0];
-      if (!latest) {
-        toast.error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
-        return;
+      let tag = "";
+      let downloadUrl = "";
+      // Try GitHub API first
+      try {
+        const res = await fetch(
+          "https://api.github.com/repos/zmenterprise13-ux/sheikh-bachchu-tower-app-4d8f59dd/releases?per_page=5",
+          { cache: "no-store" }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const latest = data.find((r: any) => !r.prerelease) ?? data[0];
+          if (latest) {
+            const apk = latest.assets?.find((a: any) => a.name.endsWith(".apk"));
+            tag = latest.tag_name;
+            downloadUrl = apk?.browser_download_url ?? latest.html_url;
+          }
+        }
+      } catch {
+        // fall through to atom
       }
-      const apk = latest.assets?.find((a: any) => a.name.endsWith(".apk"));
-      const downloadUrl = apk?.browser_download_url ?? latest.html_url;
-      const tag = latest.tag_name;
+      // Fallback: public atom feed (no rate limit)
+      if (!tag) {
+        const res = await fetch(
+          "https://github.com/zmenterprise13-ux/sheikh-bachchu-tower-app-4d8f59dd/releases.atom",
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error("GitHub feed " + res.status);
+        const xml = await res.text();
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const entry = doc.querySelector("entry");
+        const link = entry?.querySelector("link")?.getAttribute("href") || "";
+        tag = link.split("/").pop() || "";
+        if (!tag) {
+          toast.error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
+          return;
+        }
+        downloadUrl = `https://github.com/zmenterprise13-ux/sheikh-bachchu-tower-app-4d8f59dd/releases/download/${tag}/app-release.apk`;
+      }
       const titleBn = `🚀 নতুন অ্যাপ আপডেট — ${tag}`;
       const titleEn = `🚀 New App Update — ${tag}`;
       const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। নিচের বাটনে ক্লিক করে নতুন APK ডাউনলোড ও ইনস্টল করুন। এরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।\n\n${downloadUrl}`;
