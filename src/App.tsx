@@ -27,6 +27,7 @@ import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
 import TenantInfoPage from "./pages/TenantInfo";
+import TenantInfoView from "./pages/TenantInfoView";
 import TenantInfoBlankForm from "./pages/TenantInfoBlankForm";
 import AdminPaymentRequests from "./pages/admin/AdminPaymentRequests";
 import AdminReceipts from "./pages/admin/AdminReceipts";
@@ -114,6 +115,7 @@ const App = () => (
 
               {/* Tenant info — accessible to admin and flat owners */}
               <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />
+              <Route path="/tenant-info/view" element={<ProtectedRoute><TenantInfoView /></ProtectedRoute>} />
               <Route path="/tenant-info/blank-form" element={<TenantInfoBlankForm />} />
               <Route path="/download" element={<Download />} />
               <Route path="/update" element={<ProtectedRoute><UpdateStatus /></ProtectedRoute>} />
