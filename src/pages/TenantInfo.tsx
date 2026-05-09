@@ -304,7 +304,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         const rows = members.map((m, idx) => ({
           [cfg.familyFk]: tenantId,
           name: m.name,
-          relation: "",
+          relation: m.relation || "",
           age: m.age,
           occupation: m.occupation || null,
           phone: m.phone || null,
