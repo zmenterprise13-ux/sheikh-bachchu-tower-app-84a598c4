@@ -167,5 +167,41 @@ export async function downloadReceiptPdf(
   doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
   doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
 
-  doc.save(`receipt-${receiptNo}.pdf`);
+  const filename = `receipt-${receiptNo}.pdf`;
+  await savePdf(doc, filename);
+}
+
+async function savePdf(doc: jsPDF, filename: string) {
+  // Native (Capacitor) — write to cache and open the share sheet so the
+  // user can save/open the PDF. doc.save() does not work in Android WebView.
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.isNativePlatform()) {
+      const { Filesystem, Directory } = await import("@capacitor/filesystem");
+      const { Share } = await import("@capacitor/share");
+      const base64 = doc.output("datauristring").split(",")[1];
+      const res = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Cache,
+      });
+      try {
+        await Share.share({ title: filename, url: res.uri, dialogTitle: "Save / Share Receipt" });
+      } catch {
+        // user cancelled share — file is still saved at res.uri
+      }
+      return;
+    }
+  } catch {
+    // fall through to web save
+  }
+  // Web — try native save; if it fails (some in-app browsers), open the blob.
+  try {
+    doc.save(filename);
+  } catch {
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
 }
