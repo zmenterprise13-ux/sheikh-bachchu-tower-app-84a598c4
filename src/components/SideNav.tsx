@@ -32,6 +32,7 @@ import {
   UserCog,
   ChevronDown,
   MessageSquare,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
