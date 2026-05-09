@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import { fromDue, noFee } from "@/lib/bkashMath";
 import bkashLogo from "@/assets/bkash-logo.png";
 import { formatReceiptNo } from "@/lib/receiptNumber";
+import { loadReceiptSettings } from "@/hooks/useReceiptSettings";
 
 export type ReceiptPR = {
   id: string;
@@ -33,19 +34,21 @@ export async function downloadReceiptPdf(
     ? fromDue(Number(pr.amount), bkashCfg.fee_pct)
     : noFee(Number(pr.amount));
 
+  const tpl = await loadReceiptSettings();
+
   // Header band — green
   doc.setFillColor(22, 163, 74);
   doc.rect(0, 0, W, 32, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("SHEIKH BACCHU TOWER SOCIETY", 14, 14);
+  doc.text(tpl.header_title, 14, 14);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("14/2, Sheikh Bacchu Tower, Mokterbari Road, Tongi, Gazipur", 14, 20);
+  doc.text(tpl.header_address, 14, 20);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("PAYMENT RECEIPT", 14, 28);
+  doc.text(tpl.receipt_title, 14, 28);
 
   doc.setFontSize(9);
   const receiptNo = formatReceiptNo(pr.receipt_seq ?? null, pr.id);
@@ -75,7 +78,7 @@ export async function downloadReceiptPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text(`Flat: ${flat?.flat_no ?? "-"}`, 14, 57);
-  doc.text(`For Month: ${pr.bills?.month ?? "-"}`, 14, 63);
+  doc.text(`${tpl.billing_period_label}: ${pr.bills?.month ?? "-"}`, 14, 63);
 
   doc.setDrawColor(226, 232, 240);
   doc.line(14, 70, W - 14, 70);
@@ -164,8 +167,8 @@ export async function downloadReceiptPdf(
   doc.setTextColor(148, 163, 184);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
-  doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
-  doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
+  doc.text(tpl.footer_line1, W / 2, 285, { align: "center" });
+  doc.text(tpl.footer_line2, W / 2, 290, { align: "center" });
 
   const filename = `receipt-${receiptNo}.pdf`;
   await savePdf(doc, filename);

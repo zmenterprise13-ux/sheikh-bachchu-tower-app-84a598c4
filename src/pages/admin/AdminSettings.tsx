@@ -22,6 +22,8 @@ import { Slider } from "@/components/ui/slider";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 import { ReportPadSettingsCard } from "@/components/ReportPadSettingsCard";
+import { Textarea } from "@/components/ui/textarea";
+import { useReceiptSettings, RECEIPT_DEFAULTS, type ReceiptSettings } from "@/hooks/useReceiptSettings";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -366,6 +368,8 @@ export default function AdminSettings() {
 
             <ReportPadSettingsCard />
 
+            <ReceiptTemplateCard />
+
             <BkashSettingsCard />
 
             <BillGenerationTester />
@@ -587,6 +591,79 @@ function OwnerReportStyleCard() {
               : "Billed & collected, other income, net balance, cash flow."}
           </div>
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ReceiptTemplateCard() {
+  const { lang } = useLang();
+  const { settings, loading, save } = useReceiptSettings();
+  const [form, setForm] = useState<ReceiptSettings>(RECEIPT_DEFAULTS);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (!loading) setForm(settings); }, [loading, settings]);
+
+  const set = <K extends keyof ReceiptSettings>(k: K, v: ReceiptSettings[K]) =>
+    setForm((p) => ({ ...p, [k]: v }));
+
+  const onSave = async () => {
+    setSaving(true);
+    const { error } = await save(form);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
+  };
+
+  const onReset = () => setForm(RECEIPT_DEFAULTS);
+
+  return (
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+      <div className="font-semibold text-foreground">
+        {lang === "bn" ? "রিসিপ্ট টেমপ্লেট" : "Receipt Template"}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {lang === "bn"
+          ? "PDF রিসিপ্টের হেডার, ফুটার ও বিলিং পিরিয়ড লেবেল কাস্টমাইজ করুন।"
+          : "Customize the header, footer, and billing-period label on PDF receipts."}
+      </p>
+
+      <div className="space-y-3">
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "হেডার শিরোনাম" : "Header title"}</Label>
+          <Input value={form.header_title} onChange={(e) => set("header_title", e.target.value)} disabled={loading} />
+        </div>
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "ঠিকানা" : "Address"}</Label>
+          <Input value={form.header_address} onChange={(e) => set("header_address", e.target.value)} disabled={loading} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "রিসিপ্ট টাইটেল" : "Receipt title"}</Label>
+            <Input value={form.receipt_title} onChange={(e) => set("receipt_title", e.target.value)} disabled={loading} />
+          </div>
+          <div>
+            <Label className="text-xs">{lang === "bn" ? "বিলিং পিরিয়ড লেবেল" : "Billing period label"}</Label>
+            <Input value={form.billing_period_label} onChange={(e) => set("billing_period_label", e.target.value)} disabled={loading} />
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "ফুটার লাইন ১" : "Footer line 1"}</Label>
+          <Textarea rows={2} value={form.footer_line1} onChange={(e) => set("footer_line1", e.target.value)} disabled={loading} />
+        </div>
+        <div>
+          <Label className="text-xs">{lang === "bn" ? "ফুটার লাইন ২" : "Footer line 2"}</Label>
+          <Textarea rows={2} value={form.footer_line2} onChange={(e) => set("footer_line2", e.target.value)} disabled={loading} />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="ghost" size="sm" onClick={onReset} disabled={loading || saving}>
+          {lang === "bn" ? "ডিফল্ট" : "Reset"}
+        </Button>
+        <Button size="sm" onClick={onSave} disabled={loading || saving} className="gap-2">
+          <Save className="h-4 w-4" /> {lang === "bn" ? "সংরক্ষণ" : "Save"}
+        </Button>
       </div>
     </div>
   );
