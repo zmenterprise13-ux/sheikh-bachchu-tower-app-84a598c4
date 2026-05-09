@@ -34,19 +34,21 @@ export async function downloadReceiptPdf(
     ? fromDue(Number(pr.amount), bkashCfg.fee_pct)
     : noFee(Number(pr.amount));
 
+  const tpl = await loadReceiptSettings();
+
   // Header band — green
   doc.setFillColor(22, 163, 74);
   doc.rect(0, 0, W, 32, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("SHEIKH BACCHU TOWER SOCIETY", 14, 14);
+  doc.text(tpl.header_title, 14, 14);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("14/2, Sheikh Bacchu Tower, Mokterbari Road, Tongi, Gazipur", 14, 20);
+  doc.text(tpl.header_address, 14, 20);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("PAYMENT RECEIPT", 14, 28);
+  doc.text(tpl.receipt_title, 14, 28);
 
   doc.setFontSize(9);
   const receiptNo = formatReceiptNo(pr.receipt_seq ?? null, pr.id);
@@ -76,7 +78,7 @@ export async function downloadReceiptPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text(`Flat: ${flat?.flat_no ?? "-"}`, 14, 57);
-  doc.text(`For Month: ${pr.bills?.month ?? "-"}`, 14, 63);
+  doc.text(`${tpl.billing_period_label}: ${pr.bills?.month ?? "-"}`, 14, 63);
 
   doc.setDrawColor(226, 232, 240);
   doc.line(14, 70, W - 14, 70);
