@@ -29,38 +29,45 @@ export function DuesPopup() {
   const [items, setItems] = useState<Row[]>([]);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    if (!role) return;
-    
+  const fetchDues = async (currentRole: string) => {
+    const { data, error } = await supabase
+      .from("dues_notifications")
+      .select("id, title, body, due_amount, month, bill_id, created_at")
+      .order("created_at", { ascending: false });
+    if (error) return;
+    const rows = (data ?? []) as Row[];
+    const billIds = Array.from(new Set(rows.map((r) => r.bill_id).filter(Boolean))) as string[];
+    let statusMap = new Map<string, string>();
+    if (billIds.length > 0) {
+      const { data: bs } = await supabase.from("bills").select("id, status").in("id", billIds);
+      (bs ?? []).forEach((b: any) => statusMap.set(b.id, b.status));
+    }
+    const unpaid = rows.filter((r) => {
+      if (r.bill_id) return statusMap.get(r.bill_id) !== "paid";
+      return true;
+    });
+    if (unpaid.length > 0) {
+      const limited = (currentRole === "owner" || currentRole === "tenant") ? unpaid : unpaid.slice(0, 20);
+      setItems(limited);
+      setOpen(true);
+    }
+  };
 
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("dues_notifications")
-        .select("id, title, body, due_amount, month, bill_id, created_at")
-        .order("created_at", { ascending: false });
-      if (error || cancelled) return;
-      const rows = (data ?? []) as Row[];
-      const billIds = Array.from(new Set(rows.map((r) => r.bill_id).filter(Boolean))) as string[];
-      let statusMap = new Map<string, string>();
-      if (billIds.length > 0) {
-        const { data: bs } = await supabase.from("bills").select("id, status").in("id", billIds);
-        (bs ?? []).forEach((b: any) => statusMap.set(b.id, b.status));
-      }
-      const unpaid = rows.filter((r) => {
-        if (r.bill_id) return statusMap.get(r.bill_id) !== "paid";
-        return true;
-      });
-      if (unpaid.length > 0) {
-        // Admin/manager/accountant রা সব flat এর notification পায় — শুধু প্রথম 20টি দেখাই
-        const limited = (role === "owner" || role === "tenant") ? unpaid : unpaid.slice(0, 20);
-        setItems(limited);
-        setOpen(true);
-      }
-    })();
-    return () => { cancelled = true; };
+  useEffect(() => {
+    if (!user || !role) return;
+    fetchDues(role);
   }, [user, role]);
+
+  // Auth state change এ সাথে সাথেই popup trigger (login এর পর reload ছাড়াই)
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" && role) {
+        setTimeout(() => fetchDues(role), 300);
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [role]);
+
 
   const dismiss = () => {
     setOpen(false);
