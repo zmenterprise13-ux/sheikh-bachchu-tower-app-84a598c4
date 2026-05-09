@@ -57,6 +57,7 @@ import Download from "./pages/Download";
 import UpdateStatus from "./pages/UpdateStatus";
 import VersionInfo from "./pages/VersionInfo";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
+import { ForceUpdateGate } from "@/components/ForceUpdateGate";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
           <Sonner />
           <ReportPadDebugProbe />
           <BrowserRouter>
+            <ForceUpdateGate>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -129,6 +131,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </ForceUpdateGate>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
