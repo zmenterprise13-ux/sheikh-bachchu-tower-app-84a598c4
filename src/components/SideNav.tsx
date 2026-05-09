@@ -649,6 +649,7 @@ export function MobileSideNavTrigger() {
           {groups.map((group) => (
             <NavGroupBlock key={group.label} group={group} t={t} onNavigate={() => setOpen(false)} />
           ))}
+          <VersionFooter onNavigate={() => setOpen(false)} />
         </nav>
       </SheetContent>
     </Sheet>
