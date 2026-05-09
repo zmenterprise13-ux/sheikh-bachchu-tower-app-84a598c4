@@ -88,6 +88,7 @@ const adminGroups: NavGroup[] = [
       { to: "/admin/flats/owners", key: "ownersDirectory" as TKey, icon: Users },
       { to: "/admin/committee", key: "committee" as TKey, icon: Users },
       { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+      { to: "/owner-info", key: "ownerDetailedInfo" as TKey, icon: UserSquare2 },
       { to: "/admin/users", key: "staffRoles" as TKey, icon: UserCog },
       { to: "/admin/user-management", key: "userManagement" as TKey, icon: Users },
     ],
