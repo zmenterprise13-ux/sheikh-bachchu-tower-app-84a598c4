@@ -45,7 +45,7 @@ export function sanitizePermanentAddress(a: PermanentAddress): PermanentAddress 
   return out;
 }
 
-/** Returns an error message if the address is internally inconsistent, otherwise null. */
+/** Returns an error message if the address is internally inconsistent or incomplete, otherwise null. */
 export function validatePermanentAddress(a: PermanentAddress): string | null {
   if (a.thana && !a.district) return "থানা নির্বাচন করতে হলে আগে জেলা নির্বাচন করুন";
   if (a.postOffice && !a.thana) return "পোস্ট অফিস নির্বাচন করতে হলে আগে থানা নির্বাচন করুন";
@@ -55,6 +55,10 @@ export function validatePermanentAddress(a: PermanentAddress): string | null {
     const list = GEO[a.district]?.[a.thana] || [];
     if (!list.some((p) => p.name === a.postOffice)) return "নির্বাচিত থানায় এই পোস্ট অফিস নেই";
   }
+  // Required downstream completeness: once a level is selected, the next levels must also be filled.
+  if (a.district && !a.thana) return "থানা / উপজেলা নির্বাচন করুন";
+  if (a.thana && !a.postOffice) return "পোস্ট অফিস নির্বাচন করুন";
+  if (a.postOffice && !a.postCode) return "পোস্ট কোড দিন";
   return null;
 }
 
