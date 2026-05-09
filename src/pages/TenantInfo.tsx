@@ -379,13 +379,13 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Users className="h-6 w-6" /> ভাড়াটিয়া নিবন্ধন ফরম
+              <Users className="h-6 w-6" /> {cfg.title}
             </h1>
-            <p className="text-sm text-muted-foreground">পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন</p>
+            <p className="text-sm text-muted-foreground">{cfg.subtitle}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/tenant-info/view${selectedFlatId ? `?flat=${selectedFlatId}` : ""}`}>
+              <Link to={`${cfg.viewPath}${selectedFlatId ? `?flat=${selectedFlatId}` : ""}`}>
                 <Eye className="h-4 w-4 mr-1" /> ভিউ
               </Link>
             </Button>
@@ -395,7 +395,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
-            {tenant?.id && (
+            {cfg.archiveEnabled && tenant?.id && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" disabled={archiving}>
