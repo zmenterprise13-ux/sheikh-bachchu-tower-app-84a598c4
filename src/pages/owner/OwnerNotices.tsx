@@ -5,6 +5,7 @@ import { Megaphone, AlertTriangle, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { NoticeBody } from "@/components/NoticeBody";
 
 type Notice = {
   id: string;
