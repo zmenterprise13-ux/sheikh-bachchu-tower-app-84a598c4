@@ -53,7 +53,7 @@ type Bill = {
   total: number;
   paid_amount: number;
 };
-type Expense = { date: string; category: string; amount: number };
+type Expense = { date: string; category: string; amount: number; service_month?: string | null };
 type LoanRow = { loan_date: string; principal: number; lender_name: string | null; lender_name_bn: string | null };
 type RepayRow = { paid_date: string; amount: number };
 type OtherIncomeRow = { date: string; category: string; amount: number };
