@@ -458,7 +458,12 @@ export default function TenantInfoPage() {
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label="৪. স্থায়ী ঠিকানা" full><Textarea rows={2} value={tenant.permanent_address} onChange={(e) => updateTenant({ permanent_address: e.target.value })} /></Field>
+                    <Field label="৪. স্থায়ী ঠিকানা" full>
+                      <PermanentAddressFields
+                        value={parsePermanentAddress(tenant.permanent_address)}
+                        onChange={(addr) => updateTenant({ permanent_address: serializePermanentAddress(addr) })}
+                      />
+                    </Field>
                     <Field label="৫. পেশা"><Input value={tenant.occupation} onChange={(e) => updateTenant({ occupation: e.target.value })} /></Field>
                     <Field label="প্রতিষ্ঠান/কর্মস্থলের ঠিকানা"><Input value={tenant.workplace} onChange={(e) => updateTenant({ workplace: e.target.value })} /></Field>
                     <Field label="৬. ধর্ম"><Input value={tenant.religion} onChange={(e) => updateTenant({ religion: e.target.value })} /></Field>
