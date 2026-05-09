@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { DuesPopup } from "@/components/DuesPopup";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
