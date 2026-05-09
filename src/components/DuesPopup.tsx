@@ -38,15 +38,20 @@ export function DuesPopup() {
     (async () => {
       const { data, error } = await supabase
         .from("dues_notifications")
-        .select("id, title, body, due_amount, month, bill_id, created_at, bills:bill_id(status)")
+        .select("id, title, body, due_amount, month, bill_id, created_at")
         .order("created_at", { ascending: false });
       if (error || cancelled) return;
-      const unpaid = (data ?? []).filter((r: any) => {
-        // Show only when the related bill exists and is still unpaid/partial.
-        // If no bill linked, fall back to created within last 60 days.
-        if (r.bills && r.bills.status) return r.bills.status !== "paid";
+      const rows = (data ?? []) as Row[];
+      const billIds = Array.from(new Set(rows.map((r) => r.bill_id).filter(Boolean))) as string[];
+      let statusMap = new Map<string, string>();
+      if (billIds.length > 0) {
+        const { data: bs } = await supabase.from("bills").select("id, status").in("id", billIds);
+        (bs ?? []).forEach((b: any) => statusMap.set(b.id, b.status));
+      }
+      const unpaid = rows.filter((r) => {
+        if (r.bill_id) return statusMap.get(r.bill_id) !== "paid";
         return true;
-      }) as Row[];
+      });
       if (unpaid.length > 0) {
         setItems(unpaid);
         setOpen(true);
