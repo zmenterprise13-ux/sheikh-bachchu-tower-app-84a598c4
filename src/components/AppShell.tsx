@@ -3,7 +3,7 @@ import { TopBar } from "./TopBar";
 import { MobileNav, SideNav } from "./SideNav";
 import { NoticeTicker } from "./NoticeTicker";
 import { UpdateBanner } from "./UpdateBanner";
-import { DuesPopup } from "./DuesPopup";
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
       <MobileNav />
-      <DuesPopup />
+      
     </div>
   );
 }

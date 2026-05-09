@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { DuesPopup } from "@/components/DuesPopup";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { StatCard } from "@/components/StatCard";
@@ -238,6 +239,7 @@ export default function OwnerDashboard() {
 
   return (
     <AppShell>
+      <DuesPopup />
       <div
         className="relative space-y-4 sm:space-y-5 animate-fade-in -m-2 sm:-m-4 p-2 sm:p-4 rounded-2xl border-l-4 overflow-hidden"
         style={{ transition: "border-color 600ms ease", ...flatAccentStyle }}
