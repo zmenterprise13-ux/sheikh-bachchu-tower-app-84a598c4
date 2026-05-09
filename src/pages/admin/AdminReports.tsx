@@ -538,6 +538,42 @@ export default function AdminReports() {
             <p className="text-sm text-destructive mt-2">{lang === "bn" ? "শুরু মাস শেষ মাসের আগে হতে হবে" : "From must be ≤ To"}</p>
           )}
 
+          {/* Expense grouping mode */}
+          <div className="mt-4 rounded-lg border border-border bg-secondary/30 p-3">
+            <Label className="text-xs">{lang === "bn" ? "খরচ কোন মাসে গণনা হবে?" : "Group expenses by"}</Label>
+            <div className="mt-2 inline-flex rounded-lg border border-border bg-card p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setExpenseMode("paid")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold transition-base",
+                  expenseMode === "paid" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {lang === "bn" ? "পরিশোধের তারিখ" : "Paid date"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpenseMode("service")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold transition-base",
+                  expenseMode === "service" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {lang === "bn" ? "সার্ভিস মাস" : "Service month"}
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              {expenseMode === "service"
+                ? (lang === "bn"
+                    ? "কোন মাসের জন্য খরচ (যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে-তে দিলে এপ্রিলে গণনা হবে)। যেগুলোতে service month দেওয়া নেই, সেগুলোর জন্য তারিখের মাস ব্যবহার হবে।"
+                    : "By service month (e.g. April security salary paid in May counts in April). Falls back to paid date when no service month set.")
+                : (lang === "bn"
+                    ? "যেদিন টাকা দেওয়া হয়েছে সেই মাসে গণনা হবে (cash basis — ব্যাংক/ক্যাশের সাথে মেলে)।"
+                    : "By the date the money was paid (cash basis — matches bank/cash).")}
+            </p>
+          </div>
+
           {/* Flat filter */}
           <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end">
             <div>
