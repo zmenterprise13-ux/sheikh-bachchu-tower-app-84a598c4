@@ -225,7 +225,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
         const { data: fm } = await sb.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
-          id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
+          id: m.id, name: m.name ?? "", relation: m.relation ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
       } else {
         setTenant(emptyTenant(selectedFlatId));
