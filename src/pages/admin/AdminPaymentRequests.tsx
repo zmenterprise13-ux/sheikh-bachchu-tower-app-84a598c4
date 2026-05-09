@@ -29,6 +29,7 @@ type PR = {
 };
 
 type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null; phone: string | null };
+type RoleRow = { user_id: string; role: string };
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
