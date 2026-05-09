@@ -502,6 +502,7 @@ export function SideNav() {
             <NavGroupBlock key={group.label} group={group} t={t} badges={badges} />
           )
         )}
+        <VersionFooter />
       </nav>
     </aside>
   );
