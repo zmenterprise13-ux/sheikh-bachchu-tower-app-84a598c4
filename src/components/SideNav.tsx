@@ -544,11 +544,14 @@ export function MobileNav() {
               <span className="truncate max-w-full px-1">{t("more" as TKey)}</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[75vh] flex flex-col">
+          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[85dvh] h-[85dvh] flex flex-col">
             <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
               <SheetTitle>{t("more" as TKey)}</SheetTitle>
             </SheetHeader>
-            <div className="p-3 space-y-4 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+            <div
+              className="p-3 space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0"
+              style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+            >
               {overflowGroups.map((group) => (
                 <div key={group.label} className="space-y-2">
                   <div className="px-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
