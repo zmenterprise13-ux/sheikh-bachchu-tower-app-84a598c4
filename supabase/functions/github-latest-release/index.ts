@@ -11,6 +11,37 @@ const corsHeaders = {
 const OWNER = "zmenterprise13-ux";
 const REPO = "sheikh-bachchu-tower-app-4d8f59dd";
 
+function versionParts(tag: string): number[] | null {
+  const normalized = tag.trim().replace(/^v/i, "");
+  if (!/^\d+(\.\d+)+$/.test(normalized)) return null;
+  return normalized.split(".").map((part) => Number(part));
+}
+
+function compareVersions(a: string, b: string): number {
+  const av = versionParts(a);
+  const bv = versionParts(b);
+  if (av && !bv) return 1;
+  if (!av && bv) return -1;
+  if (!av || !bv) return 0;
+  const len = Math.max(av.length, bv.length);
+  for (let i = 0; i < len; i++) {
+    const x = av[i] ?? 0;
+    const y = bv[i] ?? 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
+function pickLatestRelease<T extends { tag_name: string; published_at?: string; prerelease?: boolean; draft?: boolean }>(releases: T[]): T | null {
+  const stable = releases.filter((release) => !release.draft && !release.prerelease);
+  return stable.sort((a, b) => {
+    const versionCompare = compareVersions(b.tag_name, a.tag_name);
+    if (versionCompare !== 0) return versionCompare;
+    return Date.parse(b.published_at ?? "") - Date.parse(a.published_at ?? "");
+  })[0] ?? null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,13 +57,13 @@ Deno.serve(async (req) => {
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const apiRes = await fetch(
-      `https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=5`,
+      `https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=100`,
       { headers }
     );
 
     if (apiRes.ok) {
       const data = await apiRes.json();
-      const latest = data.find((r: any) => !r.prerelease) ?? data[0] ?? null;
+      const latest = pickLatestRelease(data) ?? data[0] ?? null;
       return new Response(JSON.stringify({ release: latest }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
