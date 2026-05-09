@@ -368,6 +368,8 @@ export default function AdminSettings() {
 
             <ReportPadSettingsCard />
 
+            <ReceiptTemplateCard />
+
             <BkashSettingsCard />
 
             <BillGenerationTester />
