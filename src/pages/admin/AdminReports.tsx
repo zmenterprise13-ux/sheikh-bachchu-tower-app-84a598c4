@@ -219,11 +219,24 @@ export default function AdminReports() {
     [bills, flatFilter]
   );
 
+  // Pick a month bucket for an expense based on the chosen mode
+  const expenseMonthOf = (e: Expense) =>
+    expenseMode === "service" ? (e.service_month || (e.date || "").slice(0, 7)) : (e.date || "").slice(0, 7);
+
+  // Expenses that actually belong to the selected report range under the current mode
+  const scopedExpenses = useMemo(
+    () => expenses.filter((e) => {
+      const m = expenseMonthOf(e);
+      return m >= from && m <= to;
+    }),
+    [expenses, from, to, expenseMode]
+  );
+
   // Per-month aggregation
   const perMonth = useMemo(() => {
     return months.map((m) => {
       const mb = scopedBills.filter((b) => b.month === m);
-      const me = expenses.filter((e) => e.date.slice(0, 7) === m);
+      const me = scopedExpenses.filter((e) => expenseMonthOf(e) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
       const mo = otherIncomes.filter((o) => (o.date || "").slice(0, 7) === m);
@@ -236,7 +249,7 @@ export default function AdminReports() {
       const expenseTotal = expense + loanOut; // loan repayment is treated as expense
       return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
-  }, [months, scopedBills, expenses, loans, repays, otherIncomes]);
+  }, [months, scopedBills, scopedExpenses, loans, repays, otherIncomes, expenseMode]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
