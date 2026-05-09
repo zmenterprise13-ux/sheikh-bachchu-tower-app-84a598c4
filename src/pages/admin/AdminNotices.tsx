@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NoticeBody } from "@/components/NoticeBody";
 
 type Notice = {
   id: string;
@@ -56,8 +57,8 @@ export default function AdminNotices() {
       const tag = latest.tag_name;
       const titleBn = `🚀 নতুন অ্যাপ আপডেট — ${tag}`;
       const titleEn = `🚀 New App Update — ${tag}`;
-      const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। দয়া করে নিচের লিঙ্ক থেকে নতুন APK ডাউনলোড করে ইনস্টল করুন:\n\n${downloadUrl}\n\nএরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।`;
-      const bodyEn = `New app version ${tag} is available. Please download and install the latest APK from:\n\n${downloadUrl}\n\nFuture updates will be notified automatically inside the app.`;
+      const bodyBn = `অ্যাপের নতুন ভার্সন ${tag} প্রকাশিত হয়েছে। নিচের বাটনে ক্লিক করে নতুন APK ডাউনলোড ও ইনস্টল করুন। এরপর থেকে নতুন আপডেট আসলেই অ্যাপের ভিতরে স্বয়ংক্রিয়ভাবে notification পাবেন।\n\n${downloadUrl}`;
+      const bodyEn = `New app version ${tag} is available. Click the button below to download and install the latest APK. Future updates will be notified automatically inside the app.\n\n${downloadUrl}`;
       const { error } = await supabase.from("notices").insert({
         title: titleEn,
         title_bn: titleBn,
@@ -240,7 +241,7 @@ export default function AdminNotices() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1.5">{lang === "bn" ? n.body_bn : n.body}</p>
+                  <NoticeBody text={lang === "bn" ? n.body_bn : n.body} lang={lang as "bn" | "en"} className="text-sm text-muted-foreground mt-1.5" />
                   <div className="text-xs text-muted-foreground mt-2">{n.date}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">

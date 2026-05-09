@@ -5,6 +5,7 @@ import { Megaphone, AlertTriangle, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { NoticeBody } from "@/components/NoticeBody";
 
 type Notice = {
   id: string;
@@ -84,7 +85,7 @@ export default function OwnerNotices() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground">{n.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1.5 whitespace-pre-line">{n.body}</p>
+                      <NoticeBody text={n.body} lang={lang as "bn" | "en"} className="text-sm text-muted-foreground mt-1.5" />
                       <div className="text-xs text-muted-foreground mt-2">
                         {new Date(n.created_at).toLocaleString(lang === "bn" ? "bn-BD" : "en-US")}
                       </div>
@@ -111,7 +112,7 @@ export default function OwnerNotices() {
                   <h3 className="font-semibold text-foreground">{lang === "bn" ? n.title_bn : n.title}</h3>
                   {n.important && <span className="text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full px-2 py-0.5">{lang === "bn" ? "জরুরি" : "URGENT"}</span>}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1.5">{lang === "bn" ? n.body_bn : n.body}</p>
+                <NoticeBody text={lang === "bn" ? n.body_bn : n.body} lang={lang as "bn" | "en"} className="text-sm text-muted-foreground mt-1.5" />
                 <div className="text-xs text-muted-foreground mt-2">{n.date}</div>
               </div>
             </div>
