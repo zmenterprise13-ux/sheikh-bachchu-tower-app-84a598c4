@@ -32,7 +32,7 @@ export function DuesPopup() {
   useEffect(() => {
     if (!user) return;
     if (role !== "owner" && role !== "tenant") return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    
 
     let cancelled = false;
     (async () => {
