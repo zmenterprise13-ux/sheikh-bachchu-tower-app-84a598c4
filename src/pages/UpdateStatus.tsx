@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/i18n/LangContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Rocket,
   Download as DownloadIcon,
