@@ -23,6 +23,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
+import AdminChangeHistory from "./pages/admin/AdminChangeHistory";
 import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/admin/user-management" element={<ProtectedRoute requireRole="admin"><AdminUserManagement /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
+              <Route path="/admin/change-history" element={<ProtectedRoute requireRole="admin"><AdminChangeHistory /></ProtectedRoute>} />
 
               {/* Owner */}
               <Route path="/owner" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDashboard /></ProtectedRoute>} />

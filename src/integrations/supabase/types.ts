@@ -214,6 +214,45 @@ export type Database = {
           },
         ]
       }
+      change_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          changed_fields: string[]
+          flat_id: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          flat_id?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          flat_id?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       committee_members: {
         Row: {
           accent: string
