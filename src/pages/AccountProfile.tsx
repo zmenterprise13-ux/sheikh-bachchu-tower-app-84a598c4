@@ -158,11 +158,11 @@ export default function AccountProfile() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: name || null,
           display_name_bn: nameBn || null,
-        })
-        .eq("user_id", user.id);
+        }, { onConflict: "user_id" });
       if (error) throw error;
       setInitial({ display_name: name, display_name_bn: nameBn, phone: initial.phone });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
