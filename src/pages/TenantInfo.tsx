@@ -275,6 +275,52 @@ export default function TenantInfoPage() {
     }
   };
 
+  const archiveTenant = async () => {
+    if (!tenant?.id) return toast.error("সংরক্ষিত ভাড়াটিয়া নেই");
+    setArchiving(true);
+    try {
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const monthStr = todayStr.slice(0, 7);
+      const snapshot = { ...tenant, members };
+      const { error: insErr } = await supabase.from("tenancy_periods").insert({
+        flat_id: tenant.flat_id,
+        tenant_name: tenant.tenant_name,
+        tenant_name_bn: tenant.tenant_name_bn || null,
+        phone: tenant.phone || null,
+        nid_number: tenant.nid_number || null,
+        occupation: tenant.occupation || null,
+        photo_url: tenant.photo_url,
+        family_count: members.length,
+        move_in_date: tenant.move_in_date || null,
+        move_out_date: todayStr,
+        move_out_month: monthStr,
+        leave_reason: tenant.leave_reason || null,
+        notes: tenant.notes || null,
+        snapshot,
+        archived_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+      await supabase.from("tenant_family_members").delete().eq("tenant_info_id", tenant.id);
+      const { error: delErr } = await supabase.from("tenant_info").delete().eq("id", tenant.id);
+      if (delErr) throw delErr;
+      toast.success("ভাড়াটিয়া আর্কাইভ হয়েছে");
+      setTenant(emptyTenant(selectedFlatId));
+      setMembers([]);
+      const { data: hist } = await supabase
+        .from("tenancy_periods")
+        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+        .eq("flat_id", selectedFlatId)
+        .order("move_out_date", { ascending: false, nullsFirst: false })
+        .order("archived_at", { ascending: false });
+      setHistory((hist || []) as TenancyPeriod[]);
+    } catch (err: any) {
+      toast.error(err.message ?? "আর্কাইভ ব্যর্থ");
+    } finally {
+      setArchiving(false);
+    }
+  };
+
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
   const handlePrintFilled = () => window.print();
   const handleDownloadBlankPdf = () => {
