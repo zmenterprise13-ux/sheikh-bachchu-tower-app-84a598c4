@@ -1,0 +1,214 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
+import { useLang } from "@/i18n/LangContext";
+import {
+  Tag,
+  Hash,
+  Smartphone,
+  Globe,
+  Rocket,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+
+const GITHUB_OWNER = "zmenterprise13-ux";
+const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
+const INSTALLED_KEY = "sbt:installedReleaseTag";
+const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
+
+/** Extract numeric build number from a tag like "build-31" or "v1.2.3" → "31" / "1.2.3" */
+function extractBuildNumber(tag: string | null): string {
+  if (!tag) return "—";
+  const m = tag.match(/\d+(?:\.\d+)*/);
+  return m ? m[0] : tag;
+}
+
+export default function VersionInfo() {
+  const { lang } = useLang();
+  const installed =
+    localStorage.getItem(INSTALLED_KEY) ||
+    localStorage.getItem(LEGACY_SEEN_KEY);
+  const buildNumber = extractBuildNumber(installed);
+
+  const [latestTag, setLatestTag] = useState<string | null>(null);
+  const [latestUrl, setLatestUrl] = useState<string | null>(null);
+  const [loadingLatest, setLoadingLatest] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error();
+        const data: Array<{ tag_name: string; prerelease: boolean; html_url: string }> =
+          await res.json();
+        const latest = data.find((r) => !r.prerelease) ?? data[0];
+        if (latest) {
+          setLatestTag(latest.tag_name);
+          setLatestUrl(latest.html_url);
+        }
+      } catch {
+        // silent
+      } finally {
+        setLoadingLatest(false);
+      }
+    })();
+  }, []);
+
+  const isUpToDate = installed && latestTag && installed === latestTag;
+  const platform =
+    typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent)
+      ? "Android"
+      : /iPhone|iPad|iPod/i.test(navigator.userAgent)
+      ? "iOS"
+      : lang === "bn"
+      ? "ওয়েব"
+      : "Web";
+
+  return (
+    <AppShell>
+      <div className="space-y-6 max-w-2xl mx-auto">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            {lang === "bn" ? "ভার্সন তথ্য" : "Version info"}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {lang === "bn"
+              ? "এই ডিভাইসে ইনস্টল করা অ্যাপের বর্তমান অবস্থা"
+              : "Current state of this app on this device"}
+          </p>
+        </div>
+
+        {/* Hero card */}
+        <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 shadow-elegant">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Rocket className="h-6 w-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs uppercase tracking-wide opacity-80">
+                {lang === "bn" ? "ইনস্টল করা ভার্সন" : "Installed version"}
+              </p>
+              <h2 className="text-3xl font-bold mt-1 font-mono">
+                {installed || "—"}
+              </h2>
+              <p className="text-xs opacity-90 mt-1">
+                {lang === "bn" ? "বিল্ড নম্বর" : "Build number"}:{" "}
+                <span className="font-mono font-semibold">{buildNumber}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Detail rows */}
+        <div className="rounded-2xl bg-card border border-border p-5 space-y-3 shadow-soft">
+          <Row
+            icon={<Tag className="h-4 w-4" />}
+            label={lang === "bn" ? "ভার্সন ট্যাগ" : "Version tag"}
+            value={installed || "—"}
+            mono
+          />
+          <Row
+            icon={<Hash className="h-4 w-4" />}
+            label={lang === "bn" ? "বিল্ড নম্বর" : "Build number"}
+            value={buildNumber}
+            mono
+          />
+          <Row
+            icon={<Smartphone className="h-4 w-4" />}
+            label={lang === "bn" ? "প্ল্যাটফর্ম" : "Platform"}
+            value={platform}
+          />
+          <Row
+            icon={<Globe className="h-4 w-4" />}
+            label={lang === "bn" ? "ভাষা" : "Language"}
+            value={lang === "bn" ? "বাংলা" : "English"}
+          />
+          <Row
+            icon={
+              loadingLatest ? (
+                <AlertCircle className="h-4 w-4 animate-pulse" />
+              ) : isUpToDate ? (
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              )
+            }
+            label={lang === "bn" ? "সর্বশেষ রিলিজ" : "Latest release"}
+            value={loadingLatest ? "…" : latestTag || "—"}
+            mono
+          />
+          <Row
+            icon={
+              isUpToDate ? (
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              )
+            }
+            label={lang === "bn" ? "অবস্থা" : "Status"}
+            value={
+              !installed
+                ? lang === "bn"
+                  ? "অজানা"
+                  : "Unknown"
+                : isUpToDate
+                ? lang === "bn"
+                  ? "সর্বশেষ ভার্সনে আছেন"
+                  : "Up to date"
+                : lang === "bn"
+                ? "নতুন আপডেট উপলব্ধ"
+                : "Update available"
+            }
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild className="gradient-primary text-primary-foreground gap-2 flex-1" size="lg">
+            <Link to="/update">
+              <Rocket className="h-4 w-4" />
+              {lang === "bn" ? "আপডেট পেজে যান" : "Go to Update page"}
+            </Link>
+          </Button>
+          {latestUrl && (
+            <Button variant="outline" asChild className="gap-2" size="lg">
+              <a href={latestUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                {lang === "bn" ? "GitHub-এ দেখুন" : "View on GitHub"}
+              </a>
+            </Button>
+          )}
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+function Row({
+  icon,
+  label,
+  value,
+  mono,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <span className="text-muted-foreground shrink-0">{icon}</span>
+      <span className="text-muted-foreground w-32 shrink-0">{label}</span>
+      <span
+        className={`font-medium text-foreground truncate ${mono ? "font-mono" : ""}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
