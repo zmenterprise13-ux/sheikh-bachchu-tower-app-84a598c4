@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
-import { PermanentAddressFields, parsePermanentAddress, serializePermanentAddress } from "@/components/PermanentAddressFields";
+import { PermanentAddressFields, parsePermanentAddress, serializePermanentAddress, validatePermanentAddress } from "@/components/PermanentAddressFields";
 import {
   AlertDialog,
   AlertDialogAction,
