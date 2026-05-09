@@ -626,8 +626,8 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
               </CardContent>
             </Card>
 
-            {/* Tenancy timeline */}
-            {(history.length > 0 || tenant.tenant_name) && (() => {
+            {/* Tenancy timeline (tenant-only) */}
+            {cfg.archiveEnabled && (history.length > 0 || tenant.tenant_name) && (() => {
               const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
               const toBn = (s: string) => s.replace(/\d/g, (d) => bnDigits[+d]);
               const fmtDate = (d?: string | null) => {
