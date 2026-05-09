@@ -64,13 +64,14 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
     setParams((p) => { p.set("flat", selectedFlatId); return p; }, { replace: true });
     setLoading(true);
     (async () => {
-      const { data: ti } = await supabase.from("tenant_info").select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      const sb: any = supabase;
+      const { data: ti } = await sb.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       setTenant(ti as TenantRow);
       if (ti) {
-        const { data: fm } = await supabase
-          .from("tenant_family_members")
+        const { data: fm } = await sb
+          .from(cfg.familyTable)
           .select("id, name, age, occupation, phone")
-          .eq("tenant_info_id", (ti as any).id)
+          .eq(cfg.familyFk, (ti as any).id)
           .order("sort_order").order("created_at");
         setMembers((fm || []) as FamilyMember[]);
       } else {
@@ -79,7 +80,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFlatId]);
+  }, [selectedFlatId, kind]);
 
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
   const permanentAddr = tenant?.permanent_address ? formatPermanentAddress(parsePermanentAddress(tenant.permanent_address)) : "";
