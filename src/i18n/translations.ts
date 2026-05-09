@@ -26,6 +26,7 @@ export const translations: T = {
   loans: { bn: "লোন", en: "Loans" },
   committee: { bn: "কমিটি", en: "Committee" },
   tenantInfo: { bn: "ভাড়াটিয়া তথ্য", en: "Tenant Info" },
+  ownerDetailedInfo: { bn: "মালিকের বিস্তারিত তথ্য", en: "Owner Details" },
   changeHistory: { bn: "পরিবর্তন ইতিহাস", en: "Change History" },
   reports: { bn: "মাসিক রিপোর্ট", en: "Monthly Reports" },
   notices: { bn: "নোটিশ", en: "Notices" },
