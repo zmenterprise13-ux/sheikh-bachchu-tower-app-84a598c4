@@ -193,6 +193,13 @@ export default function TenantInfoPage() {
         setTenant(emptyTenant(selectedFlatId));
         setMembers([]);
       }
+      const { data: hist } = await supabase
+        .from("tenancy_periods")
+        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+        .eq("flat_id", selectedFlatId)
+        .order("move_out_date", { ascending: false, nullsFirst: false })
+        .order("archived_at", { ascending: false });
+      setHistory((hist || []) as TenancyPeriod[]);
       setLoading(false);
     })();
   }, [selectedFlatId]);
