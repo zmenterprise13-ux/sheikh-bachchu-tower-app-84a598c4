@@ -17,7 +17,6 @@ import {
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const SEEN_KEY = "sbt:lastSeenReleaseTag";
 const INSTALLED_KEY = "sbt:installedReleaseTag";
 
 type Asset = { name: string; browser_download_url: string; size: number };
