@@ -55,6 +55,7 @@ type Flat = {
 type FamilyMember = {
   id?: string;
   name: string;
+  relation: string;
   age: number | null;
   occupation: string;
   phone: string;
@@ -150,7 +151,7 @@ const emptyTenant = (flat_id: string): TenantInfo => ({
 });
 
 const emptyMember = (): FamilyMember => ({
-  name: "", age: null, occupation: "", phone: "",
+  name: "", relation: "", age: null, occupation: "", phone: "",
 });
 
 type Kind = "tenant" | "owner";
@@ -556,6 +557,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                         <tr>
                           <th className="border border-border p-2 text-left w-12">ক্রঃ</th>
                           <th className="border border-border p-2 text-left">নাম</th>
+                          <th className="border border-border p-2 text-left">সম্পর্ক</th>
                           <th className="border border-border p-2 text-left w-20">বয়স</th>
                           <th className="border border-border p-2 text-left">পেশা</th>
                           <th className="border border-border p-2 text-left">মোবাইল নম্বর</th>
@@ -567,6 +569,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                           <tr key={idx}>
                             <td className="border border-border p-1 text-center">{idx + 1}</td>
                             <td className="border border-border p-1"><Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><Input value={m.relation} onChange={(e) => updateMember(idx, { relation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} className="border-0 h-8" /></td>
                             <td className="border border-border p-1"><Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} className="border-0 h-8" /></td>
