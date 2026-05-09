@@ -183,6 +183,9 @@ export function PermanentAddressFields({
           পুরোনো ঠিকানা: <span className="italic">{value.legacy}</span> — উপরের ফিল্ডে আপডেট করে সেভ করুন।
         </div>
       )}
+      {error && (
+        <div className="sm:col-span-2 text-xs text-destructive">{error}</div>
+      )}
     </div>
   );
 }
