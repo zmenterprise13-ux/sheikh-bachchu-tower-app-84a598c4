@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
@@ -75,22 +76,17 @@ export function UpdateBanner() {
     let cancelled = false;
     const check = async () => {
       try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
-          { cache: "no-store" }
+        const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+          "github-latest-release"
         );
-        if (!res.ok) return;
-        const data: Release[] = await res.json();
-        // Strictly ignore prereleases — only stable releases trigger the banner.
-        const latest = data.find((r) => !r.prerelease);
+        if (fnErr || fnData?.error) return;
+        const latest: Release | null = fnData?.release ?? null;
         if (cancelled) return;
         if (!latest) {
           setRelease(null);
           return;
         }
         const dismissed = localStorage.getItem(DISMISS_KEY);
-        // Strict check: only show banner if released version is strictly newer
-        // than the installed version, AND the user hasn't dismissed this exact tag.
         if (isNewerThanInstalled(latest.tag_name) && latest.tag_name !== dismissed) {
           setRelease(latest);
         } else {
