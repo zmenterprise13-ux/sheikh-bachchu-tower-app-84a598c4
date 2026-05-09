@@ -24,6 +24,9 @@ const EMPTY: PermanentAddress = {
   district: "", thana: "", postOffice: "", postCode: "", village: "", road: "",
 };
 
+type GeoMap = Record<string, Record<string, { name: string; code: string }[]>>;
+const GEO = bdGeo as GeoMap;
+
 /** Drop downstream values that are inconsistent with the loaded geo data. */
 export function sanitizePermanentAddress(a: PermanentAddress): PermanentAddress {
   const out = { ...a };
