@@ -108,8 +108,7 @@ export default function AccountProfile() {
       const newUrl = pub.publicUrl;
       const { error: updErr } = await supabase
         .from("profiles")
-        .update({ avatar_url: newUrl })
-        .eq("user_id", user.id);
+        .upsert({ user_id: user.id, avatar_url: newUrl }, { onConflict: "user_id" });
       if (updErr) throw updErr;
       // Sync to all owned flats so dashboard shows the same photo
       await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
@@ -158,11 +157,11 @@ export default function AccountProfile() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: name || null,
           display_name_bn: nameBn || null,
-        })
-        .eq("user_id", user.id);
+        }, { onConflict: "user_id" });
       if (error) throw error;
       setInitial({ display_name: name, display_name_bn: nameBn, phone: initial.phone });
       toast.success(lang === "bn" ? "প্রোফাইল আপডেট হয়েছে" : "Profile updated");
