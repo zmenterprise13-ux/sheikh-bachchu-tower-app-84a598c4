@@ -444,8 +444,7 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[]): Document {
           p(L.buildingAddress, { size: 20, align: AlignmentType.CENTER, spacing: 60 }),
           p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 160 }),
 
-          lineRow(L.beat), lineRow(L.ward), lineRow(L.flat), lineRow(L.holding),
-          lineRow(L.road), lineRow(L.area), lineRow(L.postCode),
+          lineRow(L.ownerTenantName), lineRow(L.flatNo), lineRow(L.holdingNo),
 
           lineRow(L.l1), lineRow(L.l2), lineRow(L.l3a), lineRow(L.l3b),
           lineRow(L.l4), lineRow(L.l5),
