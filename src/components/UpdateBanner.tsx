@@ -59,23 +59,8 @@ export function UpdateBanner() {
 
   if (!release || hidden) return null;
 
-  const apk = release.assets.find((a) => a.name.endsWith(".apk"));
-
-  const handleUpdate = async () => {
-    if (!apk) {
-      window.open(release.html_url, "_blank");
-      return;
-    }
-    setDownloading(true);
-    // Trigger native download — Android browser will prompt to install
-    const a = document.createElement("a");
-    a.href = apk.browser_download_url;
-    a.download = apk.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    localStorage.setItem(SEEN_KEY, release.tag_name);
-    setTimeout(() => setDownloading(false), 1500);
+  const handleViewDetails = () => {
+    navigate("/update");
   };
 
   const handleLater = () => {
@@ -92,22 +77,17 @@ export function UpdateBanner() {
             নতুন ভার্সন উপলব্ধ — {release.tag_name}
           </p>
           <p className="text-[10px] sm:text-xs opacity-90 leading-tight truncate">
-            এখনই আপডেট করুন সর্বশেষ ফিচার ও উন্নতির জন্য
+            বিস্তারিত দেখুন এবং আপডেট করুন
           </p>
         </div>
         <Button
           size="sm"
           variant="secondary"
           className="h-7 sm:h-8 text-xs gap-1 shrink-0"
-          onClick={handleUpdate}
-          disabled={downloading}
+          onClick={handleViewDetails}
         >
-          {downloading ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <DownloadIcon className="h-3 w-3" />
-          )}
-          আপডেট
+          <Info className="h-3 w-3" />
+          বিস্তারিত
         </Button>
         <button
           onClick={handleLater}
