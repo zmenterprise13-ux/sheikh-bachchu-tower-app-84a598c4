@@ -134,7 +134,7 @@ export function UpdateBanner() {
           </p>
           <p className="text-[10px] sm:text-xs opacity-95 leading-tight mt-0.5 flex items-center gap-1.5 flex-wrap">
             <span className="px-1.5 py-0.5 rounded bg-white/15 font-mono">
-              {localStorage.getItem(INSTALLED_KEY) ?? "—"}
+              {getInstalledTag() ?? "—"}
             </span>
             <span className="opacity-80">→</span>
             <span className="px-1.5 py-0.5 rounded bg-white/30 font-mono font-semibold">
