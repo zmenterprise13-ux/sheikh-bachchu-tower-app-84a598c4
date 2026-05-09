@@ -168,12 +168,14 @@ export default function AdminExpenses() {
     }
     setSubmitting(true);
     let error;
+    const sm = form.service_month && /^\d{4}-\d{2}$/.test(form.service_month) ? form.service_month : null;
     if (editingId) {
       ({ error } = await supabase.from("expenses").update({
         date: form.date,
         category: form.category,
         description: form.description.trim(),
         amount: amt,
+        service_month: sm,
       }).eq("id", editingId));
     } else {
       ({ error } = await supabase.from("expenses").insert({
@@ -181,6 +183,7 @@ export default function AdminExpenses() {
         category: form.category,
         description: form.description.trim(),
         amount: amt,
+        service_month: sm,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       }));
