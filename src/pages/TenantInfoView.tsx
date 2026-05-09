@@ -92,7 +92,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Eye className="h-6 w-6" /> ভাড়াটিয়ার তথ্য (ভিউ)
+              <Eye className="h-6 w-6" /> {cfg.title}
             </h1>
             <p className="text-sm text-muted-foreground">শুধু পড়ার জন্য। অফিসিয়াল প্রিন্টের জন্য A4 ফরম্যাটে প্রস্তুত।</p>
           </div>
@@ -104,7 +104,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
               <Printer className="h-4 w-4 mr-1" /> A4 প্রিন্ট
             </Button>
             <Button asChild size="sm" disabled={!tenant}>
-              <Link to={`/tenant-info?flat=${selectedFlatId}`}>
+              <Link to={`${cfg.editPath}?flat=${selectedFlatId}`}>
                 <Pencil className="h-4 w-4 mr-1" /> এডিট
               </Link>
             </Button>
