@@ -365,6 +365,21 @@ export default function AdminExpenses() {
                     <Label>{t("description")}</Label>
                     <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={200} />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      {lang === "bn" ? "কোন মাসের খরচ (ঐচ্ছিক)" : "Service month (optional)"}
+                    </Label>
+                    <Input
+                      type="month"
+                      value={form.service_month}
+                      onChange={(e) => setForm({ ...form, service_month: e.target.value })}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {lang === "bn"
+                        ? "যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে মাসে দিলে এখানে এপ্রিল সিলেক্ট করুন। ফাঁকা থাকলে তারিখের মাসই ধরা হবে।"
+                        : "E.g. paying April's security salary in May — select April here. Leave blank to use the date's month."}
+                    </p>
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting}>{t("cancel")}</Button>
