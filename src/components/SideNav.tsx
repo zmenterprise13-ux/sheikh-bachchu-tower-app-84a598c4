@@ -447,7 +447,7 @@ export function SideNav() {
 
   return (
     <aside className="hidden lg:block w-60 shrink-0">
-      <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100vh-6rem)] overflow-y-auto">
+      <nav className="sticky top-20 space-y-3 rounded-2xl bg-card p-3 shadow-soft border border-border max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain">
         <AccountHeader />
         {groups.map((group) =>
           group.label === ("groupOverview" as TKey) ? (
@@ -544,11 +544,14 @@ export function MobileNav() {
               <span className="truncate max-w-full px-1">{t("more" as TKey)}</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[75vh] flex flex-col">
+          <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[85dvh] h-[85dvh] flex flex-col">
             <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
               <SheetTitle>{t("more" as TKey)}</SheetTitle>
             </SheetHeader>
-            <div className="p-3 space-y-4 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+            <div
+              className="p-3 space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0"
+              style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+            >
               {overflowGroups.map((group) => (
                 <div key={group.label} className="space-y-2">
                   <div className="px-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -606,11 +609,14 @@ export function MobileSideNavTrigger() {
           <Menu className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 flex flex-col">
+      <SheetContent side="left" className="w-72 p-0 flex flex-col h-[100dvh]">
         <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 space-y-3 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+        <nav
+          className="p-3 space-y-3 overflow-y-auto overscroll-contain flex-1 min-h-0"
+          style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+        >
           <AccountHeader />
           {groups.map((group) => (
             <NavGroupBlock key={group.label} group={group} t={t} onNavigate={() => setOpen(false)} />
