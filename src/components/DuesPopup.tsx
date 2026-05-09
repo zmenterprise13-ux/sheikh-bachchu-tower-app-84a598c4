@@ -31,7 +31,7 @@ export function DuesPopup() {
 
   useEffect(() => {
     if (!user) return;
-    if (role !== "owner" && role !== "tenant") return;
+    if (!role) return;
     
 
     let cancelled = false;
@@ -53,7 +53,9 @@ export function DuesPopup() {
         return true;
       });
       if (unpaid.length > 0) {
-        setItems(unpaid);
+        // Admin/manager/accountant রা সব flat এর notification পায় — শুধু প্রথম 20টি দেখাই
+        const limited = (role === "owner" || role === "tenant") ? unpaid : unpaid.slice(0, 20);
+        setItems(limited);
         setOpen(true);
       }
     })();
