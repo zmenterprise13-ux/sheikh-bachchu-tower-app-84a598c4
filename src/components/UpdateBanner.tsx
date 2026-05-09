@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const SEEN_KEY = "sbt:lastSeenReleaseTag";
-const DISMISS_KEY = "sbt:dismissedReleaseTag";
+// Single source of truth for "what version the user has".
+// INSTALLED_KEY is set when the user downloads an APK from the Update page.
+// LEGACY_SEEN_KEY is read for backward compatibility and migrated on first load.
 const INSTALLED_KEY = "sbt:installedReleaseTag";
+const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
+const DISMISS_KEY = "sbt:dismissedReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 type Asset = { name: string; browser_download_url: string };
@@ -40,10 +43,26 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
+function getInstalledTag(): string | null {
+  // Migrate legacy SEEN key → INSTALLED key (one-time, lazy)
+  let installed = localStorage.getItem(INSTALLED_KEY);
+  if (!installed) {
+    const legacy = localStorage.getItem(LEGACY_SEEN_KEY);
+    if (legacy) {
+      localStorage.setItem(INSTALLED_KEY, legacy);
+      localStorage.removeItem(LEGACY_SEEN_KEY);
+      installed = legacy;
+    }
+  }
+  return installed;
+}
+
 function isNewerThanInstalled(latestTag: string): boolean {
-  const installed = localStorage.getItem(INSTALLED_KEY);
+  const installed = getInstalledTag();
   // No installed record yet — assume outdated, prompt the user
   if (!installed) return true;
+  // Same tag → already installed, never show again
+  if (installed === latestTag) return false;
   return compareVersions(latestTag, installed) > 0;
 }
 
@@ -115,7 +134,7 @@ export function UpdateBanner() {
           </p>
           <p className="text-[10px] sm:text-xs opacity-95 leading-tight mt-0.5 flex items-center gap-1.5 flex-wrap">
             <span className="px-1.5 py-0.5 rounded bg-white/15 font-mono">
-              {localStorage.getItem(INSTALLED_KEY) ?? "—"}
+              {getInstalledTag() ?? "—"}
             </span>
             <span className="opacity-80">→</span>
             <span className="px-1.5 py-0.5 rounded bg-white/30 font-mono font-semibold">

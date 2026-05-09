@@ -17,7 +17,6 @@ import {
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const SEEN_KEY = "sbt:lastSeenReleaseTag";
 const INSTALLED_KEY = "sbt:installedReleaseTag";
 
 type Asset = { name: string; browser_download_url: string; size: number };
@@ -100,7 +99,6 @@ export default function UpdateStatus() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    localStorage.setItem(SEEN_KEY, release.tag_name);
     localStorage.setItem(INSTALLED_KEY, release.tag_name);
     setTimeout(() => setDownloading(false), 1500);
   };
