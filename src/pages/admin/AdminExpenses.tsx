@@ -155,6 +155,7 @@ export default function AdminExpenses() {
       category: e.category,
       description: e.description,
       amount: String(e.amount),
+      service_month: e.service_month ?? "",
     });
     setOpen(true);
   };
