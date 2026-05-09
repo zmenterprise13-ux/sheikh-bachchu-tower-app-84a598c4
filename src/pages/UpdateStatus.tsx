@@ -38,19 +38,58 @@ export default function UpdateStatus() {
   const [downloading, setDownloading] = useState(false);
   const installedTag = localStorage.getItem(INSTALLED_KEY);
 
+  // Fallback: parse GitHub's public releases.atom feed (no API rate limit).
+  // Used when api.github.com returns 403 (rate limited by shared mobile IPs).
+  const loadFromAtom = async (): Promise<Release> => {
+    const res = await fetch(
+      `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases.atom`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) throw new Error(`Atom feed ${res.status}`);
+    const xml = await res.text();
+    const doc = new DOMParser().parseFromString(xml, "text/xml");
+    const entry = doc.querySelector("entry");
+    if (!entry) throw new Error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
+    const link = entry.querySelector("link")?.getAttribute("href") || "";
+    const tag = link.split("/").pop() || "";
+    const title = entry.querySelector("title")?.textContent || tag;
+    const updated = entry.querySelector("updated")?.textContent || "";
+    const body = entry.querySelector("content")?.textContent || "";
+    // Predictable APK URL based on the build workflow's output filename.
+    const apkUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tag}/app-release.apk`;
+    return {
+      tag_name: tag,
+      name: title,
+      prerelease: false,
+      html_url: link,
+      published_at: updated,
+      body: body.replace(/<[^>]+>/g, "").trim(),
+      assets: [{ name: "app-release.apk", browser_download_url: apkUrl, size: 0 }],
+    };
+  };
+
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
-        { cache: "no-store" }
-      );
-      if (!res.ok) {
-        throw new Error(`GitHub API ${res.status}`);
+      let latest: Release | null = null;
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
+          { cache: "no-store" }
+        );
+        if (res.ok) {
+          const data: Release[] = await res.json();
+          latest = data.find((r) => !r.prerelease) ?? data[0] ?? null;
+        } else if (res.status !== 403 && res.status !== 429) {
+          throw new Error(`GitHub API ${res.status}`);
+        }
+      } catch (apiErr) {
+        // network / CORS — try atom fallback below
       }
-      const data: Release[] = await res.json();
-      const latest = data.find((r) => !r.prerelease) ?? data[0];
+      if (!latest) {
+        latest = await loadFromAtom();
+      }
       if (!latest) {
         throw new Error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
       }
