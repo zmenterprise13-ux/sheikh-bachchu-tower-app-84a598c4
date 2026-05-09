@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
 import {
