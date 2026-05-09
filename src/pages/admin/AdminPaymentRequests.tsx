@@ -123,13 +123,31 @@ export default function AdminPaymentRequests() {
       toast.error(lang === "bn" ? "বাতিলের কারণ লিখুন" : "Reject reason required");
       return;
     }
+    // Idempotency guard: only update if status is still what we read.
+    // This prevents the same request from being approved/rejected twice
+    // (e.g. two admins clicking at once, or a stale UI).
+    if (pr.status === "approved" || pr.status === "rejected") {
+      toast.error(lang === "bn" ? "এই রিকোয়েস্ট ইতিমধ্যে চূড়ান্ত করা হয়েছে" : "This request is already finalized");
+      refresh();
+      return;
+    }
     const patch: any = {
       status,
       review_note: reviewNote[pr.id] || pr.review_note || null,
     };
     if (status !== "reviewed") patch.reviewed_by = user?.id;
-    const { error } = await supabase.from("payment_requests").update(patch).eq("id", pr.id);
+    const { data: updated, error } = await supabase
+      .from("payment_requests")
+      .update(patch)
+      .eq("id", pr.id)
+      .eq("status", pr.status) // <-- only if still in expected state
+      .select("id");
     if (error) { toast.error(error.message); return; }
+    if (!updated || updated.length === 0) {
+      toast.error(lang === "bn" ? "এই রিকোয়েস্ট ইতিমধ্যে আপডেট হয়েছে" : "This request was already updated by someone else");
+      refresh();
+      return;
+    }
     toast.success(lang === "bn" ? "সম্পন্ন" : "Done");
     refresh();
   };
