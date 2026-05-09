@@ -39,20 +39,46 @@ export default function AdminPaymentRequests() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending"|"reviewed"|"all"|"approved"|"rejected">("pending");
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
+  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
 
   const refresh = async () => {
     setLoading(true);
     let q = supabase.from("payment_requests")
-      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month), flats(flat_no, owner_name)")
+      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name)")
       .order("created_at", { ascending: false });
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
     if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as PR[]);
+    const list = (data ?? []) as unknown as PR[];
+    setRows(list);
+
+    // Fetch profiles for submitters + reviewers
+    const ids = Array.from(new Set(list.flatMap(r => [r.submitted_by, r.reviewed_by]).filter(Boolean) as string[]));
+    const missing = ids.filter(id => !profiles[id]);
+    if (missing.length) {
+      const { data: ps } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, display_name_bn")
+        .in("user_id", missing);
+      if (ps?.length) {
+        setProfiles(prev => {
+          const next = { ...prev };
+          ps.forEach((p: any) => { next[p.user_id] = p; });
+          return next;
+        });
+      }
+    }
     setLoading(false);
   };
 
   useEffect(() => { refresh(); }, [filter]);
+
+  const nameOf = (uid: string | null) => {
+    if (!uid) return null;
+    const p = profiles[uid];
+    if (!p) return uid.slice(0, 8);
+    return (lang === "bn" ? p.display_name_bn || p.display_name : p.display_name) || uid.slice(0, 8);
+  };
 
   // Realtime: notify admin when a new payment request arrives or status changes
   useEffect(() => {
