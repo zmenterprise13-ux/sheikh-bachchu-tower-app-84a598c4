@@ -32,6 +32,7 @@ type Expense = {
   category: string;
   description: string;
   amount: number;
+  service_month?: string | null;
   approval_status?: string | null;
   reject_reason?: string | null;
 };
@@ -79,6 +80,7 @@ export default function AdminExpenses() {
     category: "",
     description: "",
     amount: "",
+    service_month: "",
   });
 
   const catLabel = (c: Category) => (lang === "bn" ? c.name_bn || c.name : c.name);
@@ -93,6 +95,7 @@ export default function AdminExpenses() {
       category: categories[0]?.name ?? "",
       description: "",
       amount: "",
+      service_month: "",
     });
     setEditingId(null);
   };
@@ -110,7 +113,7 @@ export default function AdminExpenses() {
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, date, category, description, amount, approval_status, reject_reason")
+      .select("id, date, category, description, amount, service_month, approval_status, reject_reason")
       .order("date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data ?? []) as Expense[]);
@@ -152,6 +155,7 @@ export default function AdminExpenses() {
       category: e.category,
       description: e.description,
       amount: String(e.amount),
+      service_month: e.service_month ?? "",
     });
     setOpen(true);
   };
@@ -164,12 +168,14 @@ export default function AdminExpenses() {
     }
     setSubmitting(true);
     let error;
+    const sm = form.service_month && /^\d{4}-\d{2}$/.test(form.service_month) ? form.service_month : null;
     if (editingId) {
       ({ error } = await supabase.from("expenses").update({
         date: form.date,
         category: form.category,
         description: form.description.trim(),
         amount: amt,
+        service_month: sm,
       }).eq("id", editingId));
     } else {
       ({ error } = await supabase.from("expenses").insert({
@@ -177,6 +183,7 @@ export default function AdminExpenses() {
         category: form.category,
         description: form.description.trim(),
         amount: amt,
+        service_month: sm,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       }));
@@ -288,6 +295,7 @@ export default function AdminExpenses() {
         category: it.name,
         description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(ym)}` : `${it.name} - ${monthLabel(ym)}`),
         amount: Number(row.amount),
+        service_month: ym,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       };
@@ -356,6 +364,21 @@ export default function AdminExpenses() {
                   <div className="space-y-1.5">
                     <Label>{t("description")}</Label>
                     <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={200} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      {lang === "bn" ? "কোন মাসের খরচ (ঐচ্ছিক)" : "Service month (optional)"}
+                    </Label>
+                    <Input
+                      type="month"
+                      value={form.service_month}
+                      onChange={(e) => setForm({ ...form, service_month: e.target.value })}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {lang === "bn"
+                        ? "যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে মাসে দিলে এখানে এপ্রিল সিলেক্ট করুন। ফাঁকা থাকলে তারিখের মাসই ধরা হবে।"
+                        : "E.g. paying April's security salary in May — select April here. Leave blank to use the date's month."}
+                    </p>
                   </div>
                 </div>
                 <DialogFooter>
@@ -448,7 +471,14 @@ export default function AdminExpenses() {
                               <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                             </span>
                           </div>
-                          <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                          <div className="md:col-span-3 text-sm text-foreground">
+                            {e.description}
+                            {e.service_month && e.service_month !== (e.date || "").slice(0, 7) && (
+                              <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                                {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
+                              </span>
+                            )}
+                          </div>
                           <div className="md:col-span-3">
                             <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
                           </div>
@@ -509,7 +539,14 @@ export default function AdminExpenses() {
                       <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                     </span>
                   </div>
-                  <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                  <div className="md:col-span-3 text-sm text-foreground">
+                    {e.description}
+                    {e.service_month && e.service_month !== (e.date || "").slice(0, 7) && (
+                      <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
+                      </span>
+                    )}
+                  </div>
                   <div className="md:col-span-3">
                     <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
                   </div>

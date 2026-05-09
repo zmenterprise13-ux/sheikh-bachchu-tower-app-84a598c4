@@ -400,6 +400,7 @@ export type Database = {
           description: string
           id: string
           reject_reason: string | null
+          service_month: string | null
           submitted_by: string | null
           updated_at: string
         }
@@ -415,6 +416,7 @@ export type Database = {
           description: string
           id?: string
           reject_reason?: string | null
+          service_month?: string | null
           submitted_by?: string | null
           updated_at?: string
         }
@@ -430,6 +432,7 @@ export type Database = {
           description?: string
           id?: string
           reject_reason?: string | null
+          service_month?: string | null
           submitted_by?: string | null
           updated_at?: string
         }
