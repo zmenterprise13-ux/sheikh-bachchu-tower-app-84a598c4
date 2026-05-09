@@ -40,6 +40,7 @@ export default function AdminPaymentRequests() {
   const [filter, setFilter] = useState<"pending"|"reviewed"|"all"|"approved"|"rejected">("pending");
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
+  const [userRoles, setUserRoles] = useState<Record<string, string[]>>({});
 
   const refresh = async () => {
     setLoading(true);
