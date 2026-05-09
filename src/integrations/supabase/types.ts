@@ -1094,78 +1094,150 @@ export type Database = {
       }
       tenant_info: {
         Row: {
+          area: string | null
+          beat_no: string | null
+          birth_date: string | null
           created_at: string
           created_by: string | null
+          current_landlord_name: string | null
+          driver_name: string | null
+          driver_nid: string | null
+          education: string | null
           email: string | null
+          emergency_address: string | null
+          emergency_name: string | null
           emergency_phone: string | null
+          emergency_relation: string | null
           father_name: string | null
           flat_id: string
+          helper_address: string | null
+          helper_name: string | null
+          helper_nid: string | null
+          helper_phone: string | null
+          holding_no: string | null
           id: string
+          leave_reason: string | null
+          marital_status: string | null
           mother_name: string | null
           move_in_date: string | null
           nid_number: string | null
           notes: string | null
           occupation: string | null
+          passport_number: string | null
           permanent_address: string | null
           phone: string | null
           photo_url: string | null
+          post_code: string | null
           present_address: string | null
+          previous_landlord_name: string | null
+          previous_landlord_phone: string | null
+          religion: string | null
+          road: string | null
           spouse_name: string | null
           tenant_name: string
           tenant_name_bn: string | null
           total_members: number | null
           updated_at: string
           updated_by: string | null
+          ward_no: string | null
           workplace: string | null
         }
         Insert: {
+          area?: string | null
+          beat_no?: string | null
+          birth_date?: string | null
           created_at?: string
           created_by?: string | null
+          current_landlord_name?: string | null
+          driver_name?: string | null
+          driver_nid?: string | null
+          education?: string | null
           email?: string | null
+          emergency_address?: string | null
+          emergency_name?: string | null
           emergency_phone?: string | null
+          emergency_relation?: string | null
           father_name?: string | null
           flat_id: string
+          helper_address?: string | null
+          helper_name?: string | null
+          helper_nid?: string | null
+          helper_phone?: string | null
+          holding_no?: string | null
           id?: string
+          leave_reason?: string | null
+          marital_status?: string | null
           mother_name?: string | null
           move_in_date?: string | null
           nid_number?: string | null
           notes?: string | null
           occupation?: string | null
+          passport_number?: string | null
           permanent_address?: string | null
           phone?: string | null
           photo_url?: string | null
+          post_code?: string | null
           present_address?: string | null
+          previous_landlord_name?: string | null
+          previous_landlord_phone?: string | null
+          religion?: string | null
+          road?: string | null
           spouse_name?: string | null
           tenant_name: string
           tenant_name_bn?: string | null
           total_members?: number | null
           updated_at?: string
           updated_by?: string | null
+          ward_no?: string | null
           workplace?: string | null
         }
         Update: {
+          area?: string | null
+          beat_no?: string | null
+          birth_date?: string | null
           created_at?: string
           created_by?: string | null
+          current_landlord_name?: string | null
+          driver_name?: string | null
+          driver_nid?: string | null
+          education?: string | null
           email?: string | null
+          emergency_address?: string | null
+          emergency_name?: string | null
           emergency_phone?: string | null
+          emergency_relation?: string | null
           father_name?: string | null
           flat_id?: string
+          helper_address?: string | null
+          helper_name?: string | null
+          helper_nid?: string | null
+          helper_phone?: string | null
+          holding_no?: string | null
           id?: string
+          leave_reason?: string | null
+          marital_status?: string | null
           mother_name?: string | null
           move_in_date?: string | null
           nid_number?: string | null
           notes?: string | null
           occupation?: string | null
+          passport_number?: string | null
           permanent_address?: string | null
           phone?: string | null
           photo_url?: string | null
+          post_code?: string | null
           present_address?: string | null
+          previous_landlord_name?: string | null
+          previous_landlord_phone?: string | null
+          religion?: string | null
+          road?: string | null
           spouse_name?: string | null
           tenant_name?: string
           tenant_name_bn?: string | null
           total_members?: number | null
           updated_at?: string
           updated_by?: string | null
+          ward_no?: string | null
           workplace?: string | null
         }
         Relationships: []

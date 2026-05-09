@@ -3,80 +3,83 @@ import { Button } from "@/components/ui/button";
 import { Printer, FileDown, RotateCcw } from "lucide-react";
 import { saveAs } from "file-saver";
 import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  AlignmentType,
-  BorderStyle,
-  HeadingLevel,
+  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  WidthType, AlignmentType, BorderStyle,
 } from "docx";
 
 /**
- * Printable + editable blank tenant info form.
- * - Inline-edit any label by clicking on it (contentEditable)
- * - Drag column borders in tables to resize
- * - Print / Save as PDF via window.print()
- * - Download as Word (.docx)
+ * পুলিশ-আদলের ভাড়াটিয়া নিবন্ধন ফরম (থানার নাম বাদে)।
+ * ক্লিক করে যেকোনো লেবেল এডিট করা যাবে। কলাম রিসাইজ করা যাবে।
+ * Print / PDF / Word ডাউনলোড।
  */
 
-const STORAGE_KEY = "tenant-blank-form-labels-v2";
-const COL_KEY = "tenant-blank-form-cols-v1";
+const STORAGE_KEY = "tenant-blank-form-labels-v3";
+const COL_KEY = "tenant-blank-form-cols-v2";
 
 const DEFAULT_LABELS = {
   buildingName: "শেখ বাচ্চু টাওয়ার",
   buildingAddress: "১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।",
-  formTitle: "ভাড়াটিয়া তথ্য হালনাগাদ ফরম",
-  flatNo: "ফ্ল্যাট নং",
-  date: "তারিখ",
-  moveInDate: "প্রবেশের তারিখ",
+  formTitle: "ভাড়াটিয়া নিবন্ধন ফরম",
+  // location row
+  beat: "বিট নং",
+  ward: "ওয়ার্ড নং",
+  flat: "ফ্ল্যাট/তলা",
+  holding: "বাড়ি/হোল্ডিং",
+  road: "রাস্তা",
+  area: "এলাকা",
+  postCode: "পোস্ট কোড",
+  // photo
   photoBox: "ছবি (পাসপোর্ট সাইজ)",
-  sectionA: "ক. ভাড়াটিয়ার ব্যক্তিগত তথ্য",
-  nameBn: "নাম (বাংলা)",
-  nameEn: "নাম (English)",
-  fatherName: "পিতার নাম",
-  motherName: "মাতার নাম",
-  spouseName: "স্বামী/স্ত্রীর নাম",
-  mobile: "মোবাইল নং",
-  emergency: "জরুরি যোগাযোগ",
-  email: "ইমেইল",
-  nid: "NID নং",
-  occupation: "পেশা",
-  workplace: "কর্মস্থল",
-  permAddr: "স্থায়ী ঠিকানা",
-  presAddr: "বর্তমান ঠিকানা",
-  sectionB: "খ. পরিবারের সদস্যবৃন্দ",
-  totalMembers: "মোট সদস্য সংখ্যা",
-  // member table headers
-  mhSerial: "ক্রম",
+  // 1-9
+  l1: "১। ভাড়াটিয়া/বাড়িওয়ালার নাম",
+  l2: "২। পিতার নাম",
+  l3a: "৩। জন্ম তারিখ",
+  l3b: "বৈবাহিক অবস্থা",
+  l4: "৪। স্থায়ী ঠিকানা",
+  l5: "৫। পেশা ও প্রতিষ্ঠান/কর্মস্থলের ঠিকানা",
+  l6a: "৬। ধর্ম",
+  l6b: "শিক্ষাগত যোগ্যতা",
+  l7a: "৭। মোবাইল নম্বর",
+  l7b: "ই-মেইল",
+  l8: "৮। জাতীয় পরিচয়পত্র নম্বর",
+  l9: "৯। পাসপোর্ট নম্বর (যদি থাকে)",
+  // 10
+  l10: "১০। জরুরি যোগাযোগ",
+  l10a: "(ক) নাম",
+  l10b: "(খ) সম্পর্ক",
+  l10c: "(গ) ঠিকানা",
+  l10d: "(ঘ) মোবাইল নম্বর",
+  // 11
+  l11: "১১। পরিবার / মেসের সদস্যদের বিবরণ",
+  mhSerial: "ক্রঃ নং",
   mhName: "নাম",
-  mhRel: "সম্পর্ক",
   mhAge: "বয়স",
-  mhGender: "লিঙ্গ",
-  mhOcc: "পেশা / কী করে",
-  mhEdu: "শিক্ষা / প্রতিষ্ঠান",
-  mhMarried: "বিবাহিত?",
-  mhMobile: "মোবাইল",
-  sectionC: "গ. বিবাহিত সদস্যদের সন্তানদের তথ্য",
-  // child table
-  chSerial: "ক্রম",
-  chParent: "পিতা/মাতার নাম",
-  chName: "সন্তানের নাম",
-  chAge: "বয়স",
-  chStudy: "পড়াশোনা / কী করে",
-  remarks: "অন্যান্য মন্তব্য",
-  signTenant: "ভাড়াটিয়ার স্বাক্ষর",
-  signAuthority: "কর্তৃপক্ষের স্বাক্ষর",
+  mhOcc: "পেশা",
+  mhMobile: "মোবাইল নম্বর",
+  // 12
+  l12: "১২। গৃহকর্মীর তথ্য",
+  l12a: "নাম",
+  l12b: "জাতীয় পরিচয়পত্র নং",
+  l12c: "মোবাইল নম্বর",
+  l12d: "স্থায়ী ঠিকানা",
+  // 13
+  l13: "১৩। ড্রাইভারের তথ্য",
+  l13a: "নাম",
+  l13b: "জাতীয় পরিচয়পত্র নং",
+  // 14-17
+  l14a: "১৪। পূর্ববর্তী বাড়িওয়ালার নাম",
+  l14b: "মোবাইল নম্বর",
+  l15: "১৫। পূর্ববর্তী বাসা ছাড়ার কারণ",
+  l16: "১৬। বর্তমান বাড়িওয়ালার নাম",
+  l17: "১৭। বর্তমান বাড়িতে যে তারিখ থেকে বসবাস",
+  date: "তারিখ",
+  signTenant: "বাড়িওয়ালা/ভাড়াটিয়ার স্বাক্ষর",
+  note: "বিঃ দ্রঃ এই ফরমের একটি কপি বাড়ির মালিক অবশ্যই সংরক্ষণ করবেন।",
 };
 
 type LabelKey = keyof typeof DEFAULT_LABELS;
 
-const DEFAULT_MEMBER_COLS = [40, 130, 90, 50, 60, 130, 140, 70, 90]; // px
-const DEFAULT_CHILD_COLS = [40, 160, 160, 60, 220];
+const DEFAULT_MEMBER_COLS = [50, 220, 60, 160, 140];
 
 export default function TenantInfoBlankForm() {
   const [labels, setLabels] = useState<typeof DEFAULT_LABELS>(() => {
@@ -90,166 +93,106 @@ export default function TenantInfoBlankForm() {
   const [memberCols, setMemberCols] = useState<number[]>(() => {
     try {
       const raw = localStorage.getItem(COL_KEY + ":m");
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === DEFAULT_MEMBER_COLS.length) return parsed;
+      }
     } catch {}
     return DEFAULT_MEMBER_COLS;
   });
-  const [childCols, setChildCols] = useState<number[]>(() => {
-    try {
-      const raw = localStorage.getItem(COL_KEY + ":c");
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    return DEFAULT_CHILD_COLS;
-  });
 
-  useEffect(() => {
-    document.title = "ভাড়াটিয়া তথ্য ফরম";
-  }, []);
+  useEffect(() => { document.title = "ভাড়াটিয়া নিবন্ধন ফরম"; }, []);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(labels)); }, [labels]);
+  useEffect(() => { localStorage.setItem(COL_KEY + ":m", JSON.stringify(memberCols)); }, [memberCols]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(labels));
-  }, [labels]);
-  useEffect(() => {
-    localStorage.setItem(COL_KEY + ":m", JSON.stringify(memberCols));
-  }, [memberCols]);
-  useEffect(() => {
-    localStorage.setItem(COL_KEY + ":c", JSON.stringify(childCols));
-  }, [childCols]);
-
-  const setLabel = (k: LabelKey, v: string) =>
-    setLabels((prev) => ({ ...prev, [k]: v }));
+  const setLabel = (k: LabelKey, v: string) => setLabels((prev) => ({ ...prev, [k]: v }));
 
   const resetAll = () => {
     if (!confirm("সব এডিট রিসেট করতে চান?")) return;
     setLabels(DEFAULT_LABELS);
     setMemberCols(DEFAULT_MEMBER_COLS);
-    setChildCols(DEFAULT_CHILD_COLS);
   };
 
   const downloadDocx = async () => {
-    const doc = buildDocx(labels, memberCols, childCols);
+    const doc = buildDocx(labels, memberCols);
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, "ভাড়াটিয়া-তথ্য-ফরম.docx");
+    saveAs(blob, "ভাড়াটিয়া-নিবন্ধন-ফরম.docx");
   };
 
   const memberRows = Array.from({ length: 6 });
-  const childRows = Array.from({ length: 4 });
 
   return (
     <div className="bg-white text-black min-h-screen">
       <div className="no-print sticky top-0 z-20 bg-white border-b p-3 flex flex-wrap gap-2 justify-between items-center print:hidden">
         <div>
-          <h1 className="text-lg font-semibold">ভাড়াটিয়া তথ্য ফরম (এডিটেবল)</h1>
-          <p className="text-xs text-muted-foreground">
-            যেকোনো লেবেলে ক্লিক করে এডিট করুন। টেবিল কলামের ডান বর্ডার টেনে রিসাইজ করুন।
-          </p>
+          <h1 className="text-lg font-semibold">ভাড়াটিয়া নিবন্ধন ফরম (এডিটেবল)</h1>
+          <p className="text-xs text-muted-foreground">যেকোনো লেবেলে ক্লিক করে এডিট করুন।</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={resetAll}>
-            <RotateCcw className="h-4 w-4 mr-1" /> রিসেট
-          </Button>
-          <Button variant="outline" size="sm" onClick={downloadDocx}>
-            <FileDown className="h-4 w-4 mr-1" /> Word ডাউনলোড
-          </Button>
-          <Button onClick={() => window.print()} size="sm">
-            <Printer className="h-4 w-4 mr-1" /> প্রিন্ট / PDF
-          </Button>
+          <Button variant="outline" size="sm" onClick={resetAll}><RotateCcw className="h-4 w-4 mr-1" /> রিসেট</Button>
+          <Button variant="outline" size="sm" onClick={downloadDocx}><FileDown className="h-4 w-4 mr-1" /> Word</Button>
+          <Button onClick={() => window.print()} size="sm"><Printer className="h-4 w-4 mr-1" /> প্রিন্ট / PDF</Button>
         </div>
       </div>
 
       <div
         className="form-page print-area"
         style={{
-          padding: "12mm 14mm",
-          width: "210mm",
-          minHeight: "297mm",
-          boxSizing: "border-box",
-          margin: "0 auto",
-          background: "#fff",
-          fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif",
+          padding: "10mm 12mm", width: "210mm", minHeight: "297mm",
+          boxSizing: "border-box", margin: "0 auto", background: "#fff",
+          fontFamily: "'SolaimanLipi', 'Noto Sans Bengali', sans-serif", fontSize: 12,
         }}
       >
-        <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: 8, marginBottom: 12 }}>
-          <Editable
-            as="h1"
-            value={labels.buildingName}
-            onChange={(v) => setLabel("buildingName", v)}
-            style={{ fontSize: 22, fontWeight: 700, margin: 0 }}
-          />
-          <Editable
-            as="div"
-            value={labels.buildingAddress}
-            onChange={(v) => setLabel("buildingAddress", v)}
-            style={{ fontSize: 12, fontWeight: 500, margin: "2px 0 0", color: "#222" }}
-          />
-          <Editable
-            as="h2"
-            value={labels.formTitle}
-            onChange={(v) => setLabel("formTitle", v)}
-            style={{ fontSize: 14, fontWeight: 600, margin: "6px 0 0" }}
-          />
+        {/* Header */}
+        <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: 6, marginBottom: 8 }}>
+          <Editable as="h1" value={labels.buildingName} onChange={(v) => setLabel("buildingName", v)} style={{ fontSize: 20, fontWeight: 700, margin: 0 }} />
+          <Editable as="div" value={labels.buildingAddress} onChange={(v) => setLabel("buildingAddress", v)} style={{ fontSize: 11, margin: "2px 0 0" }} />
+          <Editable as="h2" value={labels.formTitle} onChange={(v) => setLabel("formTitle", v)} style={{ fontSize: 14, fontWeight: 700, margin: "6px 0 0" }} />
         </div>
 
-        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        {/* Address row + Photo */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
-            <Line label={labels.flatNo} onLabelChange={(v) => setLabel("flatNo", v)} />
-            <Line label={labels.date} onLabelChange={(v) => setLabel("date", v)} />
-            <Line label={labels.moveInDate} onLabelChange={(v) => setLabel("moveInDate", v)} />
+            <Row><Line label={labels.beat} onLabelChange={(v) => setLabel("beat", v)} /><Line label={labels.ward} onLabelChange={(v) => setLabel("ward", v)} /></Row>
+            <Row><Line label={labels.flat} onLabelChange={(v) => setLabel("flat", v)} /><Line label={labels.holding} onLabelChange={(v) => setLabel("holding", v)} /></Row>
+            <Row><Line label={labels.road} onLabelChange={(v) => setLabel("road", v)} /><Line label={labels.area} onLabelChange={(v) => setLabel("area", v)} /></Row>
+            <Line label={labels.postCode} onLabelChange={(v) => setLabel("postCode", v)} w="50%" />
           </div>
-          <div
-            style={{
-              width: 110, height: 130, border: "1px solid #333",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, textAlign: "center", padding: 4,
-            }}
-          >
-            <Editable
-              as="span"
-              value={labels.photoBox}
-              onChange={(v) => setLabel("photoBox", v)}
-              multiline
-            />
+          <div style={{ width: 100, height: 120, border: "1px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, textAlign: "center", padding: 4 }}>
+            <Editable as="span" value={labels.photoBox} onChange={(v) => setLabel("photoBox", v)} multiline />
           </div>
         </div>
 
-        <SectionHeader value={labels.sectionA} onChange={(v) => setLabel("sectionA", v)} />
-        <Line label={labels.nameBn} onLabelChange={(v) => setLabel("nameBn", v)} />
-        <Line label={labels.nameEn} onLabelChange={(v) => setLabel("nameEn", v)} />
-        <Row>
-          <Line label={labels.fatherName} onLabelChange={(v) => setLabel("fatherName", v)} />
-          <Line label={labels.motherName} onLabelChange={(v) => setLabel("motherName", v)} />
-        </Row>
-        <Line label={labels.spouseName} onLabelChange={(v) => setLabel("spouseName", v)} />
-        <Row>
-          <Line label={labels.mobile} onLabelChange={(v) => setLabel("mobile", v)} />
-          <Line label={labels.emergency} onLabelChange={(v) => setLabel("emergency", v)} />
-        </Row>
-        <Row>
-          <Line label={labels.email} onLabelChange={(v) => setLabel("email", v)} />
-          <Line label={labels.nid} onLabelChange={(v) => setLabel("nid", v)} />
-        </Row>
-        <Row>
-          <Line label={labels.occupation} onLabelChange={(v) => setLabel("occupation", v)} />
-          <Line label={labels.workplace} onLabelChange={(v) => setLabel("workplace", v)} />
-        </Row>
-        <Box label={labels.permAddr} onLabelChange={(v) => setLabel("permAddr", v)} h={50} />
-        <Box label={labels.presAddr} onLabelChange={(v) => setLabel("presAddr", v)} h={40} />
+        {/* 1-9 */}
+        <Line label={labels.l1} onLabelChange={(v) => setLabel("l1", v)} />
+        <Line label={labels.l2} onLabelChange={(v) => setLabel("l2", v)} />
+        <Row><Line label={labels.l3a} onLabelChange={(v) => setLabel("l3a", v)} /><Line label={labels.l3b} onLabelChange={(v) => setLabel("l3b", v)} /></Row>
+        <Box label={labels.l4} onLabelChange={(v) => setLabel("l4", v)} h={36} />
+        <Box label={labels.l5} onLabelChange={(v) => setLabel("l5", v)} h={36} />
+        <Row><Line label={labels.l6a} onLabelChange={(v) => setLabel("l6a", v)} /><Line label={labels.l6b} onLabelChange={(v) => setLabel("l6b", v)} /></Row>
+        <Row><Line label={labels.l7a} onLabelChange={(v) => setLabel("l7a", v)} /><Line label={labels.l7b} onLabelChange={(v) => setLabel("l7b", v)} /></Row>
+        <Line label={labels.l8} onLabelChange={(v) => setLabel("l8", v)} />
+        <Line label={labels.l9} onLabelChange={(v) => setLabel("l9", v)} />
 
-        <SectionHeader value={labels.sectionB} onChange={(v) => setLabel("sectionB", v)} />
-        <Line label={labels.totalMembers} onLabelChange={(v) => setLabel("totalMembers", v)} w="50%" />
+        {/* 10 Emergency */}
+        <div style={{ marginTop: 4, fontWeight: 700, fontSize: 12 }}>
+          <Editable as="span" value={labels.l10} onChange={(v) => setLabel("l10", v)} /> :
+        </div>
+        <Row><Line label={labels.l10a} onLabelChange={(v) => setLabel("l10a", v)} /><Line label={labels.l10b} onLabelChange={(v) => setLabel("l10b", v)} /></Row>
+        <Row><Line label={labels.l10c} onLabelChange={(v) => setLabel("l10c", v)} /><Line label={labels.l10d} onLabelChange={(v) => setLabel("l10d", v)} /></Row>
 
+        {/* 11 Family */}
+        <div style={{ marginTop: 6, fontWeight: 700, fontSize: 12 }}>
+          <Editable as="span" value={labels.l11} onChange={(v) => setLabel("l11", v)} /> :
+        </div>
         <ResizableTable
           cols={memberCols}
           onColsChange={setMemberCols}
           headers={[
             { key: "mhSerial", val: labels.mhSerial },
             { key: "mhName", val: labels.mhName },
-            { key: "mhRel", val: labels.mhRel },
             { key: "mhAge", val: labels.mhAge },
-            { key: "mhGender", val: labels.mhGender },
             { key: "mhOcc", val: labels.mhOcc },
-            { key: "mhEdu", val: labels.mhEdu },
-            { key: "mhMarried", val: labels.mhMarried },
             { key: "mhMobile", val: labels.mhMobile },
           ]}
           onHeaderChange={(k, v) => setLabel(k as LabelKey, v)}
@@ -257,56 +200,47 @@ export default function TenantInfoBlankForm() {
           firstColAuto={(i) => String(i + 1)}
         />
 
-        <SectionHeader value={labels.sectionC} onChange={(v) => setLabel("sectionC", v)} />
-        <ResizableTable
-          cols={childCols}
-          onColsChange={setChildCols}
-          headers={[
-            { key: "chSerial", val: labels.chSerial },
-            { key: "chParent", val: labels.chParent },
-            { key: "chName", val: labels.chName },
-            { key: "chAge", val: labels.chAge },
-            { key: "chStudy", val: labels.chStudy },
-          ]}
-          onHeaderChange={(k, v) => setLabel(k as LabelKey, v)}
-          rows={childRows.length}
-          firstColAuto={(i) => String(i + 1)}
-        />
+        {/* 12 Helper */}
+        <div style={{ marginTop: 6, fontWeight: 700, fontSize: 12 }}>
+          <Editable as="span" value={labels.l12} onChange={(v) => setLabel("l12", v)} /> :
+        </div>
+        <Row><Line label={labels.l12a} onLabelChange={(v) => setLabel("l12a", v)} /><Line label={labels.l12b} onLabelChange={(v) => setLabel("l12b", v)} /></Row>
+        <Row><Line label={labels.l12c} onLabelChange={(v) => setLabel("l12c", v)} /><Line label={labels.l12d} onLabelChange={(v) => setLabel("l12d", v)} /></Row>
 
-        <Box label={labels.remarks} onLabelChange={(v) => setLabel("remarks", v)} h={50} />
+        {/* 13 Driver */}
+        <div style={{ marginTop: 4, fontWeight: 700, fontSize: 12 }}>
+          <Editable as="span" value={labels.l13} onChange={(v) => setLabel("l13", v)} /> :
+        </div>
+        <Row><Line label={labels.l13a} onLabelChange={(v) => setLabel("l13a", v)} /><Line label={labels.l13b} onLabelChange={(v) => setLabel("l13b", v)} /></Row>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
-          <div style={{ textAlign: "center", width: "40%" }}>
-            <div style={{ borderTop: "1px solid #000", paddingTop: 4, fontSize: 12 }}>
+        {/* 14-17 */}
+        <Row><Line label={labels.l14a} onLabelChange={(v) => setLabel("l14a", v)} /><Line label={labels.l14b} onLabelChange={(v) => setLabel("l14b", v)} /></Row>
+        <Box label={labels.l15} onLabelChange={(v) => setLabel("l15", v)} h={28} />
+        <Line label={labels.l16} onLabelChange={(v) => setLabel("l16", v)} />
+        <Line label={labels.l17} onLabelChange={(v) => setLabel("l17", v)} />
+
+        {/* Signature */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+          <div style={{ width: "40%", fontSize: 12 }}>
+            <Editable as="span" value={labels.date} onChange={(v) => setLabel("date", v)} /> : ___________________
+          </div>
+          <div style={{ width: "45%", textAlign: "center" }}>
+            <div style={{ borderTop: "1px solid #000", paddingTop: 4, fontSize: 12, marginTop: 24 }}>
               <Editable as="span" value={labels.signTenant} onChange={(v) => setLabel("signTenant", v)} />
             </div>
           </div>
-          <div style={{ textAlign: "center", width: "40%" }}>
-            <div style={{ borderTop: "1px solid #000", paddingTop: 4, fontSize: 12 }}>
-              <Editable as="span" value={labels.signAuthority} onChange={(v) => setLabel("signAuthority", v)} />
-            </div>
-          </div>
+        </div>
+
+        <div style={{ marginTop: 12, fontStyle: "italic", fontSize: 10 }}>
+          <Editable as="span" value={labels.note} onChange={(v) => setLabel("note", v)} />
         </div>
       </div>
 
       <style>{`
-        .editable {
-          outline: none;
-          cursor: text;
-          border-radius: 2px;
-          padding: 0 2px;
-        }
+        .editable { outline: none; cursor: text; border-radius: 2px; padding: 0 2px; }
         .editable:hover { background: #fff8c5; }
         .editable:focus { background: #fff3a3; box-shadow: 0 0 0 1px #c9a227; }
-        .col-resizer {
-          position: absolute;
-          top: 0;
-          right: -3px;
-          width: 6px;
-          height: 100%;
-          cursor: col-resize;
-          z-index: 5;
-        }
+        .col-resizer { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 5; }
         .col-resizer:hover { background: rgba(59,130,246,.3); }
         @page { size: A4; margin: 8mm; }
         @media print {
@@ -324,11 +258,7 @@ export default function TenantInfoBlankForm() {
 /* ------------------------ Sub components ------------------------ */
 
 function Editable({
-  as = "span",
-  value,
-  onChange,
-  style,
-  multiline = false,
+  as = "span", value, onChange, style, multiline = false,
 }: {
   as?: "span" | "h1" | "h2" | "h3" | "div";
   value: string;
@@ -337,13 +267,9 @@ function Editable({
   multiline?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
-  // Keep DOM in sync only when the prop changes from outside (reset)
   useEffect(() => {
-    if (ref.current && ref.current.innerText !== value) {
-      ref.current.innerText = value;
-    }
+    if (ref.current && ref.current.innerText !== value) ref.current.innerText = value;
   }, [value]);
-
   const Tag = as as any;
   return (
     <Tag
@@ -354,10 +280,7 @@ function Editable({
       spellCheck={false}
       onBlur={(e: any) => onChange(e.currentTarget.innerText)}
       onKeyDown={(e: any) => {
-        if (!multiline && e.key === "Enter") {
-          e.preventDefault();
-          (e.currentTarget as HTMLElement).blur();
-        }
+        if (!multiline && e.key === "Enter") { e.preventDefault(); (e.currentTarget as HTMLElement).blur(); }
       }}
       style={style}
     >
@@ -366,21 +289,13 @@ function Editable({
   );
 }
 
-function Line({
-  label,
-  onLabelChange,
-  w = "100%",
-}: {
-  label: string;
-  onLabelChange: (v: string) => void;
-  w?: string;
-}) {
+function Line({ label, onLabelChange, w = "100%" }: { label: string; onLabelChange: (v: string) => void; w?: string }) {
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "flex-end", width: w, marginBottom: 6 }}>
+    <div style={{ display: "flex", gap: 6, alignItems: "flex-end", width: w, marginBottom: 4 }}>
       <span style={{ whiteSpace: "nowrap", fontSize: 12, fontWeight: 600 }}>
         <Editable as="span" value={label} onChange={onLabelChange} />:
       </span>
-      <span style={{ flex: 1, borderBottom: "1px dotted #333", height: 18 }} />
+      <span style={{ flex: 1, borderBottom: "1px dotted #333", height: 16 }} />
     </div>
   );
 }
@@ -393,17 +308,9 @@ function Row({ children }: { children: React.ReactNode }) {
   }</div>;
 }
 
-function Box({
-  label,
-  onLabelChange,
-  h = 60,
-}: {
-  label: string;
-  onLabelChange: (v: string) => void;
-  h?: number;
-}) {
+function Box({ label, onLabelChange, h = 60 }: { label: string; onLabelChange: (v: string) => void; h?: number }) {
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div style={{ marginBottom: 6 }}>
       <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>
         <Editable as="span" value={label} onChange={onLabelChange} />:
       </div>
@@ -412,21 +319,8 @@ function Box({
   );
 }
 
-function SectionHeader({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <h3 style={{ fontSize: 13, fontWeight: 700, background: "#eee", padding: 4, marginTop: 8 }}>
-      <Editable as="span" value={value} onChange={onChange} />
-    </h3>
-  );
-}
-
 function ResizableTable({
-  cols,
-  onColsChange,
-  headers,
-  onHeaderChange,
-  rows,
-  firstColAuto,
+  cols, onColsChange, headers, onHeaderChange, rows, firstColAuto,
 }: {
   cols: number[];
   onColsChange: (c: number[]) => void;
@@ -441,9 +335,7 @@ function ResizableTable({
     const startW = cols[idx];
     const onMove = (ev: MouseEvent) => {
       const next = Math.max(30, startW + (ev.clientX - startX));
-      const newCols = [...cols];
-      newCols[idx] = next;
-      onColsChange(newCols);
+      const newCols = [...cols]; newCols[idx] = next; onColsChange(newCols);
     };
     const onUp = () => {
       window.removeEventListener("mousemove", onMove);
@@ -454,21 +346,17 @@ function ResizableTable({
   };
 
   return (
-    <div style={{ overflowX: "auto", marginTop: 4 }}>
-      <table style={{ borderCollapse: "collapse", fontSize: 11, tableLayout: "fixed" }}>
+    <div style={{ overflowX: "auto", marginTop: 2 }}>
+      <table style={{ borderCollapse: "collapse", fontSize: 11, tableLayout: "fixed", width: "100%" }}>
         <colgroup>
-          {cols.map((w, i) => (
-            <col key={i} style={{ width: w }} />
-          ))}
+          {cols.map((w, i) => <col key={i} style={{ width: w }} />)}
         </colgroup>
         <thead>
           <tr style={{ background: "#f0f0f0" }}>
             {headers.map((h, i) => (
               <th key={h.key} style={{ ...cellHead, position: "relative" }}>
                 <Editable as="span" value={h.val} onChange={(v) => onHeaderChange(h.key, v)} />
-                {i < cols.length - 1 && (
-                  <span className="col-resizer" onMouseDown={(e) => startResize(i, e)} />
-                )}
+                {i < cols.length - 1 && <span className="col-resizer" onMouseDown={(e) => startResize(i, e)} />}
               </th>
             ))}
           </tr>
@@ -487,12 +375,12 @@ function ResizableTable({
   );
 }
 
-const cell: React.CSSProperties = { border: "1px solid #333", height: 28, padding: 2, verticalAlign: "top" };
+const cell: React.CSSProperties = { border: "1px solid #333", height: 24, padding: 2, verticalAlign: "top" };
 const cellHead: React.CSSProperties = { border: "1px solid #333", padding: 4, textAlign: "left", fontWeight: 700 };
 
 /* ------------------------ Word (.docx) builder ------------------------ */
 
-function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: number[]): Document {
+function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[]): Document {
   const p = (text: string, opts: { bold?: boolean; size?: number; align?: any; spacing?: number } = {}) =>
     new Paragraph({
       alignment: opts.align,
@@ -502,28 +390,23 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
 
   const lineRow = (label: string) =>
     new Paragraph({
-      tabStops: [{ type: "right" as any, position: 9000 }],
       spacing: { after: 60 },
       children: [
         new TextRun({ text: `${label}: `, bold: true, size: 22 }),
-        new TextRun({
-          text: "_".repeat(60),
-          size: 22,
-        }),
+        new TextRun({ text: "_".repeat(70), size: 22 }),
       ],
     });
 
   const sectionHeader = (text: string) =>
     new Paragraph({
       shading: { type: "clear" as any, fill: "DDDDDD" },
-      spacing: { before: 160, after: 100 },
-      children: [new TextRun({ text, bold: true, size: 24 })],
+      spacing: { before: 120, after: 80 },
+      children: [new TextRun({ text, bold: true, size: 22 })],
     });
 
-  // Convert px to DXA — scale to fit A4 content width (~8500 DXA after margins)
   const toDxa = (pxArr: number[]) => {
     const totalPx = pxArr.reduce((a, b) => a + b, 0);
-    const targetDxa = 8500;
+    const targetDxa = 9000;
     return pxArr.map((px) => Math.round((px / totalPx) * targetDxa));
   };
 
@@ -541,8 +424,7 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
           borders: cellBorders,
           shading: { type: "clear" as any, fill: "EEEEEE" },
           children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 20 })] })],
-        })
-      ),
+        })),
     });
 
     const bodyRows = Array.from({ length: rows }).map((_, r) =>
@@ -552,83 +434,58 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[], childCols: nu
             width: { size: w, type: WidthType.DXA },
             borders: cellBorders,
             children: [new Paragraph({ children: [new TextRun({ text: c === 0 ? String(r + 1) : " ", size: 20 })] })],
-          })
-        ),
-      })
-    );
+          })),
+      }));
 
-    return new Table({
-      width: { size: totalW, type: WidthType.DXA },
-      columnWidths: cols,
-      rows: [headerRow, ...bodyRows],
-    });
+    return new Table({ width: { size: totalW, type: WidthType.DXA }, columnWidths: cols, rows: [headerRow, ...bodyRows] });
   };
 
   return new Document({
-    styles: {
-      default: { document: { run: { font: "Nirmala UI", size: 22 } } },
-    },
+    styles: { default: { document: { run: { font: "Nirmala UI", size: 22 } } } },
     sections: [
       {
-        properties: {
-          // A4: 11906 x 16838 DXA
-          page: { size: { width: 11906, height: 16838 }, margin: { top: 720, right: 720, bottom: 720, left: 720 } },
-        },
+        properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 600, right: 600, bottom: 600, left: 600 } } },
         children: [
-          p(L.buildingName, { bold: true, size: 32, align: AlignmentType.CENTER, spacing: 40 }),
+          p(L.buildingName, { bold: true, size: 30, align: AlignmentType.CENTER, spacing: 40 }),
           p(L.buildingAddress, { size: 20, align: AlignmentType.CENTER, spacing: 60 }),
-          p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 200 }),
+          p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 160 }),
 
-          lineRow(L.flatNo),
-          lineRow(L.date),
-          lineRow(L.moveInDate),
+          lineRow(L.beat), lineRow(L.ward), lineRow(L.flat), lineRow(L.holding),
+          lineRow(L.road), lineRow(L.area), lineRow(L.postCode),
 
-          sectionHeader(L.sectionA),
-          lineRow(L.nameBn),
-          lineRow(L.nameEn),
-          lineRow(L.fatherName),
-          lineRow(L.motherName),
-          lineRow(L.spouseName),
-          lineRow(L.mobile),
-          lineRow(L.emergency),
-          lineRow(L.email),
-          lineRow(L.nid),
-          lineRow(L.occupation),
-          lineRow(L.workplace),
-          lineRow(L.permAddr),
-          lineRow(L.presAddr),
+          lineRow(L.l1), lineRow(L.l2), lineRow(L.l3a), lineRow(L.l3b),
+          lineRow(L.l4), lineRow(L.l5),
+          lineRow(L.l6a), lineRow(L.l6b),
+          lineRow(L.l7a), lineRow(L.l7b),
+          lineRow(L.l8), lineRow(L.l9),
 
-          sectionHeader(L.sectionB),
-          lineRow(L.totalMembers),
-          buildTable(
-            [L.mhSerial, L.mhName, L.mhRel, L.mhAge, L.mhGender, L.mhOcc, L.mhEdu, L.mhMarried, L.mhMobile],
-            memberCols,
-            6
-          ),
+          sectionHeader(L.l10),
+          lineRow(L.l10a), lineRow(L.l10b), lineRow(L.l10c), lineRow(L.l10d),
 
-          new Paragraph({ children: [new TextRun(" ")], spacing: { before: 120 } }),
-          sectionHeader(L.sectionC),
-          buildTable([L.chSerial, L.chParent, L.chName, L.chAge, L.chStudy], childCols, 4),
+          sectionHeader(L.l11),
+          buildTable([L.mhSerial, L.mhName, L.mhAge, L.mhOcc, L.mhMobile], memberCols, 6),
 
-          new Paragraph({ children: [new TextRun(" ")], spacing: { before: 120 } }),
-          lineRow(L.remarks),
+          sectionHeader(L.l12),
+          lineRow(L.l12a), lineRow(L.l12b), lineRow(L.l12c), lineRow(L.l12d),
 
-          new Paragraph({ children: [new TextRun(" ")], spacing: { before: 400 } }),
+          sectionHeader(L.l13),
+          lineRow(L.l13a), lineRow(L.l13b),
+
+          lineRow(L.l14a), lineRow(L.l14b),
+          lineRow(L.l15), lineRow(L.l16), lineRow(L.l17),
+
+          new Paragraph({ children: [new TextRun(" ")], spacing: { before: 300 } }),
           new Paragraph({
-            alignment: AlignmentType.LEFT,
-            children: [
-              new TextRun({ text: "________________________", size: 22 }),
-              new TextRun({ text: "                                       ", size: 22 }),
-              new TextRun({ text: "________________________", size: 22 }),
-            ],
+            alignment: AlignmentType.RIGHT,
+            children: [new TextRun({ text: "________________________", size: 22 })],
           }),
           new Paragraph({
-            alignment: AlignmentType.LEFT,
-            children: [
-              new TextRun({ text: L.signTenant, size: 20 }),
-              new TextRun({ text: "                                                ", size: 20 }),
-              new TextRun({ text: L.signAuthority, size: 20 }),
-            ],
+            alignment: AlignmentType.RIGHT,
+            children: [new TextRun({ text: L.signTenant, size: 20 })],
+          }),
+          new Paragraph({
+            spacing: { before: 200 },
+            children: [new TextRun({ text: L.note, italics: true, size: 18 })],
           }),
         ],
       },
