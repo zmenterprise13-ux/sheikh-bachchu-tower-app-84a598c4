@@ -644,7 +644,8 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
               </CardContent>
             </Card>
 
-            {/* Tenancy history */}
+            {/* Tenancy history (tenant-only) */}
+            {kind === "tenant" && (
             <Card>
               <CardHeader><CardTitle className="text-base">পূর্ববর্তী ও বর্তমান বাড়িওয়ালার তথ্য</CardTitle></CardHeader>
               <CardContent>
@@ -661,7 +662,16 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                 </p>
               </CardContent>
             </Card>
+            )}
 
+            {kind === "owner" && (
+              <Card>
+                <CardHeader><CardTitle className="text-base">অন্যান্য মন্তব্য</CardTitle></CardHeader>
+                <CardContent>
+                  <Field label="মন্তব্য" full><Textarea rows={3} value={tenant.notes} onChange={(e) => updateTenant({ notes: e.target.value })} /></Field>
+                </CardContent>
+              </Card>
+            )}
             {/* Tenancy timeline (tenant-only) */}
             {cfg.archiveEnabled && (history.length > 0 || tenant.tenant_name) && (() => {
               const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
