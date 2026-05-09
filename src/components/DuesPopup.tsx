@@ -20,7 +20,7 @@ type Row = {
   bills?: { status: string } | null;
 };
 
-const SESSION_KEY = "dues_popup_dismissed_v1";
+
 
 export function DuesPopup() {
   const { user, role } = useAuth();
@@ -32,7 +32,7 @@ export function DuesPopup() {
   useEffect(() => {
     if (!user) return;
     if (role !== "owner" && role !== "tenant") return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    
 
     let cancelled = false;
     (async () => {
@@ -61,14 +61,12 @@ export function DuesPopup() {
   }, [user, role]);
 
   const dismiss = () => {
-    sessionStorage.setItem(SESSION_KEY, "1");
     setOpen(false);
   };
 
   const goPay = () => {
-    sessionStorage.setItem(SESSION_KEY, "1");
     setOpen(false);
-    navigate(role === "tenant" ? "/owner/dues" : "/owner/dues");
+    navigate("/owner/dues");
   };
 
   if (!open) return null;
