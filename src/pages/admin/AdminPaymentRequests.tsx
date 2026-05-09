@@ -203,7 +203,7 @@ export default function AdminPaymentRequests() {
                   <div className="text-[11px] text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                     {pr.submitted_by && (
                       <span>
-                        {lang === "bn" ? "পাঠিয়েছেন" : "Submitted by"}: <span className="font-medium text-foreground">{nameOf(pr.submitted_by)}</span>
+                        {lang === "bn" ? "পাঠিয়েছেন" : "Submitted by"}: <span className="font-medium text-foreground">{nameOf(pr.submitted_by, pr.flat_id)}</span>
                       </span>
                     )}
                     {pr.reviewed_by && (
