@@ -13,7 +13,7 @@ import {
  * Print / PDF / Word ডাউনলোড।
  */
 
-const STORAGE_KEY = "tenant-blank-form-labels-v3";
+const STORAGE_KEY = "tenant-blank-form-labels-v4";
 const COL_KEY = "tenant-blank-form-cols-v2";
 
 const DEFAULT_LABELS = {
