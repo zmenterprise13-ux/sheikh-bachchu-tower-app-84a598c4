@@ -273,7 +273,7 @@ export default function AdminReports() {
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
-  const byCategory = expenses.reduce<Record<string, number>>((acc, e) => {
+  const byCategory = scopedExpenses.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
     return acc;
   }, {});
