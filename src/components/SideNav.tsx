@@ -439,6 +439,32 @@ function NavGroupBlock({ group, t, onNavigate, badges }: { group: NavGroup; t: (
   );
 }
 
+/**
+ * Footer block shown at the bottom of every SideNav drawer (mobile + desktop).
+ * Reads the locally-tracked installed release tag and links to the Update page.
+ */
+function VersionFooter({ onNavigate }: { onNavigate?: () => void }) {
+  const { lang } = useLang();
+  const installed = typeof window !== "undefined"
+    ? (localStorage.getItem("sbt:installedReleaseTag") || localStorage.getItem("sbt:lastSeenReleaseTag"))
+    : null;
+  return (
+    <NavLink
+      to="/update"
+      onClick={onNavigate}
+      className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-base"
+    >
+      <Rocket className="h-3.5 w-3.5 shrink-0 text-primary" />
+      <span className="flex-1 truncate">
+        {lang === "bn" ? "অ্যাপ ভার্সন" : "App version"}
+      </span>
+      <span className="font-mono font-semibold text-foreground">
+        {installed || "—"}
+      </span>
+    </NavLink>
+  );
+}
+
 export function SideNav() {
   const { t } = useLang();
   const { role } = useAuth();
