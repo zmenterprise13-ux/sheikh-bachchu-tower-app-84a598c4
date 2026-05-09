@@ -295,6 +295,7 @@ export default function AdminExpenses() {
         category: it.name,
         description: row.description.trim() || (lang === "bn" ? `${it.name_bn} - ${monthLabel(ym)}` : `${it.name} - ${monthLabel(ym)}`),
         amount: Number(row.amount),
+        service_month: ym,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       };
