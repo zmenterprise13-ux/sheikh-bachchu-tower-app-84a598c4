@@ -22,6 +22,8 @@ import { Slider } from "@/components/ui/slider";
 import { useBkashSettings } from "@/hooks/useBkashSettings";
 import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 import { ReportPadSettingsCard } from "@/components/ReportPadSettingsCard";
+import { Textarea } from "@/components/ui/textarea";
+import { useReceiptSettings, RECEIPT_DEFAULTS, type ReceiptSettings } from "@/hooks/useReceiptSettings";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
