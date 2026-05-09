@@ -13,7 +13,7 @@ import {
  * Print / PDF / Word ডাউনলোড।
  */
 
-const STORAGE_KEY = "tenant-blank-form-labels-v3";
+const STORAGE_KEY = "tenant-blank-form-labels-v4";
 const COL_KEY = "tenant-blank-form-cols-v2";
 
 const DEFAULT_LABELS = {
@@ -21,13 +21,9 @@ const DEFAULT_LABELS = {
   buildingAddress: "১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।",
   formTitle: "ভাড়াটিয়া নিবন্ধন ফরম",
   // location row
-  beat: "বিট নং",
-  ward: "ওয়ার্ড নং",
-  flat: "ফ্ল্যাট/তলা",
-  holding: "বাড়ি/হোল্ডিং",
-  road: "রাস্তা",
-  area: "এলাকা",
-  postCode: "পোস্ট কোড",
+  ownerTenantName: "১। ফ্ল্যাট মালিক/ভাড়াটিয়ার নাম",
+  flatNo: "২। ফ্ল্যাট নং",
+  holdingNo: "৩। হোল্ডিং নং",
   // photo
   photoBox: "ছবি (পাসপোর্ট সাইজ)",
   // 1-9
@@ -153,10 +149,8 @@ export default function TenantInfoBlankForm() {
         {/* Address row + Photo */}
         <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
-            <Row><Line label={labels.beat} onLabelChange={(v) => setLabel("beat", v)} /><Line label={labels.ward} onLabelChange={(v) => setLabel("ward", v)} /></Row>
-            <Row><Line label={labels.flat} onLabelChange={(v) => setLabel("flat", v)} /><Line label={labels.holding} onLabelChange={(v) => setLabel("holding", v)} /></Row>
-            <Row><Line label={labels.road} onLabelChange={(v) => setLabel("road", v)} /><Line label={labels.area} onLabelChange={(v) => setLabel("area", v)} /></Row>
-            <Line label={labels.postCode} onLabelChange={(v) => setLabel("postCode", v)} w="50%" />
+            <Line label={labels.ownerTenantName} onLabelChange={(v) => setLabel("ownerTenantName", v)} />
+            <Row><Line label={labels.flatNo} onLabelChange={(v) => setLabel("flatNo", v)} /><Line label={labels.holdingNo} onLabelChange={(v) => setLabel("holdingNo", v)} /></Row>
           </div>
           <div style={{ width: 100, height: 120, border: "1px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, textAlign: "center", padding: 4 }}>
             <Editable as="span" value={labels.photoBox} onChange={(v) => setLabel("photoBox", v)} multiline />
@@ -450,8 +444,7 @@ function buildDocx(L: typeof DEFAULT_LABELS, memberCols: number[]): Document {
           p(L.buildingAddress, { size: 20, align: AlignmentType.CENTER, spacing: 60 }),
           p(L.formTitle, { bold: true, size: 24, align: AlignmentType.CENTER, spacing: 160 }),
 
-          lineRow(L.beat), lineRow(L.ward), lineRow(L.flat), lineRow(L.holding),
-          lineRow(L.road), lineRow(L.area), lineRow(L.postCode),
+          lineRow(L.ownerTenantName), lineRow(L.flatNo), lineRow(L.holdingNo),
 
           lineRow(L.l1), lineRow(L.l2), lineRow(L.l3a), lineRow(L.l3b),
           lineRow(L.l4), lineRow(L.l5),
