@@ -30,6 +30,7 @@ export function DuesPopup() {
   const [open, setOpen] = useState(false);
 
   const fetchDues = async (currentRole: string) => {
+    if (currentRole !== "owner" && currentRole !== "tenant") return;
     const { data, error } = await supabase
       .from("dues_notifications")
       .select("id, title, body, due_amount, month, bill_id, created_at")
@@ -47,21 +48,20 @@ export function DuesPopup() {
       return true;
     });
     if (unpaid.length > 0) {
-      const limited = (currentRole === "owner" || currentRole === "tenant") ? unpaid : unpaid.slice(0, 20);
-      setItems(limited);
+      setItems(unpaid);
       setOpen(true);
     }
   };
 
   useEffect(() => {
     if (!user || !role) return;
+    if (role !== "owner" && role !== "tenant") return;
     fetchDues(role);
   }, [user, role]);
 
-  // Auth state change এ সাথে সাথেই popup trigger (login এর পর reload ছাড়াই)
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" && role) {
+      if (event === "SIGNED_IN" && role && (role === "owner" || role === "tenant")) {
         setTimeout(() => fetchDues(role), 300);
       }
     });
