@@ -97,6 +97,7 @@ const App = () => (
               <Route path="/admin/user-management" element={<ProtectedRoute requireRole="admin"><AdminUserManagement /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
+              <Route path="/admin/change-history" element={<ProtectedRoute requireRole="admin"><AdminChangeHistory /></ProtectedRoute>} />
 
               {/* Owner */}
               <Route path="/owner" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDashboard /></ProtectedRoute>} />
