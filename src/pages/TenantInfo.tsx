@@ -276,11 +276,12 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   const save = async () => {
     if (!tenant) return;
-    if (!tenant.tenant_name.trim()) return toast.error("ভাড়াটিয়ার নাম দিন");
+    if (!tenant.tenant_name.trim()) return toast.error(`${cfg.personLabel}ের নাম দিন`);
     const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
     if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
     setSaving(true);
     try {
+      const sb: any = supabase;
       const payload: any = {
         ...tenant,
         move_in_date: tenant.move_in_date || null,
@@ -289,18 +290,18 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
       };
       let tenantId = tenant.id;
       if (tenantId) {
-        const { error } = await supabase.from("tenant_info").update(payload).eq("id", tenantId);
+        const { error } = await sb.from(cfg.infoTable).update(payload).eq("id", tenantId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from("tenant_info").insert(payload).select("id").single();
+        const { data, error } = await sb.from(cfg.infoTable).insert(payload).select("id").single();
         if (error) throw error;
         tenantId = (data as any).id;
         setTenant((t) => (t ? { ...t, id: tenantId } : t));
       }
-      await supabase.from("tenant_family_members").delete().eq("tenant_info_id", tenantId!);
+      await sb.from(cfg.familyTable).delete().eq(cfg.familyFk, tenantId!);
       if (members.length) {
         const rows = members.map((m, idx) => ({
-          tenant_info_id: tenantId,
+          [cfg.familyFk]: tenantId,
           name: m.name,
           relation: "",
           age: m.age,
@@ -308,7 +309,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
           phone: m.phone || null,
           sort_order: idx,
         }));
-        const { error } = await supabase.from("tenant_family_members").insert(rows);
+        const { error } = await sb.from(cfg.familyTable).insert(rows);
         if (error) throw error;
       }
       toast.success("সংরক্ষণ হয়েছে");
