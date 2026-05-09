@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const SEEN_KEY = "sbt:lastSeenReleaseTag";
-const DISMISS_KEY = "sbt:dismissedReleaseTag";
+// Single source of truth for "what version the user has".
+// INSTALLED_KEY is set when the user downloads an APK from the Update page.
+// LEGACY_SEEN_KEY is read for backward compatibility and migrated on first load.
 const INSTALLED_KEY = "sbt:installedReleaseTag";
+const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
+const DISMISS_KEY = "sbt:dismissedReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 type Asset = { name: string; browser_download_url: string };
