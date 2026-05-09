@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Flat = {
   id: string;
@@ -28,77 +26,102 @@ type Flat = {
 type FamilyMember = {
   id?: string;
   name: string;
-  relation: string;
   age: number | null;
-  gender: string;
   occupation: string;
-  education: string;
-  institution: string;
-  is_married: boolean;
-  spouse_name: string;
-  children_count: number;
-  children_details: string;
   phone: string;
-  notes: string;
 };
 
 type TenantInfo = {
   id?: string;
   flat_id: string;
+  // Address details (top of police form)
+  beat_no: string;
+  ward_no: string;
+  holding_no: string;
+  road: string;
+  area: string;
+  post_code: string;
+  // 1. Tenant name
   tenant_name: string;
   tenant_name_bn: string;
+  // 2. Father's name
   father_name: string;
-  mother_name: string;
-  spouse_name: string;
+  // 3. Birth + marital
+  birth_date: string;
+  marital_status: string;
+  // 4. Permanent address
   permanent_address: string;
-  present_address: string;
-  phone: string;
-  emergency_phone: string;
-  email: string;
+  // 5. Occupation + workplace
   occupation: string;
   workplace: string;
+  // 6. Religion + education
+  religion: string;
+  education: string;
+  // 7. Mobile + email
+  phone: string;
+  email: string;
+  // 8. NID
   nid_number: string;
-  photo_url: string | null;
+  // 9. Passport
+  passport_number: string;
+  // 10. Emergency
+  emergency_name: string;
+  emergency_relation: string;
+  emergency_address: string;
+  emergency_phone: string;
+  // 12. Helper
+  helper_name: string;
+  helper_nid: string;
+  helper_phone: string;
+  helper_address: string;
+  // 13. Driver
+  driver_name: string;
+  driver_nid: string;
+  // 14. Previous landlord
+  previous_landlord_name: string;
+  previous_landlord_phone: string;
+  // 15. Reason for leaving
+  leave_reason: string;
+  // 16. Current landlord
+  current_landlord_name: string;
+  // 17. Move-in date
   move_in_date: string;
+  // Misc
+  photo_url: string | null;
   total_members: number;
   notes: string;
+  // legacy
+  mother_name: string;
+  spouse_name: string;
+  present_address: string;
 };
 
 const emptyTenant = (flat_id: string): TenantInfo => ({
   flat_id,
-  tenant_name: "",
-  tenant_name_bn: "",
+  beat_no: "", ward_no: "", holding_no: "", road: "", area: "", post_code: "",
+  tenant_name: "", tenant_name_bn: "",
   father_name: "",
-  mother_name: "",
-  spouse_name: "",
+  birth_date: "", marital_status: "",
   permanent_address: "",
-  present_address: "",
-  phone: "",
-  emergency_phone: "",
-  email: "",
-  occupation: "",
-  workplace: "",
-  nid_number: "",
-  photo_url: null,
+  occupation: "", workplace: "",
+  religion: "", education: "",
+  phone: "", email: "",
+  nid_number: "", passport_number: "",
+  emergency_name: "", emergency_relation: "", emergency_address: "", emergency_phone: "",
+  helper_name: "", helper_nid: "", helper_phone: "", helper_address: "",
+  driver_name: "", driver_nid: "",
+  previous_landlord_name: "", previous_landlord_phone: "",
+  leave_reason: "",
+  current_landlord_name: "",
   move_in_date: "",
+  photo_url: null,
   total_members: 0,
   notes: "",
+  mother_name: "", spouse_name: "", present_address: "",
 });
 
 const emptyMember = (): FamilyMember => ({
-  name: "",
-  relation: "",
-  age: null,
-  gender: "",
-  occupation: "",
-  education: "",
-  institution: "",
-  is_married: false,
-  spouse_name: "",
-  children_count: 0,
-  children_details: "",
-  phone: "",
-  notes: "",
+  name: "", age: null, occupation: "", phone: "",
 });
 
 export default function TenantInfoPage() {
@@ -112,19 +135,12 @@ export default function TenantInfoPage() {
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const printRef = useRef<HTMLDivElement>(null);
 
-  // Load flats
   useEffect(() => {
     (async () => {
-      let q = supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id").order("floor").order("flat_no");
-      const { data, error } = await q;
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
+      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id").order("floor").order("flat_no");
+      if (error) { toast.error(error.message); return; }
       const list = (data || []) as Flat[];
-      // Owners only see their own flat(s)
       const visible = isAdmin ? list : list.filter((f) => f.owner_user_id === user?.id);
       setFlats(visible);
       if (visible.length && !selectedFlatId) setSelectedFlatId(visible[0].id);
@@ -132,42 +148,17 @@ export default function TenantInfoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, user?.id]);
 
-  // Load tenant + members for the selected flat
   useEffect(() => {
     if (!selectedFlatId) return;
     setLoading(true);
     (async () => {
-      const { data: ti, error } = await supabase
-        .from("tenant_info")
-        .select("*")
-        .eq("flat_id", selectedFlatId)
-        .maybeSingle();
-      if (error && error.code !== "PGRST116") {
-        toast.error(error.message);
-      }
+      const { data: ti, error } = await supabase.from("tenant_info").select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      if (error && error.code !== "PGRST116") toast.error(error.message);
       if (ti) {
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
-        const { data: fm } = await supabase
-          .from("tenant_family_members")
-          .select("*")
-          .eq("tenant_info_id", (ti as any).id)
-          .order("sort_order")
-          .order("created_at");
+        const { data: fm } = await supabase.from("tenant_family_members").select("*").eq("tenant_info_id", (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
-          id: m.id,
-          name: m.name ?? "",
-          relation: m.relation ?? "",
-          age: m.age,
-          gender: m.gender ?? "",
-          occupation: m.occupation ?? "",
-          education: m.education ?? "",
-          institution: m.institution ?? "",
-          is_married: !!m.is_married,
-          spouse_name: m.spouse_name ?? "",
-          children_count: m.children_count ?? 0,
-          children_details: m.children_details ?? "",
-          phone: m.phone ?? "",
-          notes: m.notes ?? "",
+          id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
       } else {
         setTenant(emptyTenant(selectedFlatId));
@@ -178,7 +169,6 @@ export default function TenantInfoPage() {
   }, [selectedFlatId]);
 
   const updateTenant = (patch: Partial<TenantInfo>) => setTenant((t) => (t ? { ...t, ...patch } : t));
-
   const addMember = () => setMembers((m) => [...m, emptyMember()]);
   const removeMember = (idx: number) => setMembers((m) => m.filter((_, i) => i !== idx));
   const updateMember = (idx: number, patch: Partial<FamilyMember>) =>
@@ -193,10 +183,7 @@ export default function TenantInfoPage() {
       const compressed = await compressImage(file, { maxDim: 800, quality: 0.8 });
       const ext = compressed.type === "image/jpeg" ? "jpg" : "png";
       const path = `tenants/${selectedFlatId}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("tenant-photos").upload(path, compressed, {
-        upsert: false,
-        contentType: compressed.type,
-      });
+      const { error } = await supabase.storage.from("tenant-photos").upload(path, compressed, { upsert: false, contentType: compressed.type });
       if (error) throw error;
       const { data } = supabase.storage.from("tenant-photos").getPublicUrl(path);
       updateTenant({ photo_url: data.publicUrl });
@@ -217,6 +204,7 @@ export default function TenantInfoPage() {
       const payload: any = {
         ...tenant,
         move_in_date: tenant.move_in_date || null,
+        birth_date: tenant.birth_date || null,
         total_members: members.length,
       };
       let tenantId = tenant.id;
@@ -229,25 +217,15 @@ export default function TenantInfoPage() {
         tenantId = (data as any).id;
         setTenant((t) => (t ? { ...t, id: tenantId } : t));
       }
-
-      // Replace family members (simple: delete & re-insert)
       await supabase.from("tenant_family_members").delete().eq("tenant_info_id", tenantId!);
       if (members.length) {
         const rows = members.map((m, idx) => ({
           tenant_info_id: tenantId,
           name: m.name,
-          relation: m.relation,
+          relation: "",
           age: m.age,
-          gender: m.gender || null,
           occupation: m.occupation || null,
-          education: m.education || null,
-          institution: m.institution || null,
-          is_married: m.is_married,
-          spouse_name: m.spouse_name || null,
-          children_count: m.children_count || 0,
-          children_details: m.children_details || null,
           phone: m.phone || null,
-          notes: m.notes || null,
           sort_order: idx,
         }));
         const { error } = await supabase.from("tenant_family_members").insert(rows);
@@ -262,13 +240,8 @@ export default function TenantInfoPage() {
   };
 
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
-
-  const handlePrintFilled = () => {
-    window.print();
-  };
-
+  const handlePrintFilled = () => window.print();
   const handleDownloadBlankPdf = () => {
-    // open blank form route in new tab and trigger print
     const w = window.open("/tenant-info/blank-form", "_blank");
     if (!w) toast.error("পপ-আপ ব্লকড");
   };
@@ -279,9 +252,9 @@ export default function TenantInfoPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Users className="h-6 w-6" /> ভাড়াটিয়া তথ্য
+              <Users className="h-6 w-6" /> ভাড়াটিয়া নিবন্ধন ফরম
             </h1>
-            <p className="text-sm text-muted-foreground">ফ্ল্যাট অনুযায়ী ভাড়াটিয়ার তথ্য সংরক্ষণ ও আপডেট করুন</p>
+            <p className="text-sm text-muted-foreground">পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleDownloadBlankPdf}>
@@ -293,7 +266,7 @@ export default function TenantInfoPage() {
             {tenant && (
               <Button onClick={save} disabled={saving} size="sm">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                সংরক্ষণ / Update
+                সংরক্ষণ
               </Button>
             )}
           </div>
@@ -322,18 +295,31 @@ export default function TenantInfoPage() {
         {loading ? (
           <Skeleton className="h-96" />
         ) : tenant ? (
-          <div ref={printRef} className="space-y-4 print-area">
-            {/* Print header */}
+          <div className="space-y-4 print-area">
             <div className="hidden print:block text-center mb-4">
-              <h1 className="text-xl font-bold">শেখ বাচ্চু টাওয়ার</h1>
-              <p className="text-sm">ভাড়াটিয়া তথ্য — ফ্ল্যাট {selectedFlat?.flat_no}</p>
+              <h1 className="text-xl font-bold">ভাড়াটিয়া নিবন্ধন ফরম</h1>
+              <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no}</p>
             </div>
 
-            {/* Tenant basic info */}
+            {/* Address details */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">ভাড়াটিয়ার ব্যক্তিগত তথ্য</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base">ঠিকানার বিবরণ</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <Field label="বিট নং"><Input value={tenant.beat_no} onChange={(e) => updateTenant({ beat_no: e.target.value })} /></Field>
+                  <Field label="ওয়ার্ড নং"><Input value={tenant.ward_no} onChange={(e) => updateTenant({ ward_no: e.target.value })} /></Field>
+                  <Field label="ফ্ল্যাট/তলা"><Input value={selectedFlat?.flat_no ?? ""} disabled /></Field>
+                  <Field label="বাড়ি/হোল্ডিং"><Input value={tenant.holding_no} onChange={(e) => updateTenant({ holding_no: e.target.value })} /></Field>
+                  <Field label="রাস্তা"><Input value={tenant.road} onChange={(e) => updateTenant({ road: e.target.value })} /></Field>
+                  <Field label="এলাকা"><Input value={tenant.area} onChange={(e) => updateTenant({ area: e.target.value })} /></Field>
+                  <Field label="পোস্ট কোড"><Input value={tenant.post_code} onChange={(e) => updateTenant({ post_code: e.target.value })} /></Field>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Personal info */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">ভাড়াটিয়া/বাড়িওয়ালার ব্যক্তিগত তথ্য</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-4 items-start">
                   <div className="flex flex-col items-center gap-2">
@@ -355,52 +341,44 @@ export default function TenantInfoPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
-                    <Field label="নাম (বাংলা) *">
-                      <Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} />
+                    <Field label="১. নাম *"><Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} /></Field>
+                    <Field label="নাম (English)"><Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} /></Field>
+                    <Field label="২. পিতার নাম"><Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} /></Field>
+                    <Field label="৩. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
+                    <Field label="বৈবাহিক অবস্থা">
+                      <Select value={tenant.marital_status} onValueChange={(v) => updateTenant({ marital_status: v })}>
+                        <SelectTrigger><SelectValue placeholder="নির্বাচন" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="বিবাহিত">বিবাহিত</SelectItem>
+                          <SelectItem value="অবিবাহিত">অবিবাহিত</SelectItem>
+                          <SelectItem value="বিধবা">বিধবা</SelectItem>
+                          <SelectItem value="বিপত্নীক">বিপত্নীক</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </Field>
-                    <Field label="নাম (English)">
-                      <Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} />
-                    </Field>
-                    <Field label="পিতার নাম">
-                      <Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} />
-                    </Field>
-                    <Field label="মাতার নাম">
-                      <Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} />
-                    </Field>
-                    <Field label="স্বামী/স্ত্রীর নাম">
-                      <Input value={tenant.spouse_name} onChange={(e) => updateTenant({ spouse_name: e.target.value })} />
-                    </Field>
-                    <Field label="মোবাইল নং">
-                      <Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} />
-                    </Field>
-                    <Field label="জরুরি যোগাযোগ">
-                      <Input value={tenant.emergency_phone} onChange={(e) => updateTenant({ emergency_phone: e.target.value })} />
-                    </Field>
-                    <Field label="ইমেইল">
-                      <Input value={tenant.email} onChange={(e) => updateTenant({ email: e.target.value })} />
-                    </Field>
-                    <Field label="পেশা">
-                      <Input value={tenant.occupation} onChange={(e) => updateTenant({ occupation: e.target.value })} />
-                    </Field>
-                    <Field label="কর্মস্থল">
-                      <Input value={tenant.workplace} onChange={(e) => updateTenant({ workplace: e.target.value })} />
-                    </Field>
-                    <Field label="NID নং">
-                      <Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} />
-                    </Field>
-                    <Field label="প্রবেশের তারিখ">
-                      <Input type="date" value={tenant.move_in_date} onChange={(e) => updateTenant({ move_in_date: e.target.value })} />
-                    </Field>
-                    <Field label="স্থায়ী ঠিকানা" full>
-                      <Textarea rows={2} value={tenant.permanent_address} onChange={(e) => updateTenant({ permanent_address: e.target.value })} />
-                    </Field>
-                    <Field label="বর্তমান ঠিকানা" full>
-                      <Textarea rows={2} value={tenant.present_address} onChange={(e) => updateTenant({ present_address: e.target.value })} />
-                    </Field>
-                    <Field label="অন্যান্য মন্তব্য" full>
-                      <Textarea rows={2} value={tenant.notes} onChange={(e) => updateTenant({ notes: e.target.value })} />
-                    </Field>
+                    <Field label="৪. স্থায়ী ঠিকানা" full><Textarea rows={2} value={tenant.permanent_address} onChange={(e) => updateTenant({ permanent_address: e.target.value })} /></Field>
+                    <Field label="৫. পেশা"><Input value={tenant.occupation} onChange={(e) => updateTenant({ occupation: e.target.value })} /></Field>
+                    <Field label="প্রতিষ্ঠান/কর্মস্থলের ঠিকানা"><Input value={tenant.workplace} onChange={(e) => updateTenant({ workplace: e.target.value })} /></Field>
+                    <Field label="৬. ধর্ম"><Input value={tenant.religion} onChange={(e) => updateTenant({ religion: e.target.value })} /></Field>
+                    <Field label="শিক্ষাগত যোগ্যতা"><Input value={tenant.education} onChange={(e) => updateTenant({ education: e.target.value })} /></Field>
+                    <Field label="৭. মোবাইল নম্বর"><Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} /></Field>
+                    <Field label="ই-মেইল"><Input value={tenant.email} onChange={(e) => updateTenant({ email: e.target.value })} /></Field>
+                    <Field label="৮. জাতীয় পরিচয়পত্র নম্বর"><Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} /></Field>
+                    <Field label="৯. পাসপোর্ট নম্বর (যদি থাকে)"><Input value={tenant.passport_number} onChange={(e) => updateTenant({ passport_number: e.target.value })} /></Field>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emergency contact */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">১০. জরুরি যোগাযোগ</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="(ক) নাম"><Input value={tenant.emergency_name} onChange={(e) => updateTenant({ emergency_name: e.target.value })} /></Field>
+                  <Field label="(খ) সম্পর্ক"><Input value={tenant.emergency_relation} onChange={(e) => updateTenant({ emergency_relation: e.target.value })} /></Field>
+                  <Field label="(গ) ঠিকানা" full><Textarea rows={2} value={tenant.emergency_address} onChange={(e) => updateTenant({ emergency_address: e.target.value })} /></Field>
+                  <Field label="(ঘ) মোবাইল নম্বর"><Input value={tenant.emergency_phone} onChange={(e) => updateTenant({ emergency_phone: e.target.value })} /></Field>
                 </div>
               </CardContent>
             </Card>
@@ -408,86 +386,97 @@ export default function TenantInfoPage() {
             {/* Family members */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">পরিবারের সদস্যবৃন্দ ({members.length} জন)</CardTitle>
+                <CardTitle className="text-base">১১. পরিবার / মেসের সদস্যদের বিবরণ ({members.length} জন)</CardTitle>
                 <Button size="sm" onClick={addMember} className="print:hidden">
                   <Plus className="h-4 w-4 mr-1" /> সদস্য যোগ
                 </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 {members.length === 0 && <p className="text-sm text-muted-foreground">কোনো সদস্য যোগ করা হয়নি</p>}
-                {members.map((m, idx) => (
-                  <div key={idx} className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">সদস্য #{idx + 1}</span>
-                      <Button size="sm" variant="ghost" onClick={() => removeMember(idx)} className="print:hidden">
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <Field label="নাম">
-                        <Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} />
-                      </Field>
-                      <Field label="সম্পর্ক">
-                        <Input placeholder="যেমন: ছেলে, মেয়ে, স্ত্রী" value={m.relation} onChange={(e) => updateMember(idx, { relation: e.target.value })} />
-                      </Field>
-                      <Field label="বয়স">
-                        <Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} />
-                      </Field>
-                      <Field label="লিঙ্গ">
-                        <Select value={m.gender} onValueChange={(v) => updateMember(idx, { gender: v })}>
-                          <SelectTrigger><SelectValue placeholder="নির্বাচন" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="পুরুষ">পুরুষ</SelectItem>
-                            <SelectItem value="মহিলা">মহিলা</SelectItem>
-                            <SelectItem value="অন্যান্য">অন্যান্য</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <Field label="পেশা / কী করে">
-                        <Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} />
-                      </Field>
-                      <Field label="শিক্ষাগত যোগ্যতা">
-                        <Input value={m.education} onChange={(e) => updateMember(idx, { education: e.target.value })} />
-                      </Field>
-                      <Field label="পড়াশোনার প্রতিষ্ঠান">
-                        <Input value={m.institution} onChange={(e) => updateMember(idx, { institution: e.target.value })} />
-                      </Field>
-                      <Field label="মোবাইল">
-                        <Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} />
-                      </Field>
-                      <div className="flex items-end gap-2">
-                        <Label className="text-xs">বিবাহিত?</Label>
-                        <Switch checked={m.is_married} onCheckedChange={(v) => updateMember(idx, { is_married: v })} />
-                      </div>
-                      {m.is_married && (
-                        <>
-                          <Field label="স্বামী/স্ত্রীর নাম">
-                            <Input value={m.spouse_name} onChange={(e) => updateMember(idx, { spouse_name: e.target.value })} />
-                          </Field>
-                          <Field label="সন্তান সংখ্যা">
-                            <Input type="number" value={m.children_count} onChange={(e) => updateMember(idx, { children_count: +e.target.value || 0 })} />
-                          </Field>
-                          <Field label="সন্তানদের বিবরণ" full>
-                            <Textarea rows={2} value={m.children_details} onChange={(e) => updateMember(idx, { children_details: e.target.value })} />
-                          </Field>
-                        </>
-                      )}
-                      <Field label="মন্তব্য" full>
-                        <Textarea rows={2} value={m.notes} onChange={(e) => updateMember(idx, { notes: e.target.value })} />
-                      </Field>
-                    </div>
+                {members.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="border border-border p-2 text-left w-12">ক্রঃ</th>
+                          <th className="border border-border p-2 text-left">নাম</th>
+                          <th className="border border-border p-2 text-left w-20">বয়স</th>
+                          <th className="border border-border p-2 text-left">পেশা</th>
+                          <th className="border border-border p-2 text-left">মোবাইল নম্বর</th>
+                          <th className="border border-border p-2 w-12 print:hidden"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {members.map((m, idx) => (
+                          <tr key={idx}>
+                            <td className="border border-border p-1 text-center">{idx + 1}</td>
+                            <td className="border border-border p-1"><Input value={m.name} onChange={(e) => updateMember(idx, { name: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><Input type="number" value={m.age ?? ""} onChange={(e) => updateMember(idx, { age: e.target.value ? +e.target.value : null })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><Input value={m.occupation} onChange={(e) => updateMember(idx, { occupation: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1"><Input value={m.phone} onChange={(e) => updateMember(idx, { phone: e.target.value })} className="border-0 h-8" /></td>
+                            <td className="border border-border p-1 text-center print:hidden">
+                              <Button size="sm" variant="ghost" onClick={() => removeMember(idx)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Helper */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">১২. গৃহকর্মীর তথ্য</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="নাম"><Input value={tenant.helper_name} onChange={(e) => updateTenant({ helper_name: e.target.value })} /></Field>
+                  <Field label="জাতীয় পরিচয়পত্র নং"><Input value={tenant.helper_nid} onChange={(e) => updateTenant({ helper_nid: e.target.value })} /></Field>
+                  <Field label="মোবাইল নম্বর"><Input value={tenant.helper_phone} onChange={(e) => updateTenant({ helper_phone: e.target.value })} /></Field>
+                  <Field label="স্থায়ী ঠিকানা"><Input value={tenant.helper_address} onChange={(e) => updateTenant({ helper_address: e.target.value })} /></Field>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Driver */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">১৩. ড্রাইভারের তথ্য</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="নাম"><Input value={tenant.driver_name} onChange={(e) => updateTenant({ driver_name: e.target.value })} /></Field>
+                  <Field label="জাতীয় পরিচয়পত্র নং"><Input value={tenant.driver_nid} onChange={(e) => updateTenant({ driver_nid: e.target.value })} /></Field>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tenancy history */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">পূর্ববর্তী ও বর্তমান বাড়িওয়ালার তথ্য</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="১৪. পূর্ববর্তী বাড়িওয়ালার নাম"><Input value={tenant.previous_landlord_name} onChange={(e) => updateTenant({ previous_landlord_name: e.target.value })} /></Field>
+                  <Field label="মোবাইল নম্বর"><Input value={tenant.previous_landlord_phone} onChange={(e) => updateTenant({ previous_landlord_phone: e.target.value })} /></Field>
+                  <Field label="১৫. পূর্ববর্তী বাসা ছাড়ার কারণ" full><Textarea rows={2} value={tenant.leave_reason} onChange={(e) => updateTenant({ leave_reason: e.target.value })} /></Field>
+                  <Field label="১৬. বর্তমান বাড়িওয়ালার নাম"><Input value={tenant.current_landlord_name} onChange={(e) => updateTenant({ current_landlord_name: e.target.value })} /></Field>
+                  <Field label="১৭. বর্তমান বাড়িতে যে তারিখ থেকে বসবাস"><Input type="date" value={tenant.move_in_date} onChange={(e) => updateTenant({ move_in_date: e.target.value })} /></Field>
+                  <Field label="অন্যান্য মন্তব্য" full><Textarea rows={2} value={tenant.notes} onChange={(e) => updateTenant({ notes: e.target.value })} /></Field>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  বিঃ দ্রঃ এই ফরমের একটি কপি বাড়ির মালিক অবশ্যই সংরক্ষণ করবেন।
+                </p>
               </CardContent>
             </Card>
 
             <div className="sticky bottom-0 -mx-2 px-2 py-3 bg-background/95 backdrop-blur border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 print:hidden z-10">
               <p className="text-xs text-muted-foreground">
-                পরিবর্তন সংরক্ষণ করতে নিচের বাটনে ক্লিক করুন। ভাড়াটিয়ার তথ্য ও সকল ফ্যামিলি মেম্বার একসাথে সেভ হবে।
+                পরিবর্তন সংরক্ষণ করতে নিচের বাটনে ক্লিক করুন।
               </p>
               <Button onClick={save} disabled={saving} size="lg" className="w-full sm:w-auto">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                সংরক্ষণ করুন / Update
+                সংরক্ষণ করুন
               </Button>
             </div>
           </div>
