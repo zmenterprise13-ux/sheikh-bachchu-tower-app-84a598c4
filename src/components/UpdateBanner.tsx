@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
 const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
