@@ -23,6 +23,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
+import AdminChangeHistory from "./pages/admin/AdminChangeHistory";
 import AdminLedger from "./pages/admin/AdminLedger";
 import AdminLoans from "./pages/admin/AdminLoans";
 import AdminCommittee from "./pages/admin/AdminCommittee";
