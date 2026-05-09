@@ -26,16 +26,14 @@ export function UpdateBanner() {
     let cancelled = false;
     const check = async () => {
       try {
-        const lastAt = Number(localStorage.getItem(CHECK_KEY) || 0);
-        if (Date.now() - lastAt < CHECK_INTERVAL_MS && release) return;
         const res = await fetch(
-          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
+          { cache: "no-store" }
         );
         if (!res.ok) return;
         const data: Release[] = await res.json();
         const latest = data.find((r) => !r.prerelease) ?? data[0];
         if (!latest || cancelled) return;
-        localStorage.setItem(CHECK_KEY, String(Date.now()));
         const seen = localStorage.getItem(SEEN_KEY);
         const dismissed = localStorage.getItem(DISMISS_KEY);
         if (latest.tag_name !== seen && latest.tag_name !== dismissed) {
@@ -47,9 +45,14 @@ export function UpdateBanner() {
     };
     check();
     const id = setInterval(check, CHECK_INTERVAL_MS);
+    const onFocus = () => check();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       cancelled = true;
       clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, []);
 
