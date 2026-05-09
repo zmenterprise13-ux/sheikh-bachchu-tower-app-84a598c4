@@ -32,10 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        setTimeout(() => fetchRole(sess.user.id), 0);
+        setLoading(true);
+        setTimeout(() => {
+          fetchRole(sess.user.id).finally(() => setLoading(false));
+        }, 0);
       } else {
         setRole(null);
         setRoles([]);
+        setLoading(false);
       }
     });
 
