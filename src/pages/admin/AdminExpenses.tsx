@@ -539,7 +539,14 @@ export default function AdminExpenses() {
                       <Wallet className="h-3 w-3" /> {labelByName(e.category)}
                     </span>
                   </div>
-                  <div className="md:col-span-3 text-sm text-foreground">{e.description}</div>
+                  <div className="md:col-span-3 text-sm text-foreground">
+                    {e.description}
+                    {e.service_month && e.service_month !== (e.date || "").slice(0, 7) && (
+                      <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
+                      </span>
+                    )}
+                  </div>
                   <div className="md:col-span-3">
                     <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
                   </div>
