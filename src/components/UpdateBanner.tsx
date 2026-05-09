@@ -111,10 +111,16 @@ export function UpdateBanner() {
         <Rocket className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 animate-pulse" />
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm font-semibold leading-tight">
-            নতুন ভার্সন উপলব্ধ — {release.tag_name}
+            নতুন ভার্সন উপলব্ধ
           </p>
-          <p className="text-[10px] sm:text-xs opacity-90 leading-tight truncate">
-            বিস্তারিত দেখুন এবং আপডেট করুন
+          <p className="text-[10px] sm:text-xs opacity-95 leading-tight mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <span className="px-1.5 py-0.5 rounded bg-white/15 font-mono">
+              {localStorage.getItem(INSTALLED_KEY) ?? "—"}
+            </span>
+            <span className="opacity-80">→</span>
+            <span className="px-1.5 py-0.5 rounded bg-white/30 font-mono font-semibold">
+              {release.tag_name}
+            </span>
           </p>
         </div>
         <Button
