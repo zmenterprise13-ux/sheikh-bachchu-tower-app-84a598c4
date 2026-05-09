@@ -158,8 +158,10 @@ export default function TenantInfoPage() {
   const [selectedFlatId, setSelectedFlatId] = useState<string>("");
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [history, setHistory] = useState<TenancyPeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
