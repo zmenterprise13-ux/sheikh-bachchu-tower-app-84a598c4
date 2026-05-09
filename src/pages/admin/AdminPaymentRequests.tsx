@@ -28,7 +28,7 @@ type PR = {
   flats?: { flat_no: string; owner_name: string | null } | null;
 };
 
-type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null };
+type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null; phone: string | null };
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
