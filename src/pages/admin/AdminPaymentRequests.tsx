@@ -53,18 +53,27 @@ export default function AdminPaymentRequests() {
     const list = (data ?? []) as unknown as PR[];
     setRows(list);
 
-    // Fetch profiles for submitters + reviewers
+    // Fetch profiles + roles for submitters + reviewers
     const ids = Array.from(new Set(list.flatMap(r => [r.submitted_by, r.reviewed_by]).filter(Boolean) as string[]));
     const missing = ids.filter(id => !profiles[id]);
     if (missing.length) {
-      const { data: ps } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, display_name_bn")
-        .in("user_id", missing);
+      const [{ data: ps }, { data: rs }] = await Promise.all([
+        supabase.from("profiles").select("user_id, display_name, display_name_bn, phone").in("user_id", missing),
+        supabase.from("user_roles").select("user_id, role").in("user_id", missing),
+      ]);
       if (ps?.length) {
         setProfiles(prev => {
           const next = { ...prev };
           ps.forEach((p: any) => { next[p.user_id] = p; });
+          return next;
+        });
+      }
+      if (rs?.length) {
+        setUserRoles(prev => {
+          const next = { ...prev };
+          (rs as RoleRow[]).forEach(r => {
+            next[r.user_id] = [...(next[r.user_id] ?? []), r.role];
+          });
           return next;
         });
       }
@@ -74,18 +83,37 @@ export default function AdminPaymentRequests() {
 
   useEffect(() => { refresh(); }, [filter]);
 
-  const isPhoneLike = (s: string | null | undefined) => !!s && /^\+?\d[\d\s\-]{6,}$/.test(s.trim());
-  const nameOf = (uid: string | null, fallbackFlatId?: string | null) => {
+  const roleLabel = (uid: string | null) => {
+    if (!uid) return "";
+    const list = userRoles[uid] ?? [];
+    const pick = list.includes("admin") ? "admin"
+      : list.includes("manager") ? "manager"
+      : list.includes("accountant") ? "accountant"
+      : list.includes("owner") ? "owner"
+      : list.includes("tenant") ? "tenant" : "";
+    if (!pick) return "";
+    const map: Record<string, { en: string; bn: string }> = {
+      admin: { en: "Admin", bn: "অ্যাডমিন" },
+      manager: { en: "Manager", bn: "ম্যানেজার" },
+      accountant: { en: "Accountant", bn: "অ্যাকাউন্ট্যান্ট" },
+      owner: { en: "Owner", bn: "মালিক" },
+      tenant: { en: "Tenant", bn: "ভাড়াটিয়া" },
+    };
+    return lang === "bn" ? map[pick].bn : map[pick].en;
+  };
+
+  const nameOf = (uid: string | null) => {
     if (!uid) return null;
     const p = profiles[uid];
-    const picked = lang === "bn" ? (p?.display_name_bn || p?.display_name) : (p?.display_name);
-    if (picked && !isPhoneLike(picked)) return picked;
-    // fallback to flat owner_name when profile name is missing or looks like a phone number
-    if (fallbackFlatId) {
-      const r = rows.find(x => x.flat_id === fallbackFlatId);
-      if (r?.flats?.owner_name) return r.flats.owner_name;
-    }
-    return picked || uid.slice(0, 8);
+    if (!p) return uid.slice(0, 8);
+    const name = (lang === "bn" ? p.display_name_bn || p.display_name : p.display_name) || p.phone || uid.slice(0, 8);
+    return name;
+  };
+  const nameWithRole = (uid: string | null) => {
+    const n = nameOf(uid);
+    if (!n) return null;
+    const r = roleLabel(uid);
+    return r ? `${n} (${r})` : n;
   };
 
   // Realtime: notify admin when a new payment request arrives or status changes
