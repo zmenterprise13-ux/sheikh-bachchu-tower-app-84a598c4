@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock, Eye } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
 import { PermanentAddressFields, parsePermanentAddress, serializePermanentAddress, validatePermanentAddress } from "@/components/PermanentAddressFields";
@@ -156,7 +157,8 @@ export default function TenantInfoPage() {
   const { user, role } = useAuth();
   const isAdmin = role === "admin";
   const [flats, setFlats] = useState<Flat[]>([]);
-  const [selectedFlatId, setSelectedFlatId] = useState<string>("");
+  const [searchParams] = useSearchParams();
+  const [selectedFlatId, setSelectedFlatId] = useState<string>(searchParams.get("flat") || "");
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [history, setHistory] = useState<TenancyPeriod[]>([]);
@@ -342,6 +344,11 @@ export default function TenantInfoPage() {
             <p className="text-sm text-muted-foreground">পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/tenant-info/view${selectedFlatId ? `?flat=${selectedFlatId}` : ""}`}>
+                <Eye className="h-4 w-4 mr-1" /> ভিউ
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" onClick={handleDownloadBlankPdf}>
               <Download className="h-4 w-4 mr-1" /> ফাঁকা ফরম
             </Button>
