@@ -20,8 +20,8 @@ type Release = {
 
 export function UpdateBanner() {
   const [release, setRelease] = useState<Release | null>(null);
-  const [downloading, setDownloading] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
