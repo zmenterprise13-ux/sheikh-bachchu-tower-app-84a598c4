@@ -32,6 +32,7 @@ type Expense = {
   category: string;
   description: string;
   amount: number;
+  service_month?: string | null;
   approval_status?: string | null;
   reject_reason?: string | null;
 };
