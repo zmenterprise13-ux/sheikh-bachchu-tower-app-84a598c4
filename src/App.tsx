@@ -115,6 +115,7 @@ const App = () => (
               <Route path="/tenant-info" element={<ProtectedRoute><TenantInfoPage /></ProtectedRoute>} />
               <Route path="/tenant-info/blank-form" element={<TenantInfoBlankForm />} />
               <Route path="/download" element={<Download />} />
+              <Route path="/update" element={<ProtectedRoute><UpdateStatus /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
