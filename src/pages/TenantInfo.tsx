@@ -153,7 +153,40 @@ const emptyMember = (): FamilyMember => ({
   name: "", age: null, occupation: "", phone: "",
 });
 
-export default function TenantInfoPage() {
+type Kind = "tenant" | "owner";
+type Config = {
+  infoTable: "tenant_info" | "owner_info";
+  familyTable: "tenant_family_members" | "owner_family_members";
+  familyFk: "tenant_info_id" | "owner_info_id";
+  photoFolder: string;
+  archiveEnabled: boolean;
+  title: string;
+  subtitle: string;
+  personLabel: string;
+  viewPath: string;
+  editPath: string;
+};
+const CONFIGS: Record<Kind, Config> = {
+  tenant: {
+    infoTable: "tenant_info", familyTable: "tenant_family_members", familyFk: "tenant_info_id",
+    photoFolder: "tenants", archiveEnabled: true,
+    title: "ভাড়াটিয়া নিবন্ধন ফরম",
+    subtitle: "পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন",
+    personLabel: "ভাড়াটিয়া",
+    viewPath: "/tenant-info/view", editPath: "/tenant-info",
+  },
+  owner: {
+    infoTable: "owner_info", familyTable: "owner_family_members", familyFk: "owner_info_id",
+    photoFolder: "owners", archiveEnabled: false,
+    title: "ফ্ল্যাট মালিকের বিস্তারিত তথ্য",
+    subtitle: "ভাড়াটিয়ার ফরমের আদলে মালিকের পূর্ণাঙ্গ তথ্য সংরক্ষণ করুন",
+    personLabel: "মালিক",
+    viewPath: "/owner-info/view", editPath: "/owner-info",
+  },
+};
+
+export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}) {
+  const cfg = CONFIGS[kind];
   const { user, role } = useAuth();
   const isAdmin = role === "admin";
   const [flats, setFlats] = useState<Flat[]>([]);
