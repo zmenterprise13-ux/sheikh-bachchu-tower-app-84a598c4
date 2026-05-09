@@ -404,18 +404,16 @@ export default function TenantInfoPage() {
               <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no}</p>
             </div>
 
-            {/* Address details */}
+            {/* Basic flat info */}
             <Card>
-              <CardHeader><CardTitle className="text-base">ঠিকানার বিবরণ</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">প্রাথমিক তথ্য</CardTitle></CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <Field label="বিট নং"><Input value={tenant.beat_no} onChange={(e) => updateTenant({ beat_no: e.target.value })} /></Field>
-                  <Field label="ওয়ার্ড নং"><Input value={tenant.ward_no} onChange={(e) => updateTenant({ ward_no: e.target.value })} /></Field>
-                  <Field label="ফ্ল্যাট/তলা"><Input value={selectedFlat?.flat_no ?? ""} disabled /></Field>
-                  <Field label="বাড়ি/হোল্ডিং"><Input value={tenant.holding_no} onChange={(e) => updateTenant({ holding_no: e.target.value })} /></Field>
-                  <Field label="রাস্তা"><Input value={tenant.road} onChange={(e) => updateTenant({ road: e.target.value })} /></Field>
-                  <Field label="এলাকা"><Input value={tenant.area} onChange={(e) => updateTenant({ area: e.target.value })} /></Field>
-                  <Field label="পোস্ট কোড"><Input value={tenant.post_code} onChange={(e) => updateTenant({ post_code: e.target.value })} /></Field>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Field label="১. ফ্ল্যাট মালিক/ভাড়াটিয়ার নাম">
+                    <Input value={tenant.tenant_name || selectedFlat?.owner_name || ""} onChange={(e) => updateTenant({ tenant_name: e.target.value })} />
+                  </Field>
+                  <Field label="২. ফ্ল্যাট নং"><Input value={selectedFlat?.flat_no ?? ""} disabled /></Field>
+                  <Field label="৩. হোল্ডিং নং"><Input value={tenant.holding_no} onChange={(e) => updateTenant({ holding_no: e.target.value })} /></Field>
                 </div>
               </CardContent>
             </Card>
