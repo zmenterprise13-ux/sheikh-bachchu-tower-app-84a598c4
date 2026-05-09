@@ -499,6 +499,7 @@ export type Database = {
           holding_no: string
           id: string
           is_occupied: boolean
+          is_rented: boolean
           occupant_name: string | null
           occupant_name_bn: string | null
           occupant_phone: string | null
@@ -525,6 +526,7 @@ export type Database = {
           holding_no: string
           id?: string
           is_occupied?: boolean
+          is_rented?: boolean
           occupant_name?: string | null
           occupant_name_bn?: string | null
           occupant_phone?: string | null
@@ -551,6 +553,7 @@ export type Database = {
           holding_no?: string
           id?: string
           is_occupied?: boolean
+          is_rented?: boolean
           occupant_name?: string | null
           occupant_name_bn?: string | null
           occupant_phone?: string | null
