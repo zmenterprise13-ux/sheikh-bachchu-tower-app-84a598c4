@@ -80,6 +80,7 @@ export default function AdminExpenses() {
     category: "",
     description: "",
     amount: "",
+    service_month: "",
   });
 
   const catLabel = (c: Category) => (lang === "bn" ? c.name_bn || c.name : c.name);
@@ -94,6 +95,7 @@ export default function AdminExpenses() {
       category: categories[0]?.name ?? "",
       description: "",
       amount: "",
+      service_month: "",
     });
     setEditingId(null);
   };
