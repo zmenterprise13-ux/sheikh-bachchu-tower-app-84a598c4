@@ -53,7 +53,7 @@ type Bill = {
   total: number;
   paid_amount: number;
 };
-type Expense = { date: string; category: string; amount: number };
+type Expense = { date: string; category: string; amount: number; service_month?: string | null };
 type LoanRow = { loan_date: string; principal: number; lender_name: string | null; lender_name_bn: string | null };
 type RepayRow = { paid_date: string; amount: number };
 type OtherIncomeRow = { date: string; category: string; amount: number };
@@ -96,6 +96,7 @@ export default function AdminReports() {
   const [bkashTotal, setBkashTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showPublishedPreview, setShowPublishedPreview] = useState(false);
+  const [expenseMode, setExpenseMode] = useState<"paid" | "service">("paid");
   const { settings: bkash } = useBkashSettings();
 
   // Opening cash (carry-forward from before `from`) — backed by DB overrides
@@ -143,8 +144,8 @@ export default function AdminReports() {
           .select("flat_id, month, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount")
           .gte("month", from).lte("month", to),
         supabase.from("expenses")
-          .select("date, category, amount")
-          .gte("date", monthStart).lt("date", monthEnd),
+          .select("date, category, amount, service_month")
+          .or(`and(date.gte.${monthStart},date.lt.${monthEnd}),and(service_month.gte.${from},service_month.lte.${to})`),
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
@@ -218,11 +219,24 @@ export default function AdminReports() {
     [bills, flatFilter]
   );
 
+  // Pick a month bucket for an expense based on the chosen mode
+  const expenseMonthOf = (e: Expense) =>
+    expenseMode === "service" ? (e.service_month || (e.date || "").slice(0, 7)) : (e.date || "").slice(0, 7);
+
+  // Expenses that actually belong to the selected report range under the current mode
+  const scopedExpenses = useMemo(
+    () => expenses.filter((e) => {
+      const m = expenseMonthOf(e);
+      return m >= from && m <= to;
+    }),
+    [expenses, from, to, expenseMode]
+  );
+
   // Per-month aggregation
   const perMonth = useMemo(() => {
     return months.map((m) => {
       const mb = scopedBills.filter((b) => b.month === m);
-      const me = expenses.filter((e) => e.date.slice(0, 7) === m);
+      const me = scopedExpenses.filter((e) => expenseMonthOf(e) === m);
       const ml = loans.filter((l) => (l.loan_date || "").slice(0, 7) === m);
       const mr = repays.filter((r) => (r.paid_date || "").slice(0, 7) === m);
       const mo = otherIncomes.filter((o) => (o.date || "").slice(0, 7) === m);
@@ -235,7 +249,7 @@ export default function AdminReports() {
       const expenseTotal = expense + loanOut; // loan repayment is treated as expense
       return { month: m, billed, collected, otherIn, expense, expenseTotal, loanIn, loanOut, balance: collected + otherIn - expenseTotal + loanIn };
     });
-  }, [months, scopedBills, expenses, loans, repays, otherIncomes]);
+  }, [months, scopedBills, scopedExpenses, loans, repays, otherIncomes, expenseMode]);
 
   // Running closing balance per month (starts from openingCash)
   const perMonthRolling = useMemo(() => {
@@ -259,7 +273,7 @@ export default function AdminReports() {
   const closingBalance = openingCash + balance;
   const collectionRate = totalBilled > 0 ? Math.round((totalIncome / totalBilled) * 100) : 0;
 
-  const byCategory = expenses.reduce<Record<string, number>>((acc, e) => {
+  const byCategory = scopedExpenses.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
     return acc;
   }, {});
@@ -524,6 +538,42 @@ export default function AdminReports() {
             <p className="text-sm text-destructive mt-2">{lang === "bn" ? "শুরু মাস শেষ মাসের আগে হতে হবে" : "From must be ≤ To"}</p>
           )}
 
+          {/* Expense grouping mode */}
+          <div className="mt-4 rounded-lg border border-border bg-secondary/30 p-3">
+            <Label className="text-xs">{lang === "bn" ? "খরচ কোন মাসে গণনা হবে?" : "Group expenses by"}</Label>
+            <div className="mt-2 inline-flex rounded-lg border border-border bg-card p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setExpenseMode("paid")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold transition-base",
+                  expenseMode === "paid" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {lang === "bn" ? "পরিশোধের তারিখ" : "Paid date"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpenseMode("service")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold transition-base",
+                  expenseMode === "service" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {lang === "bn" ? "সার্ভিস মাস" : "Service month"}
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              {expenseMode === "service"
+                ? (lang === "bn"
+                    ? "কোন মাসের জন্য খরচ (যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে-তে দিলে এপ্রিলে গণনা হবে)। যেগুলোতে service month দেওয়া নেই, সেগুলোর জন্য তারিখের মাস ব্যবহার হবে।"
+                    : "By service month (e.g. April security salary paid in May counts in April). Falls back to paid date when no service month set.")
+                : (lang === "bn"
+                    ? "যেদিন টাকা দেওয়া হয়েছে সেই মাসে গণনা হবে (cash basis — ব্যাংক/ক্যাশের সাথে মেলে)।"
+                    : "By the date the money was paid (cash basis — matches bank/cash).")}
+            </p>
+          </div>
+
           {/* Flat filter */}
           <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end">
             <div>
@@ -654,7 +704,7 @@ export default function AdminReports() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={lang === "bn" ? "আগের ক্যাশ" : "Opening Cash"} value={formatMoney(openingCash, lang)} hint={openingOverride.trim() !== "" ? (lang === "bn" ? "ম্যানুয়াল" : "Manual") : (lang === "bn" ? "অটো" : "Auto")} icon={Scale} variant="primary" />
             <StatCard label={t("income")} value={formatMoney(totalIncome + totalOtherIn, lang)} hint={totalOtherIn > 0 ? `${lang === "bn" ? "বিল" : "Bills"}: ${formatMoney(totalIncome, lang)} · ${lang === "bn" ? "অন্যান্য" : "Other"}: ${formatMoney(totalOtherIn, lang)}` : `${formatNumber(collectionRate, lang)}% ${t("collectionRate")}`} icon={TrendingUp} variant="success" />
-            <StatCard label={t("expense")} value={formatMoney(totalExpenseAll, lang)} hint={totalLoanOut > 0 ? (lang === "bn" ? `নিয়মিত: ${formatMoney(totalExpense, lang)} + লোন পরিশোধ: ${formatMoney(totalLoanOut, lang)}` : `Regular: ${formatMoney(totalExpense, lang)} + Loan: ${formatMoney(totalLoanOut, lang)}`) : `${formatNumber(expenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
+            <StatCard label={t("expense")} value={formatMoney(totalExpenseAll, lang)} hint={totalLoanOut > 0 ? (lang === "bn" ? `নিয়মিত: ${formatMoney(totalExpense, lang)} + লোন পরিশোধ: ${formatMoney(totalLoanOut, lang)}` : `Regular: ${formatMoney(totalExpense, lang)} + Loan: ${formatMoney(totalLoanOut, lang)}`) : `${formatNumber(scopedExpenses.length, lang)} ${lang === "bn" ? "টি এন্ট্রি" : "entries"}`} icon={TrendingDown} variant="warning" />
             <StatCard label={lang === "bn" ? "শেষ ব্যালেন্স" : "Closing Balance"} value={formatMoney(closingBalance, lang)} hint={`${lang === "bn" ? "এ মাসের লাভ/ঘাটতি" : "Period net"}: ${formatMoney(balance, lang)}`} icon={Scale} variant={closingBalance >= 0 ? "primary" : "destructive"} />
           </div>
         )}
