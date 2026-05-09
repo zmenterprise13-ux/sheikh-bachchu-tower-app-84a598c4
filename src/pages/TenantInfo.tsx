@@ -217,11 +217,12 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
     if (!selectedFlatId) return;
     setLoading(true);
     (async () => {
-      const { data: ti, error } = await supabase.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      const sb: any = supabase;
+      const { data: ti, error } = await sb.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       if (error && error.code !== "PGRST116") toast.error(error.message);
       if (ti) {
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
-        const { data: fm } = await supabase.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
+        const { data: fm } = await sb.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
           id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
