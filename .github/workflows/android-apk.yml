@@ -123,13 +123,12 @@ jobs:
             android/build/reports/
           if-no-files-found: ignore
 
-      - name: Create Release
-        if: success() && github.ref == 'refs/heads/main'
-        continue-on-error: true
+      - name: Create Release with user-provided version
+        if: success()
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: APK Build ${{ github.run_number }}
+          tag_name: ${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.version }}
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
