@@ -96,6 +96,7 @@ export default function AdminReports() {
   const [bkashTotal, setBkashTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showPublishedPreview, setShowPublishedPreview] = useState(false);
+  const [expenseMode, setExpenseMode] = useState<"paid" | "service">("paid");
   const { settings: bkash } = useBkashSettings();
 
   // Opening cash (carry-forward from before `from`) — backed by DB overrides
