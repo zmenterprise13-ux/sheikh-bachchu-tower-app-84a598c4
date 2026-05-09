@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
-import { PermanentAddressFields, parsePermanentAddress, serializePermanentAddress } from "@/components/PermanentAddressFields";
+import { PermanentAddressFields, parsePermanentAddress, serializePermanentAddress, validatePermanentAddress } from "@/components/PermanentAddressFields";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -236,6 +236,8 @@ export default function TenantInfoPage() {
   const save = async () => {
     if (!tenant) return;
     if (!tenant.tenant_name.trim()) return toast.error("ভাড়াটিয়ার নাম দিন");
+    const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
+    if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
     setSaving(true);
     try {
       const payload: any = {
