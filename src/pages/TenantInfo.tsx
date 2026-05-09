@@ -11,9 +11,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+type TenancyPeriod = {
+  id: string;
+  tenant_name: string;
+  tenant_name_bn: string | null;
+  phone: string | null;
+  nid_number: string | null;
+  occupation: string | null;
+  photo_url: string | null;
+  family_count: number;
+  move_in_date: string | null;
+  move_out_date: string | null;
+  move_out_month: string | null;
+  leave_reason: string | null;
+  notes: string | null;
+};
 
 type Flat = {
   id: string;
@@ -131,8 +158,10 @@ export default function TenantInfoPage() {
   const [selectedFlatId, setSelectedFlatId] = useState<string>("");
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [history, setHistory] = useState<TenancyPeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -164,6 +193,13 @@ export default function TenantInfoPage() {
         setTenant(emptyTenant(selectedFlatId));
         setMembers([]);
       }
+      const { data: hist } = await supabase
+        .from("tenancy_periods")
+        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+        .eq("flat_id", selectedFlatId)
+        .order("move_out_date", { ascending: false, nullsFirst: false })
+        .order("archived_at", { ascending: false });
+      setHistory((hist || []) as TenancyPeriod[]);
       setLoading(false);
     })();
   }, [selectedFlatId]);
@@ -239,6 +275,52 @@ export default function TenantInfoPage() {
     }
   };
 
+  const archiveTenant = async () => {
+    if (!tenant?.id) return toast.error("সংরক্ষিত ভাড়াটিয়া নেই");
+    setArchiving(true);
+    try {
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const monthStr = todayStr.slice(0, 7);
+      const snapshot = { ...tenant, members };
+      const { error: insErr } = await supabase.from("tenancy_periods").insert({
+        flat_id: tenant.flat_id,
+        tenant_name: tenant.tenant_name,
+        tenant_name_bn: tenant.tenant_name_bn || null,
+        phone: tenant.phone || null,
+        nid_number: tenant.nid_number || null,
+        occupation: tenant.occupation || null,
+        photo_url: tenant.photo_url,
+        family_count: members.length,
+        move_in_date: tenant.move_in_date || null,
+        move_out_date: todayStr,
+        move_out_month: monthStr,
+        leave_reason: tenant.leave_reason || null,
+        notes: tenant.notes || null,
+        snapshot,
+        archived_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+      await supabase.from("tenant_family_members").delete().eq("tenant_info_id", tenant.id);
+      const { error: delErr } = await supabase.from("tenant_info").delete().eq("id", tenant.id);
+      if (delErr) throw delErr;
+      toast.success("ভাড়াটিয়া আর্কাইভ হয়েছে");
+      setTenant(emptyTenant(selectedFlatId));
+      setMembers([]);
+      const { data: hist } = await supabase
+        .from("tenancy_periods")
+        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+        .eq("flat_id", selectedFlatId)
+        .order("move_out_date", { ascending: false, nullsFirst: false })
+        .order("archived_at", { ascending: false });
+      setHistory((hist || []) as TenancyPeriod[]);
+    } catch (err: any) {
+      toast.error(err.message ?? "আর্কাইভ ব্যর্থ");
+    } finally {
+      setArchiving(false);
+    }
+  };
+
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
   const handlePrintFilled = () => window.print();
   const handleDownloadBlankPdf = () => {
@@ -263,6 +345,27 @@ export default function TenantInfoPage() {
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
+            {tenant?.id && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={archiving}>
+                    <UserMinus className="h-4 w-4 mr-1" /> চলে গেছেন (আর্কাইভ)
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>ভাড়াটিয়া আর্কাইভ করবেন?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      বর্তমান ভাড়াটিয়ার সব তথ্য "পূর্ববর্তী ভাড়াটিয়া" তালিকায় সংরক্ষণ হবে এবং ফর্ম খালি হয়ে যাবে। চলে যাওয়ার তারিখ আজকের তারিখ হিসেবে রেকর্ড হবে।
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                    <AlertDialogAction onClick={archiveTenant}>হ্যাঁ, আর্কাইভ করুন</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             {tenant && (
               <Button onClick={save} disabled={saving} size="sm">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
@@ -469,6 +572,57 @@ export default function TenantInfoPage() {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Tenancy history */}
+            {history.length > 0 && (
+              <Card className="print:hidden">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <History className="h-4 w-4" /> পূর্ববর্তী ভাড়াটিয়া ({history.length} জন)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="border border-border p-2 text-left">নাম</th>
+                          <th className="border border-border p-2 text-left">মোবাইল</th>
+                          <th className="border border-border p-2 text-left">পেশা</th>
+                          <th className="border border-border p-2 text-left">সদস্য</th>
+                          <th className="border border-border p-2 text-left">উঠেছিলেন</th>
+                          <th className="border border-border p-2 text-left">চলে গেছেন</th>
+                          <th className="border border-border p-2 text-left">যে মাসে</th>
+                          <th className="border border-border p-2 text-left">কারণ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((h) => (
+                          <tr key={h.id}>
+                            <td className="border border-border p-2">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-7 w-7">
+                                  {h.photo_url ? <AvatarImage src={h.photo_url} /> : null}
+                                  <InitialsFallback name={h.tenant_name || "?"} />
+                                </Avatar>
+                                <span>{h.tenant_name}</span>
+                              </div>
+                            </td>
+                            <td className="border border-border p-2">{h.phone || "—"}</td>
+                            <td className="border border-border p-2">{h.occupation || "—"}</td>
+                            <td className="border border-border p-2">{h.family_count}</td>
+                            <td className="border border-border p-2">{h.move_in_date || "—"}</td>
+                            <td className="border border-border p-2">{h.move_out_date || "—"}</td>
+                            <td className="border border-border p-2">{h.move_out_month || "—"}</td>
+                            <td className="border border-border p-2 max-w-[220px] truncate" title={h.leave_reason || ""}>{h.leave_reason || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="sticky bottom-0 -mx-2 px-2 py-3 bg-background/95 backdrop-blur border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 print:hidden z-10">
               <p className="text-xs text-muted-foreground">
