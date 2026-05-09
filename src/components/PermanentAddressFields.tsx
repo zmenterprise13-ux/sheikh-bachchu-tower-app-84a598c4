@@ -1,7 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import bdGeo from "@/data/bd-geo/bd-geo.json";
 
 /**
@@ -100,8 +104,73 @@ export function formatPermanentAddress(a: PermanentAddress): string {
   return parts.join(", ");
 }
 
+type ComboOption = { value: string; label: string };
 
-const NONE = "__none__";
+function SearchableCombo({
+  value,
+  options,
+  placeholder,
+  searchPlaceholder,
+  emptyText,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  options: ComboOption[];
+  placeholder: string;
+  searchPlaceholder: string;
+  emptyText: string;
+  disabled?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          disabled={disabled}
+          className={cn("w-full justify-between font-normal", !selected && "text-muted-foreground")}
+        >
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
+          <div className="flex items-center gap-1">
+            {selected && !disabled && (
+              <X
+                className="h-3.5 w-3.5 opacity-50 hover:opacity-100"
+                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+              />
+            )}
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandGroup>
+              {options.map((o) => (
+                <CommandItem
+                  key={o.value}
+                  value={o.label}
+                  onSelect={() => { onChange(o.value); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === o.value ? "opacity-100" : "opacity-0")} />
+                  {o.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 export function PermanentAddressFields({
   value,
@@ -124,47 +193,43 @@ export function PermanentAddressFields({
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div>
         <Label className="text-xs text-muted-foreground">জেলা</Label>
-        <Select
-          value={value.district || NONE}
-          onValueChange={(v) => set({ district: v === NONE ? "" : v, thana: "", postOffice: "", postCode: "" })}
-        >
-          <SelectTrigger><SelectValue placeholder="জেলা নির্বাচন" /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <SearchableCombo
+          value={value.district}
+          options={districts.map((d) => ({ value: d, label: d }))}
+          placeholder="জেলা নির্বাচন"
+          searchPlaceholder="জেলা খুঁজুন..."
+          emptyText="কোন জেলা পাওয়া যায়নি"
+          onChange={(v) => set({ district: v, thana: "", postOffice: "", postCode: "" })}
+        />
       </div>
 
       <div>
         <Label className="text-xs text-muted-foreground">থানা / উপজেলা</Label>
-        <Select
-          value={value.thana || NONE}
-          onValueChange={(v) => set({ thana: v === NONE ? "" : v, postOffice: "", postCode: "" })}
+        <SearchableCombo
+          value={value.thana}
+          options={thanas.map((t) => ({ value: t, label: t }))}
+          placeholder={value.district ? "থানা নির্বাচন" : "আগে জেলা নির্বাচন করুন"}
+          searchPlaceholder="থানা খুঁজুন..."
+          emptyText="কোন থানা পাওয়া যায়নি"
           disabled={!value.district}
-        >
-          <SelectTrigger><SelectValue placeholder={value.district ? "থানা নির্বাচন" : "আগে জেলা নির্বাচন করুন"} /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {thanas.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+          onChange={(v) => set({ thana: v, postOffice: "", postCode: "" })}
+        />
       </div>
 
       <div>
         <Label className="text-xs text-muted-foreground">পোস্ট অফিস</Label>
-        <Select
-          value={value.postOffice || NONE}
-          onValueChange={(v) => {
-            if (v === NONE) return set({ postOffice: "", postCode: "" });
+        <SearchableCombo
+          value={value.postOffice}
+          options={postOffices.map((p) => ({ value: p.name, label: `${p.name} (${p.code})` }))}
+          placeholder={value.thana ? "পোস্ট অফিস নির্বাচন" : "আগে থানা নির্বাচন করুন"}
+          searchPlaceholder="পোস্ট অফিস খুঁজুন..."
+          emptyText="কোন পোস্ট অফিস পাওয়া যায়নি"
+          disabled={!value.thana}
+          onChange={(v) => {
             const po = postOffices.find((p) => p.name === v);
             set({ postOffice: v, postCode: po?.code || "" });
           }}
-          disabled={!value.thana}
-        >
-          <SelectTrigger><SelectValue placeholder={value.thana ? "পোস্ট অফিস নির্বাচন" : "আগে থানা নির্বাচন করুন"} /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {postOffices.map((p) => <SelectItem key={p.name} value={p.name}>{p.name} ({p.code})</SelectItem>)}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <div>
