@@ -167,8 +167,8 @@ export async function downloadReceiptPdf(
   doc.setTextColor(148, 163, 184);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
-  doc.text("This is a system-generated receipt and does not require a signature.", W / 2, 285, { align: "center" });
-  doc.text("Thank you for your payment.", W / 2, 290, { align: "center" });
+  doc.text(tpl.footer_line1, W / 2, 285, { align: "center" });
+  doc.text(tpl.footer_line2, W / 2, 290, { align: "center" });
 
   const filename = `receipt-${receiptNo}.pdf`;
   await savePdf(doc, filename);
