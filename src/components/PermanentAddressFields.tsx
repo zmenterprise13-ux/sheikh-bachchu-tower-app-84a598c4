@@ -104,8 +104,73 @@ export function formatPermanentAddress(a: PermanentAddress): string {
   return parts.join(", ");
 }
 
+type ComboOption = { value: string; label: string };
 
-const NONE = "__none__";
+function SearchableCombo({
+  value,
+  options,
+  placeholder,
+  searchPlaceholder,
+  emptyText,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  options: ComboOption[];
+  placeholder: string;
+  searchPlaceholder: string;
+  emptyText: string;
+  disabled?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          disabled={disabled}
+          className={cn("w-full justify-between font-normal", !selected && "text-muted-foreground")}
+        >
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
+          <div className="flex items-center gap-1">
+            {selected && !disabled && (
+              <X
+                className="h-3.5 w-3.5 opacity-50 hover:opacity-100"
+                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+              />
+            )}
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandGroup>
+              {options.map((o) => (
+                <CommandItem
+                  key={o.value}
+                  value={o.label}
+                  onSelect={() => { onChange(o.value); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === o.value ? "opacity-100" : "opacity-0")} />
+                  {o.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 export function PermanentAddressFields({
   value,
