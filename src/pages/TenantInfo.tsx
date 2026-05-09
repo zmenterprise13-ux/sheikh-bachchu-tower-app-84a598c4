@@ -153,7 +153,40 @@ const emptyMember = (): FamilyMember => ({
   name: "", age: null, occupation: "", phone: "",
 });
 
-export default function TenantInfoPage() {
+type Kind = "tenant" | "owner";
+type Config = {
+  infoTable: "tenant_info" | "owner_info";
+  familyTable: "tenant_family_members" | "owner_family_members";
+  familyFk: "tenant_info_id" | "owner_info_id";
+  photoFolder: string;
+  archiveEnabled: boolean;
+  title: string;
+  subtitle: string;
+  personLabel: string;
+  viewPath: string;
+  editPath: string;
+};
+const CONFIGS: Record<Kind, Config> = {
+  tenant: {
+    infoTable: "tenant_info", familyTable: "tenant_family_members", familyFk: "tenant_info_id",
+    photoFolder: "tenants", archiveEnabled: true,
+    title: "ভাড়াটিয়া নিবন্ধন ফরম",
+    subtitle: "পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন",
+    personLabel: "ভাড়াটিয়া",
+    viewPath: "/tenant-info/view", editPath: "/tenant-info",
+  },
+  owner: {
+    infoTable: "owner_info", familyTable: "owner_family_members", familyFk: "owner_info_id",
+    photoFolder: "owners", archiveEnabled: false,
+    title: "ফ্ল্যাট মালিকের বিস্তারিত তথ্য",
+    subtitle: "ভাড়াটিয়ার ফরমের আদলে মালিকের পূর্ণাঙ্গ তথ্য সংরক্ষণ করুন",
+    personLabel: "মালিক",
+    viewPath: "/owner-info/view", editPath: "/owner-info",
+  },
+};
+
+export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}) {
+  const cfg = CONFIGS[kind];
   const { user, role } = useAuth();
   const isAdmin = role === "admin";
   const [flats, setFlats] = useState<Flat[]>([]);
@@ -184,11 +217,12 @@ export default function TenantInfoPage() {
     if (!selectedFlatId) return;
     setLoading(true);
     (async () => {
-      const { data: ti, error } = await supabase.from("tenant_info").select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      const sb: any = supabase;
+      const { data: ti, error } = await sb.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       if (error && error.code !== "PGRST116") toast.error(error.message);
       if (ti) {
         setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
-        const { data: fm } = await supabase.from("tenant_family_members").select("*").eq("tenant_info_id", (ti as any).id).order("sort_order").order("created_at");
+        const { data: fm } = await sb.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
           id: m.id, name: m.name ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
@@ -196,16 +230,21 @@ export default function TenantInfoPage() {
         setTenant(emptyTenant(selectedFlatId));
         setMembers([]);
       }
-      const { data: hist } = await supabase
-        .from("tenancy_periods")
-        .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
-        .eq("flat_id", selectedFlatId)
-        .order("move_out_date", { ascending: false, nullsFirst: false })
-        .order("archived_at", { ascending: false });
-      setHistory((hist || []) as TenancyPeriod[]);
+      if (cfg.archiveEnabled) {
+        const { data: hist } = await supabase
+          .from("tenancy_periods")
+          .select("id, tenant_name, tenant_name_bn, phone, nid_number, occupation, photo_url, family_count, move_in_date, move_out_date, move_out_month, leave_reason, notes")
+          .eq("flat_id", selectedFlatId)
+          .order("move_out_date", { ascending: false, nullsFirst: false })
+          .order("archived_at", { ascending: false });
+        setHistory((hist || []) as TenancyPeriod[]);
+      } else {
+        setHistory([]);
+      }
       setLoading(false);
     })();
-  }, [selectedFlatId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFlatId, kind]);
 
   const updateTenant = (patch: Partial<TenantInfo>) => setTenant((t) => (t ? { ...t, ...patch } : t));
   const addMember = () => setMembers((m) => [...m, emptyMember()]);
@@ -221,7 +260,7 @@ export default function TenantInfoPage() {
     try {
       const compressed = await compressImage(file, { maxDim: 800, quality: 0.8 });
       const ext = compressed.type === "image/jpeg" ? "jpg" : "png";
-      const path = `tenants/${selectedFlatId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${cfg.photoFolder}/${selectedFlatId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("tenant-photos").upload(path, compressed, { upsert: false, contentType: compressed.type });
       if (error) throw error;
       const { data } = supabase.storage.from("tenant-photos").getPublicUrl(path);
@@ -237,11 +276,12 @@ export default function TenantInfoPage() {
 
   const save = async () => {
     if (!tenant) return;
-    if (!tenant.tenant_name.trim()) return toast.error("ভাড়াটিয়ার নাম দিন");
+    if (!tenant.tenant_name.trim()) return toast.error(`${cfg.personLabel}ের নাম দিন`);
     const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
     if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
     setSaving(true);
     try {
+      const sb: any = supabase;
       const payload: any = {
         ...tenant,
         move_in_date: tenant.move_in_date || null,
@@ -250,18 +290,18 @@ export default function TenantInfoPage() {
       };
       let tenantId = tenant.id;
       if (tenantId) {
-        const { error } = await supabase.from("tenant_info").update(payload).eq("id", tenantId);
+        const { error } = await sb.from(cfg.infoTable).update(payload).eq("id", tenantId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from("tenant_info").insert(payload).select("id").single();
+        const { data, error } = await sb.from(cfg.infoTable).insert(payload).select("id").single();
         if (error) throw error;
         tenantId = (data as any).id;
         setTenant((t) => (t ? { ...t, id: tenantId } : t));
       }
-      await supabase.from("tenant_family_members").delete().eq("tenant_info_id", tenantId!);
+      await sb.from(cfg.familyTable).delete().eq(cfg.familyFk, tenantId!);
       if (members.length) {
         const rows = members.map((m, idx) => ({
-          tenant_info_id: tenantId,
+          [cfg.familyFk]: tenantId,
           name: m.name,
           relation: "",
           age: m.age,
@@ -269,7 +309,7 @@ export default function TenantInfoPage() {
           phone: m.phone || null,
           sort_order: idx,
         }));
-        const { error } = await supabase.from("tenant_family_members").insert(rows);
+        const { error } = await sb.from(cfg.familyTable).insert(rows);
         if (error) throw error;
       }
       toast.success("সংরক্ষণ হয়েছে");
@@ -339,13 +379,13 @@ export default function TenantInfoPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Users className="h-6 w-6" /> ভাড়াটিয়া নিবন্ধন ফরম
+              <Users className="h-6 w-6" /> {cfg.title}
             </h1>
-            <p className="text-sm text-muted-foreground">পুলিশ নিবন্ধন ফরমের আদলে ভাড়াটিয়ার তথ্য সংরক্ষণ করুন</p>
+            <p className="text-sm text-muted-foreground">{cfg.subtitle}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/tenant-info/view${selectedFlatId ? `?flat=${selectedFlatId}` : ""}`}>
+              <Link to={`${cfg.viewPath}${selectedFlatId ? `?flat=${selectedFlatId}` : ""}`}>
                 <Eye className="h-4 w-4 mr-1" /> ভিউ
               </Link>
             </Button>
@@ -355,7 +395,7 @@ export default function TenantInfoPage() {
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
-            {tenant?.id && (
+            {cfg.archiveEnabled && tenant?.id && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" disabled={archiving}>
@@ -586,8 +626,8 @@ export default function TenantInfoPage() {
               </CardContent>
             </Card>
 
-            {/* Tenancy timeline */}
-            {(history.length > 0 || tenant.tenant_name) && (() => {
+            {/* Tenancy timeline (tenant-only) */}
+            {cfg.archiveEnabled && (history.length > 0 || tenant.tenant_name) && (() => {
               const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
               const toBn = (s: string) => s.replace(/\d/g, (d) => bnDigits[+d]);
               const fmtDate = (d?: string | null) => {
@@ -722,8 +762,8 @@ export default function TenantInfoPage() {
               );
             })()}
 
-            {/* Tenancy history */}
-            {history.length > 0 && (
+            {/* Tenancy history (tenant-only) */}
+            {cfg.archiveEnabled && history.length > 0 && (
               <Card className="print:hidden">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">

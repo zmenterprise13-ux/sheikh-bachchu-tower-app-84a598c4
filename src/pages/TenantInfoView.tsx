@@ -17,6 +17,12 @@ type Flat = { id: string; flat_no: string; floor: number; owner_name: string | n
 type FamilyMember = { id: string; name: string; age: number | null; occupation: string | null; phone: string | null };
 type TenantRow = Record<string, any> | null;
 
+type Kind = "tenant" | "owner";
+const VIEW_CONFIGS = {
+  tenant: { infoTable: "tenant_info", familyTable: "tenant_family_members", familyFk: "tenant_info_id", title: "ভাড়াটিয়ার তথ্য (ভিউ)", formTitle: "ভাড়াটিয়া নিবন্ধন ফরম", emptyMsg: "এই ফ্ল্যাটে কোনো ভাড়াটিয়ার তথ্য পাওয়া যায়নি।", editPath: "/tenant-info" },
+  owner:  { infoTable: "owner_info",  familyTable: "owner_family_members",  familyFk: "owner_info_id",  title: "মালিকের তথ্য (ভিউ)",     formTitle: "ফ্ল্যাট মালিকের বিস্তারিত তথ্য", emptyMsg: "এই ফ্ল্যাটে মালিকের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।", editPath: "/owner-info" },
+} as const;
+
 const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
 const toBn = (s: string | number | null | undefined) => (s == null ? "" : String(s).replace(/\d/g, (d) => bnDigits[+d]));
 const fmtDate = (d?: string | null) => {
@@ -26,7 +32,8 @@ const fmtDate = (d?: string | null) => {
   return toBn(dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }));
 };
 
-export default function TenantInfoView() {
+export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kind } = {}) {
+  const cfg = VIEW_CONFIGS[kind];
   const { user, role } = useAuth();
   const isAdmin = role === "admin";
   const navigate = useNavigate();
@@ -57,13 +64,14 @@ export default function TenantInfoView() {
     setParams((p) => { p.set("flat", selectedFlatId); return p; }, { replace: true });
     setLoading(true);
     (async () => {
-      const { data: ti } = await supabase.from("tenant_info").select("*").eq("flat_id", selectedFlatId).maybeSingle();
+      const sb: any = supabase;
+      const { data: ti } = await sb.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       setTenant(ti as TenantRow);
       if (ti) {
-        const { data: fm } = await supabase
-          .from("tenant_family_members")
+        const { data: fm } = await sb
+          .from(cfg.familyTable)
           .select("id, name, age, occupation, phone")
-          .eq("tenant_info_id", (ti as any).id)
+          .eq(cfg.familyFk, (ti as any).id)
           .order("sort_order").order("created_at");
         setMembers((fm || []) as FamilyMember[]);
       } else {
@@ -72,7 +80,7 @@ export default function TenantInfoView() {
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFlatId]);
+  }, [selectedFlatId, kind]);
 
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
   const permanentAddr = tenant?.permanent_address ? formatPermanentAddress(parsePermanentAddress(tenant.permanent_address)) : "";
@@ -84,7 +92,7 @@ export default function TenantInfoView() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Eye className="h-6 w-6" /> ভাড়াটিয়ার তথ্য (ভিউ)
+              <Eye className="h-6 w-6" /> {cfg.title}
             </h1>
             <p className="text-sm text-muted-foreground">শুধু পড়ার জন্য। অফিসিয়াল প্রিন্টের জন্য A4 ফরম্যাটে প্রস্তুত।</p>
           </div>
@@ -96,7 +104,7 @@ export default function TenantInfoView() {
               <Printer className="h-4 w-4 mr-1" /> A4 প্রিন্ট
             </Button>
             <Button asChild size="sm" disabled={!tenant}>
-              <Link to={`/tenant-info?flat=${selectedFlatId}`}>
+              <Link to={`${cfg.editPath}?flat=${selectedFlatId}`}>
                 <Pencil className="h-4 w-4 mr-1" /> এডিট
               </Link>
             </Button>
