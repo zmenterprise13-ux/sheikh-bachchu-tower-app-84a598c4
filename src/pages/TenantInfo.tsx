@@ -11,9 +11,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+type TenancyPeriod = {
+  id: string;
+  tenant_name: string;
+  tenant_name_bn: string | null;
+  phone: string | null;
+  nid_number: string | null;
+  occupation: string | null;
+  photo_url: string | null;
+  family_count: number;
+  move_in_date: string | null;
+  move_out_date: string | null;
+  move_out_month: string | null;
+  leave_reason: string | null;
+  notes: string | null;
+};
 
 type Flat = {
   id: string;

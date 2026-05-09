@@ -1021,6 +1021,72 @@ export type Database = {
         }
         Relationships: []
       }
+      tenancy_periods: {
+        Row: {
+          archived_at: string
+          archived_by: string | null
+          created_at: string
+          family_count: number
+          flat_id: string
+          id: string
+          leave_reason: string | null
+          move_in_date: string | null
+          move_out_date: string | null
+          move_out_month: string | null
+          nid_number: string | null
+          notes: string | null
+          occupation: string | null
+          phone: string | null
+          photo_url: string | null
+          snapshot: Json
+          tenant_name: string
+          tenant_name_bn: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_by?: string | null
+          created_at?: string
+          family_count?: number
+          flat_id: string
+          id?: string
+          leave_reason?: string | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          move_out_month?: string | null
+          nid_number?: string | null
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          snapshot?: Json
+          tenant_name: string
+          tenant_name_bn?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string
+          archived_by?: string | null
+          created_at?: string
+          family_count?: number
+          flat_id?: string
+          id?: string
+          leave_reason?: string | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          move_out_month?: string | null
+          nid_number?: string | null
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          snapshot?: Json
+          tenant_name?: string
+          tenant_name_bn?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenant_family_members: {
         Row: {
           age: number | null
