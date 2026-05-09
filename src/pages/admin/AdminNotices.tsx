@@ -241,7 +241,7 @@ export default function AdminNotices() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1.5">{lang === "bn" ? n.body_bn : n.body}</p>
+                  <NoticeBody text={lang === "bn" ? n.body_bn : n.body} lang={lang as "bn" | "en"} className="text-sm text-muted-foreground mt-1.5" />
                   <div className="text-xs text-muted-foreground mt-2">{n.date}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
