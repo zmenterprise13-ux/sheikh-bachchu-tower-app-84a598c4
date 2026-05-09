@@ -128,47 +128,43 @@ export function PermanentAddressFields({
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div>
         <Label className="text-xs text-muted-foreground">জেলা</Label>
-        <Select
-          value={value.district || NONE}
-          onValueChange={(v) => set({ district: v === NONE ? "" : v, thana: "", postOffice: "", postCode: "" })}
-        >
-          <SelectTrigger><SelectValue placeholder="জেলা নির্বাচন" /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <SearchableCombo
+          value={value.district}
+          options={districts.map((d) => ({ value: d, label: d }))}
+          placeholder="জেলা নির্বাচন"
+          searchPlaceholder="জেলা খুঁজুন..."
+          emptyText="কোন জেলা পাওয়া যায়নি"
+          onChange={(v) => set({ district: v, thana: "", postOffice: "", postCode: "" })}
+        />
       </div>
 
       <div>
         <Label className="text-xs text-muted-foreground">থানা / উপজেলা</Label>
-        <Select
-          value={value.thana || NONE}
-          onValueChange={(v) => set({ thana: v === NONE ? "" : v, postOffice: "", postCode: "" })}
+        <SearchableCombo
+          value={value.thana}
+          options={thanas.map((t) => ({ value: t, label: t }))}
+          placeholder={value.district ? "থানা নির্বাচন" : "আগে জেলা নির্বাচন করুন"}
+          searchPlaceholder="থানা খুঁজুন..."
+          emptyText="কোন থানা পাওয়া যায়নি"
           disabled={!value.district}
-        >
-          <SelectTrigger><SelectValue placeholder={value.district ? "থানা নির্বাচন" : "আগে জেলা নির্বাচন করুন"} /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {thanas.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+          onChange={(v) => set({ thana: v, postOffice: "", postCode: "" })}
+        />
       </div>
 
       <div>
         <Label className="text-xs text-muted-foreground">পোস্ট অফিস</Label>
-        <Select
-          value={value.postOffice || NONE}
-          onValueChange={(v) => {
-            if (v === NONE) return set({ postOffice: "", postCode: "" });
+        <SearchableCombo
+          value={value.postOffice}
+          options={postOffices.map((p) => ({ value: p.name, label: `${p.name} (${p.code})` }))}
+          placeholder={value.thana ? "পোস্ট অফিস নির্বাচন" : "আগে থানা নির্বাচন করুন"}
+          searchPlaceholder="পোস্ট অফিস খুঁজুন..."
+          emptyText="কোন পোস্ট অফিস পাওয়া যায়নি"
+          disabled={!value.thana}
+          onChange={(v) => {
             const po = postOffices.find((p) => p.name === v);
             set({ postOffice: v, postCode: po?.code || "" });
           }}
-          disabled={!value.thana}
-        >
-          <SelectTrigger><SelectValue placeholder={value.thana ? "পোস্ট অফিস নির্বাচন" : "আগে থানা নির্বাচন করুন"} /></SelectTrigger>
-          <SelectContent className="max-h-72">
-            {postOffices.map((p) => <SelectItem key={p.name} value={p.name}>{p.name} ({p.code})</SelectItem>)}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <div>
