@@ -20,7 +20,7 @@ type Row = {
   bills?: { status: string } | null;
 };
 
-const SESSION_KEY = "dues_popup_dismissed_v1";
+
 
 export function DuesPopup() {
   const { user, role } = useAuth();
