@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InitialsFallback } from "@/components/InitialsFallback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Save, Printer, Download, Users, UserMinus, History, CalendarDays, LogIn, LogOut, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompress";
 import {
@@ -572,6 +572,142 @@ export default function TenantInfoPage() {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Tenancy timeline */}
+            {(history.length > 0 || tenant.tenant_name) && (() => {
+              const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
+              const toBn = (s: string) => s.replace(/\d/g, (d) => bnDigits[+d]);
+              const fmtDate = (d?: string | null) => {
+                if (!d) return "—";
+                const dt = new Date(d);
+                if (isNaN(dt.getTime())) return d;
+                return toBn(dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }));
+              };
+              const monthsBetween = (from?: string | null, to?: string | null) => {
+                if (!from) return null;
+                const a = new Date(from);
+                const b = to ? new Date(to) : new Date();
+                if (isNaN(a.getTime()) || isNaN(b.getTime())) return null;
+                let m = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+                if (b.getDate() < a.getDate()) m -= 1;
+                if (m < 0) return null;
+                const years = Math.floor(m / 12);
+                const months = m % 12;
+                const parts: string[] = [];
+                if (years > 0) parts.push(`${toBn(String(years))} বছর`);
+                if (months > 0) parts.push(`${toBn(String(months))} মাস`);
+                if (parts.length === 0) parts.push("১ মাসের কম");
+                return parts.join(" ");
+              };
+
+              type TLItem = {
+                key: string;
+                name: string;
+                photo_url?: string | null;
+                phone?: string | null;
+                family_count?: number | null;
+                move_in?: string | null;
+                move_out?: string | null;
+                leave_reason?: string | null;
+                current: boolean;
+              };
+              const items: TLItem[] = [];
+              if (tenant.tenant_name) {
+                items.push({
+                  key: "current",
+                  name: tenant.tenant_name,
+                  photo_url: tenant.photo_url,
+                  phone: tenant.phone,
+                  family_count: tenant.total_members ?? null,
+                  move_in: tenant.move_in_date || null,
+                  move_out: null,
+                  leave_reason: null,
+                  current: true,
+                });
+              }
+              for (const h of history) {
+                items.push({
+                  key: h.id,
+                  name: h.tenant_name,
+                  photo_url: h.photo_url,
+                  phone: h.phone,
+                  family_count: h.family_count,
+                  move_in: h.move_in_date,
+                  move_out: h.move_out_date,
+                  leave_reason: h.leave_reason,
+                  current: false,
+                });
+              }
+              items.sort((a, b) => {
+                if (a.current) return -1;
+                if (b.current) return 1;
+                return (b.move_out || "").localeCompare(a.move_out || "");
+              });
+
+              return (
+                <Card className="print:hidden">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4" /> ভাড়াটিয়া টাইমলাইন
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="relative border-s-2 border-border ms-3 space-y-6">
+                      {items.map((it) => (
+                        <li key={it.key} className="ms-6">
+                          <span className={`absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${it.current ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                            {it.current ? <Clock className="h-3 w-3" /> : <History className="h-3 w-3" />}
+                          </span>
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-lg border border-border p-3 bg-card">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <Avatar className="h-10 w-10 shrink-0">
+                                {it.photo_url ? <AvatarImage src={it.photo_url} /> : null}
+                                <InitialsFallback name={it.name || "?"} />
+                              </Avatar>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium truncate">{it.name}</span>
+                                  {it.current ? (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">বর্তমান</span>
+                                  ) : (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">পূর্ববর্তী</span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {it.phone || "মোবাইল নেই"}
+                                  {it.family_count ? ` · ${toBn(String(it.family_count))} সদস্য` : ""}
+                                </div>
+                                {it.leave_reason ? (
+                                  <div className="text-xs text-muted-foreground mt-1 italic">কারণ: {it.leave_reason}</div>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="text-xs sm:text-right shrink-0 space-y-1">
+                              <div className="flex items-center gap-1.5 sm:justify-end">
+                                <LogIn className="h-3.5 w-3.5 text-emerald-600" />
+                                <span className="text-muted-foreground">উঠেছেন:</span>
+                                <span className="font-medium">{fmtDate(it.move_in)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 sm:justify-end">
+                                <LogOut className="h-3.5 w-3.5 text-rose-600" />
+                                <span className="text-muted-foreground">চলে গেছেন:</span>
+                                <span className="font-medium">{it.current ? "এখনো আছেন" : fmtDate(it.move_out)}</span>
+                              </div>
+                              {monthsBetween(it.move_in, it.move_out) ? (
+                                <div className="flex items-center gap-1.5 sm:justify-end text-muted-foreground">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  <span>সময়কাল: {monthsBetween(it.move_in, it.move_out)}</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Tenancy history */}
             {history.length > 0 && (
