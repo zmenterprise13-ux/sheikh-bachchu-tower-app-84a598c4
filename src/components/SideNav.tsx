@@ -545,7 +545,7 @@ export function MobileNav() {
             <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
               <SheetTitle>{t("more" as TKey)}</SheetTitle>
             </SheetHeader>
-            <div className="p-3 pb-8 space-y-4 overflow-y-auto flex-1 min-h-0">
+            <div className="p-3 space-y-4 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
               {overflowGroups.map((group) => (
                 <div key={group.label} className="space-y-2">
                   <div className="px-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -607,7 +607,7 @@ export function MobileSideNavTrigger() {
         <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 pb-8 space-y-3 overflow-y-auto flex-1 min-h-0">
+        <nav className="p-3 space-y-3 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
           <AccountHeader />
           {groups.map((group) => (
             <NavGroupBlock key={group.label} group={group} t={t} onNavigate={() => setOpen(false)} />
