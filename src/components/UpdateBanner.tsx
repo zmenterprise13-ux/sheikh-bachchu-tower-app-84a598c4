@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Rocket, X, Download as DownloadIcon, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Rocket, X, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
