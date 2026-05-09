@@ -72,24 +72,12 @@ export default function UpdateStatus() {
     setLoading(true);
     setError(null);
     try {
-      let latest: Release | null = null;
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
-          { cache: "no-store" }
-        );
-        if (res.ok) {
-          const data: Release[] = await res.json();
-          latest = data.find((r) => !r.prerelease) ?? data[0] ?? null;
-        } else if (res.status !== 403 && res.status !== 429) {
-          throw new Error(`GitHub API ${res.status}`);
-        }
-      } catch (apiErr) {
-        // network / CORS — try atom fallback below
-      }
-      if (!latest) {
-        latest = await loadFromAtom();
-      }
+      const { data, error: fnErr } = await supabase.functions.invoke(
+        "github-latest-release"
+      );
+      if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
+      const latest: Release | null = data?.release ?? null;
       if (!latest) {
         throw new Error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
       }
