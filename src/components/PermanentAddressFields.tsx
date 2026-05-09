@@ -24,6 +24,37 @@ const EMPTY: PermanentAddress = {
   district: "", thana: "", postOffice: "", postCode: "", village: "", road: "",
 };
 
+/** Drop downstream values that are inconsistent with the loaded geo data. */
+export function sanitizePermanentAddress(a: PermanentAddress): PermanentAddress {
+  const out = { ...a };
+  if (out.district && !GEO[out.district]) {
+    out.district = ""; out.thana = ""; out.postOffice = ""; out.postCode = "";
+  }
+  if (out.thana && (!out.district || !GEO[out.district]?.[out.thana])) {
+    out.thana = ""; out.postOffice = ""; out.postCode = "";
+  }
+  if (out.postOffice) {
+    const list = out.district && out.thana ? GEO[out.district]?.[out.thana] || [] : [];
+    const po = list.find((p) => p.name === out.postOffice);
+    if (!po) { out.postOffice = ""; out.postCode = ""; }
+    else if (!out.postCode) out.postCode = po.code;
+  }
+  return out;
+}
+
+/** Returns an error message if the address is internally inconsistent, otherwise null. */
+export function validatePermanentAddress(a: PermanentAddress): string | null {
+  if (a.thana && !a.district) return "থানা নির্বাচন করতে হলে আগে জেলা নির্বাচন করুন";
+  if (a.postOffice && !a.thana) return "পোস্ট অফিস নির্বাচন করতে হলে আগে থানা নির্বাচন করুন";
+  if (a.district && !GEO[a.district]) return "অবৈধ জেলা";
+  if (a.thana && a.district && !GEO[a.district]?.[a.thana]) return "নির্বাচিত জেলায় এই থানা নেই";
+  if (a.postOffice && a.thana && a.district) {
+    const list = GEO[a.district]?.[a.thana] || [];
+    if (!list.some((p) => p.name === a.postOffice)) return "নির্বাচিত থানায় এই পোস্ট অফিস নেই";
+  }
+  return null;
+}
+
 export function parsePermanentAddress(raw: string | null | undefined): PermanentAddress {
   if (!raw) return { ...EMPTY };
   const s = String(raw).trim();
@@ -31,14 +62,14 @@ export function parsePermanentAddress(raw: string | null | undefined): Permanent
   if (s.startsWith("{")) {
     try {
       const o = JSON.parse(s);
-      return {
+      return sanitizePermanentAddress({
         district: o.district || "",
         thana: o.thana || "",
         postOffice: o.postOffice || "",
         postCode: o.postCode || "",
         village: o.village || "",
         road: o.road || "",
-      };
+      });
     } catch {}
   }
   // legacy plain text
@@ -46,7 +77,8 @@ export function parsePermanentAddress(raw: string | null | undefined): Permanent
 }
 
 export function serializePermanentAddress(a: PermanentAddress): string {
-  const { district, thana, postOffice, postCode, village, road } = a;
+  const clean = sanitizePermanentAddress(a);
+  const { district, thana, postOffice, postCode, village, road } = clean;
   if (!district && !thana && !postOffice && !village && !road) return "";
   return JSON.stringify({ district, thana, postOffice, postCode, village, road });
 }
