@@ -96,8 +96,6 @@ export function formatPermanentAddress(a: PermanentAddress): string {
   return parts.join(", ");
 }
 
-type GeoMap = Record<string, Record<string, { name: string; code: string }[]>>;
-const GEO = bdGeo as GeoMap;
 
 const NONE = "__none__";
 
