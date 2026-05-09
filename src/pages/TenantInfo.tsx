@@ -345,6 +345,27 @@ export default function TenantInfoPage() {
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
+            {tenant?.id && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={archiving}>
+                    <UserMinus className="h-4 w-4 mr-1" /> চলে গেছেন (আর্কাইভ)
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>ভাড়াটিয়া আর্কাইভ করবেন?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      বর্তমান ভাড়াটিয়ার সব তথ্য "পূর্ববর্তী ভাড়াটিয়া" তালিকায় সংরক্ষণ হবে এবং ফর্ম খালি হয়ে যাবে। চলে যাওয়ার তারিখ আজকের তারিখ হিসেবে রেকর্ড হবে।
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>বাতিল</AlertDialogCancel>
+                    <AlertDialogAction onClick={archiveTenant}>হ্যাঁ, আর্কাইভ করুন</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             {tenant && (
               <Button onClick={save} disabled={saving} size="sm">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
