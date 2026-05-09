@@ -113,7 +113,8 @@ export function PermanentAddressFields({
     return [];
   }, [value.district, value.thana]);
 
-  const set = (patch: Partial<PermanentAddress>) => onChange({ ...value, ...patch });
+  const set = (patch: Partial<PermanentAddress>) => onChange(sanitizePermanentAddress({ ...value, ...patch }));
+  const error = validatePermanentAddress(value);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
