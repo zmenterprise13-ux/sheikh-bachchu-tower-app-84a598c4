@@ -51,6 +51,7 @@ import AccountPassword from "./pages/AccountPassword";
 import AccountProfile from "./pages/AccountProfile";
 import Download from "./pages/Download";
 import UpdateStatus from "./pages/UpdateStatus";
+import VersionInfo from "./pages/VersionInfo";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 
 const queryClient = new QueryClient();
