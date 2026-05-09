@@ -609,11 +609,14 @@ export function MobileSideNavTrigger() {
           <Menu className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 flex flex-col">
+      <SheetContent side="left" className="w-72 p-0 flex flex-col h-[100dvh]">
         <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
           <SheetTitle>{t("appName")}</SheetTitle>
         </SheetHeader>
-        <nav className="p-3 space-y-3 overflow-y-auto flex-1 min-h-0" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+        <nav
+          className="p-3 space-y-3 overflow-y-auto overscroll-contain flex-1 min-h-0"
+          style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+        >
           <AccountHeader />
           {groups.map((group) => (
             <NavGroupBlock key={group.label} group={group} t={t} onNavigate={() => setOpen(false)} />
