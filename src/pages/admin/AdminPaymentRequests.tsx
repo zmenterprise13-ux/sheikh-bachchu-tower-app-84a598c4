@@ -73,11 +73,18 @@ export default function AdminPaymentRequests() {
 
   useEffect(() => { refresh(); }, [filter]);
 
-  const nameOf = (uid: string | null) => {
+  const isPhoneLike = (s: string | null | undefined) => !!s && /^\+?\d[\d\s\-]{6,}$/.test(s.trim());
+  const nameOf = (uid: string | null, fallbackFlatId?: string | null) => {
     if (!uid) return null;
     const p = profiles[uid];
-    if (!p) return uid.slice(0, 8);
-    return (lang === "bn" ? p.display_name_bn || p.display_name : p.display_name) || uid.slice(0, 8);
+    const picked = lang === "bn" ? (p?.display_name_bn || p?.display_name) : (p?.display_name);
+    if (picked && !isPhoneLike(picked)) return picked;
+    // fallback to flat owner_name when profile name is missing or looks like a phone number
+    if (fallbackFlatId) {
+      const r = rows.find(x => x.flat_id === fallbackFlatId);
+      if (r?.flats?.owner_name) return r.flats.owner_name;
+    }
+    return picked || uid.slice(0, 8);
   };
 
   // Realtime: notify admin when a new payment request arrives or status changes
