@@ -108,8 +108,7 @@ export default function AccountProfile() {
       const newUrl = pub.publicUrl;
       const { error: updErr } = await supabase
         .from("profiles")
-        .update({ avatar_url: newUrl })
-        .eq("user_id", user.id);
+        .upsert({ user_id: user.id, avatar_url: newUrl }, { onConflict: "user_id" });
       if (updErr) throw updErr;
       // Sync to all owned flats so dashboard shows the same photo
       await supabase.rpc("update_my_owner_photo", { _photo_url: newUrl });
