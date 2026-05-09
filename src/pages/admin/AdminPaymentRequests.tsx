@@ -21,10 +21,14 @@ type PR = {
   status: string;
   review_note: string | null;
   reviewed_at: string | null;
+  reviewed_by: string | null;
+  submitted_by: string | null;
   created_at: string;
   bills?: { month: string } | null;
   flats?: { flat_no: string; owner_name: string | null } | null;
 };
+
+type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null };
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
