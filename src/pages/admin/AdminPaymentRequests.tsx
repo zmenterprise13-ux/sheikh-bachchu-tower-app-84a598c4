@@ -21,10 +21,14 @@ type PR = {
   status: string;
   review_note: string | null;
   reviewed_at: string | null;
+  reviewed_by: string | null;
+  submitted_by: string | null;
   created_at: string;
   bills?: { month: string } | null;
   flats?: { flat_no: string; owner_name: string | null } | null;
 };
+
+type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null };
 
 export default function AdminPaymentRequests() {
   const { t, lang } = useLang();
@@ -35,20 +39,46 @@ export default function AdminPaymentRequests() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending"|"reviewed"|"all"|"approved"|"rejected">("pending");
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
+  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
 
   const refresh = async () => {
     setLoading(true);
     let q = supabase.from("payment_requests")
-      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, created_at, bills(month), flats(flat_no, owner_name)")
+      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name)")
       .order("created_at", { ascending: false });
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
     if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as PR[]);
+    const list = (data ?? []) as unknown as PR[];
+    setRows(list);
+
+    // Fetch profiles for submitters + reviewers
+    const ids = Array.from(new Set(list.flatMap(r => [r.submitted_by, r.reviewed_by]).filter(Boolean) as string[]));
+    const missing = ids.filter(id => !profiles[id]);
+    if (missing.length) {
+      const { data: ps } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, display_name_bn")
+        .in("user_id", missing);
+      if (ps?.length) {
+        setProfiles(prev => {
+          const next = { ...prev };
+          ps.forEach((p: any) => { next[p.user_id] = p; });
+          return next;
+        });
+      }
+    }
     setLoading(false);
   };
 
   useEffect(() => { refresh(); }, [filter]);
+
+  const nameOf = (uid: string | null) => {
+    if (!uid) return null;
+    const p = profiles[uid];
+    if (!p) return uid.slice(0, 8);
+    return (lang === "bn" ? p.display_name_bn || p.display_name : p.display_name) || uid.slice(0, 8);
+  };
 
   // Realtime: notify admin when a new payment request arrives or status changes
   useEffect(() => {
@@ -93,13 +123,31 @@ export default function AdminPaymentRequests() {
       toast.error(lang === "bn" ? "বাতিলের কারণ লিখুন" : "Reject reason required");
       return;
     }
+    // Idempotency guard: only update if status is still what we read.
+    // This prevents the same request from being approved/rejected twice
+    // (e.g. two admins clicking at once, or a stale UI).
+    if (pr.status === "approved" || pr.status === "rejected") {
+      toast.error(lang === "bn" ? "এই রিকোয়েস্ট ইতিমধ্যে চূড়ান্ত করা হয়েছে" : "This request is already finalized");
+      refresh();
+      return;
+    }
     const patch: any = {
       status,
       review_note: reviewNote[pr.id] || pr.review_note || null,
     };
     if (status !== "reviewed") patch.reviewed_by = user?.id;
-    const { error } = await supabase.from("payment_requests").update(patch).eq("id", pr.id);
+    const { data: updated, error } = await supabase
+      .from("payment_requests")
+      .update(patch)
+      .eq("id", pr.id)
+      .eq("status", pr.status) // <-- only if still in expected state
+      .select("id");
     if (error) { toast.error(error.message); return; }
+    if (!updated || updated.length === 0) {
+      toast.error(lang === "bn" ? "এই রিকোয়েস্ট ইতিমধ্যে আপডেট হয়েছে" : "This request was already updated by someone else");
+      refresh();
+      return;
+    }
     toast.success(lang === "bn" ? "সম্পন্ন" : "Done");
     refresh();
   };
@@ -144,6 +192,22 @@ export default function AdminPaymentRequests() {
                   </div>
                   <div className="text-[11px] mt-0.5 font-medium">
                     {statusLabel(pr.status)}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                    {pr.submitted_by && (
+                      <span>
+                        {lang === "bn" ? "পাঠিয়েছেন" : "Submitted by"}: <span className="font-medium text-foreground">{nameOf(pr.submitted_by)}</span>
+                      </span>
+                    )}
+                    {pr.reviewed_by && (
+                      <span>
+                        {pr.status === "rejected"
+                          ? (lang === "bn" ? "প্রত্যাখ্যান করেছেন" : "Rejected by")
+                          : (lang === "bn" ? "অনুমোদন করেছেন" : "Approved by")}
+                        : <span className="font-medium text-foreground">{nameOf(pr.reviewed_by)}</span>
+                        {pr.reviewed_at && <> · {new Date(pr.reviewed_at).toLocaleString()}</>}
+                      </span>
+                    )}
                   </div>
                   {pr.note && <div className="text-xs italic mt-0.5">"{pr.note}"</div>}
                   {pr.review_note && <div className="text-xs text-muted-foreground italic mt-0.5">— {pr.review_note}</div>}
