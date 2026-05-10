@@ -281,7 +281,7 @@ const CONFIGS: Record<Kind, Config> = {
   owner: {
     infoTable: "owner_info", familyTable: "owner_family_members", familyFk: "owner_info_id",
     photoFolder: "owners", archiveEnabled: false,
-    title: "ফ্ল্যাট মালিকের বিস্তারিত তথ্য",
+    title: "ফ্ল্যাট মালিকের তথ্য",
     subtitle: "ভাড়াটিয়ার ফরমের আদলে মালিকের পূর্ণাঙ্গ তথ্য সংরক্ষণ করুন",
     personLabel: "মালিক",
     viewPath: "/owner-info/view", editPath: "/owner-info",
