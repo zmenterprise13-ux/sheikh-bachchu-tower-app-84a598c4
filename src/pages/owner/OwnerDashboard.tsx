@@ -374,7 +374,7 @@ export default function OwnerDashboard() {
           <div className="relative p-3 sm:p-5">
             {/* Header chips */}
             <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 flex-wrap">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 px-2.5 py-1 shadow-sm">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-md border border-border px-2.5 py-1 shadow-sm">
                 <span
                   className={cn(
                     "inline-flex h-4 w-4 items-center justify-center rounded-full",
@@ -383,7 +383,7 @@ export default function OwnerDashboard() {
                 >
                   {isPaid ? <CheckCircle2 className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/80">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-foreground">
                   {isTenant
                     ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
                     : showFlatSwitcher
@@ -391,7 +391,7 @@ export default function OwnerDashboard() {
                       : (lang === "bn" ? "বকেয়া" : "Due")}
                 </span>
               </div>
-              <div className="text-[10px] font-medium text-muted-foreground tabular-nums truncate max-w-full">
+              <div className="text-[10px] font-semibold text-muted-foreground/80 tabular-nums tracking-wide truncate max-w-full">
                 {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
               </div>
             </div>
