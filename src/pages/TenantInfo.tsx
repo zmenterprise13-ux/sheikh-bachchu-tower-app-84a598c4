@@ -432,7 +432,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
-            {cfg.archiveEnabled && tenant?.id && (
+            {cfg.archiveEnabled && tenant?.id && !editLocked && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" disabled={archiving}>
@@ -453,7 +453,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            {tenant && (
+            {tenant && !editLocked && (
               <Button onClick={save} disabled={saving} size="sm">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
                 সংরক্ষণ
