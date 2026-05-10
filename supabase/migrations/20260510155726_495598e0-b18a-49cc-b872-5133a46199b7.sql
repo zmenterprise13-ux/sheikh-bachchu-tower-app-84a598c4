@@ -1,0 +1,1 @@
+DELETE FROM public.payment_requests WHERE id='95b6066d-209b-44a0-8086-315bf15c0053';
