@@ -46,7 +46,7 @@ export default function AdminPaymentRequests() {
   const refresh = async () => {
     setLoading(true);
     let q = supabase.from("payment_requests")
-      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name)")
+      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name, owner_name_bn)")
       .order("created_at", { ascending: false });
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
