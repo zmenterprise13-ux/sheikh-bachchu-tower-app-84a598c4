@@ -562,8 +562,8 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                     <Field label="১. নাম *"><Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} /></Field>
                     <Field label="নাম (English)"><Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} /></Field>
                     <Field label="২. পিতার নাম"><Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} /></Field>
-                    <Field label="মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
-                    <Field label="৩. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
+                    <Field label="৩. মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
+                    <Field label="৪. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
                     <Field label="বৈবাহিক অবস্থা">
                       <Select value={tenant.marital_status} onValueChange={(v) => updateTenant({ marital_status: v })}>
                         <SelectTrigger><SelectValue placeholder="নির্বাচন" /></SelectTrigger>
@@ -575,26 +575,33 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label="৪. স্থায়ী ঠিকানা" full>
+                    <Field label="৫. স্থায়ী ঠিকানা" full>
                       <PermanentAddressFields
                         value={parsePermanentAddress(tenant.permanent_address)}
                         onChange={(addr) => updateTenant({ permanent_address: serializePermanentAddress(addr) })}
                       />
                     </Field>
-                    <Field label="৫. পেশা"><Input value={tenant.occupation} onChange={(e) => updateTenant({ occupation: e.target.value })} /></Field>
+                    <Field label="৬. পেশা">
+                      <OccupationPicker
+                        value={tenant.occupation}
+                        onChange={(v) => updateTenant({ occupation: v })}
+                      />
+                    </Field>
                     <Field label="প্রতিষ্ঠান/কর্মস্থলের ঠিকানা"><Input value={tenant.workplace} onChange={(e) => updateTenant({ workplace: e.target.value })} /></Field>
-                    <Field label="৬. ধর্ম"><Input value={tenant.religion} onChange={(e) => updateTenant({ religion: e.target.value })} /></Field>
+                    <Field label="৭. ধর্ম">
+                      <ReligionPicker value={tenant.religion} onChange={(v) => updateTenant({ religion: v })} />
+                    </Field>
                     <Field label="শিক্ষাগত যোগ্যতা"><Input value={tenant.education} onChange={(e) => updateTenant({ education: e.target.value })} /></Field>
-                    <Field label="৭. মোবাইল নম্বর"><Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} /></Field>
+                    <Field label="৮. মোবাইল নম্বর"><Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} /></Field>
                     <Field label="ই-মেইল"><Input value={tenant.email} onChange={(e) => updateTenant({ email: e.target.value })} /></Field>
-                    <Field label="৮. জাতীয় পরিচয়পত্র নম্বর"><Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} /></Field>
-                    <Field label="৯. পাসপোর্ট নম্বর (যদি থাকে)"><Input value={tenant.passport_number} onChange={(e) => updateTenant({ passport_number: e.target.value })} /></Field>
+                    <Field label="৯. জাতীয় পরিচয়পত্র নম্বর"><Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} /></Field>
+                    <Field label="১০. পাসপোর্ট নম্বর (যদি থাকে)"><Input value={tenant.passport_number} onChange={(e) => updateTenant({ passport_number: e.target.value })} /></Field>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Emergency contact */}
+            {/* Emergency renumbered */}
             <Card>
               <CardHeader><CardTitle className="text-base">১০. জরুরি যোগাযোগ</CardTitle></CardHeader>
               <CardContent>
