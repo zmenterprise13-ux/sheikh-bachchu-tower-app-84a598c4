@@ -129,10 +129,11 @@ export default function AdminPaymentRequests() {
           // fetch flat info for nicer toast
           const { data: f } = await supabase
             .from("flats")
-            .select("flat_no, owner_name")
+            .select("flat_no, owner_name, owner_name_bn")
             .eq("id", row.flat_id)
             .maybeSingle();
-          const who = f ? `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${f.flat_no}${f.owner_name ? " · " + f.owner_name : ""}` : "";
+          const ownerLabel = f ? (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name) : null;
+          const who = f ? `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${f.flat_no}${ownerLabel ? " · " + ownerLabel : ""}` : "";
           toast.info(
             lang === "bn" ? "নতুন পেমেন্ট রিকোয়েস্ট" : "New payment request",
             { description: `${who} — ${formatMoney(Number(row.amount), lang)}` }
