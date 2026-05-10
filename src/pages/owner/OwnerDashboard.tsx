@@ -463,14 +463,14 @@ export default function OwnerDashboard() {
                 ].map((s, i) => (
                   <div
                     key={s.label}
-                    className="px-2 py-1.5 sm:px-2.5 sm:py-2 min-w-0 animate-slide-up-fade"
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 min-w-0 animate-slide-up-fade"
                     style={{ animationDelay: `${200 + i * 80}ms` }}
                   >
-                    <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <div className="flex items-center gap-1 text-[9px] sm:text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-bold">
                       <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", s.dot)} />
                       <span className="truncate">{s.label}</span>
                     </div>
-                    <div className={cn("mt-0.5 text-xs sm:text-sm font-extrabold tabular-nums truncate", s.tone)}>
+                    <div className={cn("mt-1 text-[13px] sm:text-base font-black tabular-nums truncate tracking-tight", s.tone)}>
                       <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
                     </div>
                   </div>
