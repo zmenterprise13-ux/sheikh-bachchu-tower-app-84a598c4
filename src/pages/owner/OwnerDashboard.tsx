@@ -338,134 +338,145 @@ export default function OwnerDashboard() {
         })()}
 
 
-        {/* HERO summary card — compact 3D */}
+        {/* HERO summary card — premium 3D */}
         <div
           className={cn(
-            "group relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-elevated animate-slide-up-fade",
-            "transition-all duration-500 hover:-translate-y-0.5 hover:shadow-2xl",
-            "[transform-style:preserve-3d] [perspective:1000px]",
+            "group relative overflow-hidden rounded-2xl border animate-slide-up-fade",
+            "transition-all duration-500 hover:-translate-y-1",
             isPaid
-              ? "border-success/40 bg-gradient-to-br from-success/15 via-success/5 to-background"
+              ? "border-success/30 bg-gradient-to-br from-success/[0.12] via-card to-card"
               : totalDueScoped > 0
-                ? "border-destructive/40 bg-gradient-to-br from-destructive/15 via-destructive/5 to-background"
-                : "border-border bg-gradient-to-br from-card via-card to-muted/40"
+                ? "border-destructive/30 bg-gradient-to-br from-destructive/[0.12] via-card to-card"
+                : "border-border bg-gradient-to-br from-primary/[0.06] via-card to-card"
           )}
-          style={{ animationDelay: "120ms" }}
+          style={{
+            animationDelay: "120ms",
+            boxShadow:
+              "0 1px 0 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 0 hsl(0 0% 0% / 0.04) inset, 0 10px 30px -12px hsl(220 40% 20% / 0.18), 0 4px 10px -4px hsl(220 40% 20% / 0.08)",
+          }}
         >
-          {/* 3D glossy highlight */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 via-transparent to-transparent dark:from-white/[0.06] opacity-70" />
-          {/* Inner ring for depth */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 dark:ring-white/5" />
+          {/* Glossy top sheen */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/50 via-white/10 to-transparent dark:from-white/[0.07] dark:via-white/[0.02]" />
           {/* Tinted orb */}
           <div
             aria-hidden
             className={cn(
-              "pointer-events-none absolute -top-12 -right-10 h-36 w-36 rounded-full blur-3xl animate-float-slow",
-              isPaid ? "bg-success/25" : totalDueScoped > 0 ? "bg-destructive/25" : "bg-primary/15"
+              "pointer-events-none absolute -top-16 -right-12 h-44 w-44 rounded-full blur-3xl animate-float-slow opacity-70",
+              isPaid ? "bg-success/30" : totalDueScoped > 0 ? "bg-destructive/30" : "bg-primary/25"
             )}
           />
           {/* Shimmer sweep */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute inset-y-0 -left-1/2 w-1/4 bg-gradient-to-r from-transparent via-foreground/[0.05] to-transparent skew-x-12 animate-shimmer" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute inset-y-0 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-12 animate-shimmer" />
           </div>
 
-          {/* Top row: label + amount + action */}
-          <div className="relative flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground flex items-center gap-1.5">
+          <div className="relative p-4 sm:p-5">
+            {/* Header chips */}
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 px-2.5 py-1 shadow-sm">
                 <span
                   className={cn(
-                    "inline-flex h-5 w-5 items-center justify-center rounded-full shadow-sm",
-                    isPaid ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                    "inline-flex h-4 w-4 items-center justify-center rounded-full",
+                    isPaid ? "bg-success/25 text-success" : "bg-destructive/25 text-destructive"
                   )}
                 >
-                  {isPaid ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3 animate-sparkle-twinkle" />}
+                  {isPaid ? <CheckCircle2 className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
                 </span>
-                {isTenant
-                  ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
-                  : showFlatSwitcher
-                    ? (lang === "bn" ? "মোট বকেয়া" : "Total Due")
-                    : (lang === "bn" ? "বকেয়া" : "Due")}
-                <span className="text-muted-foreground/70 font-normal normal-case tracking-normal text-[10px]">
-                  · {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/80">
+                  {isTenant
+                    ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
+                    : showFlatSwitcher
+                      ? (lang === "bn" ? "মোট বকেয়া" : "Total Due")
+                      : (lang === "bn" ? "বকেয়া" : "Due")}
                 </span>
               </div>
-              <div
-                className={cn(
-                  "mt-1 text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm",
-                  isPaid
-                    ? "bg-gradient-to-br from-success via-success to-success/60"
-                    : totalDueScoped > 0
-                      ? "bg-gradient-to-br from-destructive via-destructive to-destructive/60"
-                      : "bg-gradient-to-br from-foreground to-foreground/60"
-                )}
-                style={{ transform: "translateZ(20px)" }}
-              >
-                <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
+              <div className="text-[10px] font-medium text-muted-foreground tabular-nums">
+                {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
               </div>
             </div>
-            {totalDueScoped > 0 ? (
-              <Button asChild size="sm" className="gap-1.5 shadow-glow rounded-full hover-scale h-9 px-4 shrink-0">
-                <Link to={`/owner/payments?pay=1${showFlatSwitcher ? "" : `&flat=${flat.id}`}`}>
-                  <CreditCard className="h-3.5 w-3.5" />
-                  {t("payNow")}
-                </Link>
-              </Button>
-            ) : isPaid ? (
-              <div className="flex items-center gap-1 rounded-full bg-success/20 text-success border border-success/40 px-2.5 py-1 text-xs font-bold shadow-sm shrink-0">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {lang === "bn" ? "পরিশোধিত" : "Paid"}
-              </div>
-            ) : null}
-          </div>
 
-          {/* Compact stats row + inline progress */}
-          {totalBilledScoped > 0 && (
-            <div className="relative mt-3 flex items-center gap-2 sm:gap-3">
-              {[
-                { label: lang === "bn" ? "বিল" : "Billed", value: totalBilledScoped, tone: "text-foreground" },
-                { label: lang === "bn" ? "পরিশোধিত" : "Paid", value: totalPaidScoped, tone: "text-success" },
-                { label: lang === "bn" ? "বকেয়া" : "Due", value: totalDueScoped, tone: totalDueScoped > 0 ? "text-destructive" : "text-success" },
-              ].map((s, i) => (
-                <div
-                  key={s.label}
-                  className="flex-1 min-w-0 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 px-2.5 py-1.5 shadow-sm animate-slide-up-fade"
-                  style={{ animationDelay: `${200 + i * 80}ms`, transform: "translateZ(8px)" }}
-                >
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold leading-none">{s.label}</div>
-                  <div className={cn("mt-0.5 text-xs sm:text-sm font-bold tabular-nums truncate", s.tone)}>
-                    <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
+            {/* Amount + Progress ring + Action */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Progress ring */}
+              {totalBilledScoped > 0 && (
+                <div className="relative shrink-0" style={{ width: 64, height: 64 }}>
+                  <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90 drop-shadow-sm">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+                    <circle
+                      cx="32" cy="32" r="26" fill="none"
+                      stroke={`hsl(var(--${scopedPct >= 100 ? "success" : scopedPct > 0 ? "primary" : "destructive"}))`}
+                      strokeWidth="6" strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 26}
+                      strokeDashoffset={2 * Math.PI * 26 * (1 - Math.min(100, scopedPct) / 100)}
+                      className="transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center text-[11px] font-extrabold tabular-nums text-foreground">
+                    {formatNumber(scopedPct, lang)}%
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {/* Slim progress bar */}
-          {totalBilledScoped > 0 && (
-            <div className="relative mt-3">
-              <div className="relative h-1.5 rounded-full bg-secondary/70 overflow-hidden shadow-inner">
+              <div className="min-w-0 flex-1">
                 <div
                   className={cn(
-                    "relative h-full rounded-full transition-all duration-1000 ease-out shadow-sm",
-                    scopedPct >= 100
-                      ? "bg-gradient-to-r from-success/80 via-success to-success/80"
-                      : scopedPct > 0
-                        ? "bg-gradient-to-r from-primary/80 via-primary to-primary/80"
-                        : "bg-destructive"
+                    "text-2xl sm:text-[28px] leading-none font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm",
+                    isPaid
+                      ? "bg-gradient-to-br from-success via-success to-success/60"
+                      : totalDueScoped > 0
+                        ? "bg-gradient-to-br from-destructive via-destructive to-destructive/60"
+                        : "bg-gradient-to-br from-foreground to-foreground/60"
                   )}
-                  style={{ width: `${Math.max(4, scopedPct)}%` }}
                 >
-                  <div className="absolute inset-0 overflow-hidden rounded-full">
-                    <div className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 animate-shimmer" />
-                  </div>
+                  <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  {isPaid
+                    ? (lang === "bn" ? "এই মাসের সব বিল পরিশোধিত ✨" : "All bills cleared ✨")
+                    : (lang === "bn" ? "এখনই পরিশোধ করুন" : "Pay to clear dues")}
                 </div>
               </div>
-              <div className="absolute -top-0.5 right-0 -translate-y-full text-[10px] font-bold text-foreground/80 tabular-nums">
-                {formatNumber(scopedPct, lang)}%
-              </div>
+
+              {totalDueScoped > 0 ? (
+                <Button asChild size="sm" className="gap-1.5 shadow-glow rounded-full hover-scale h-9 px-3.5 shrink-0">
+                  <Link to={`/owner/payments?pay=1${showFlatSwitcher ? "" : `&flat=${flat.id}`}`}>
+                    <CreditCard className="h-3.5 w-3.5" />
+                    <span className="hidden xs:inline sm:inline">{t("payNow")}</span>
+                  </Link>
+                </Button>
+              ) : isPaid ? (
+                <div className="flex items-center gap-1 rounded-full bg-success/20 text-success border border-success/40 px-2.5 py-1 text-[11px] font-bold shadow-sm shrink-0">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {lang === "bn" ? "পরিশোধিত" : "Paid"}
+                </div>
+              ) : null}
             </div>
-          )}
+
+            {/* Stats strip */}
+            {totalBilledScoped > 0 && (
+              <div className="relative mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 overflow-hidden shadow-sm">
+                {[
+                  { label: lang === "bn" ? "বিল" : "Billed", value: totalBilledScoped, tone: "text-foreground", dot: "bg-muted-foreground/50" },
+                  { label: lang === "bn" ? "পরিশোধিত" : "Paid", value: totalPaidScoped, tone: "text-success", dot: "bg-success" },
+                  { label: lang === "bn" ? "বকেয়া" : "Due", value: totalDueScoped, tone: totalDueScoped > 0 ? "text-destructive" : "text-success", dot: totalDueScoped > 0 ? "bg-destructive" : "bg-success" },
+                ].map((s, i) => (
+                  <div
+                    key={s.label}
+                    className="px-2.5 py-2 animate-slide-up-fade"
+                    style={{ animationDelay: `${200 + i * 80}ms` }}
+                  >
+                    <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
+                      <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
+                      {s.label}
+                    </div>
+                    <div className={cn("mt-0.5 text-sm font-extrabold tabular-nums truncate", s.tone)}>
+                      <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
 
