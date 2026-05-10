@@ -192,6 +192,13 @@ export default function VersionInfo() {
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {lang === "bn" ? "সাধারণ সম্পাদক — শেখ বাচ্চু টাওয়ার" : "General Secretary — Sheikh Bachchu Tower"}
           </p>
+          <a
+            href="tel:01613458260"
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/10 hover:bg-primary/15 border border-primary/30 px-3 py-1 text-xs sm:text-sm font-bold text-primary tabular-nums transition-colors"
+          >
+            <Smartphone className="h-3.5 w-3.5" />
+            01613458260
+          </a>
         </div>
       </div>
     </AppShell>
