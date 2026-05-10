@@ -190,6 +190,72 @@ function RelationPicker({ value, onChange }: { value: string; onChange: (v: stri
   );
 }
 
+const RELIGION_OPTIONS = ["ইসলাম", "হিন্দু", "খ্রিস্টান", "বৌদ্ধ", "অন্যান্য"];
+
+function ReligionPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const isPreset = !value || RELIGION_OPTIONS.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  const selectValue = custom ? "__other__" : (value || "");
+  return (
+    <div className="flex gap-1">
+      <Select
+        value={selectValue}
+        onValueChange={(v) => {
+          if (v === "__other__") { setCustom(true); onChange(""); }
+          else { setCustom(false); onChange(v); }
+        }}
+      >
+        <SelectTrigger><SelectValue placeholder="ধর্ম নির্বাচন" /></SelectTrigger>
+        <SelectContent>
+          {RELIGION_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+          <SelectItem value="__other__">অন্যান্য…</SelectItem>
+        </SelectContent>
+      </Select>
+      {custom && (
+        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="ধর্ম লিখুন" className="flex-1" />
+      )}
+    </div>
+  );
+}
+
+const STUDENT_RE = /^(ছাত্র|ছাত্রী|student)\b/i;
+function parseOccupation(raw: string): { base: string; klass: string } {
+  if (!raw) return { base: "", klass: "" };
+  const m = raw.match(/^(ছাত্র|ছাত্রী|Student)(?:\s*[-–—:]\s*ক্লাস\s*(.+))?$/i);
+  if (m) return { base: m[1], klass: m[2]?.trim() || "" };
+  return { base: raw, klass: "" };
+}
+function OccupationPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { base, klass } = parseOccupation(value);
+  const isStudent = STUDENT_RE.test(base);
+  return (
+    <div className="flex flex-col gap-1">
+      <Input
+        value={base}
+        onChange={(e) => {
+          const newBase = e.target.value;
+          if (STUDENT_RE.test(newBase) && klass) {
+            onChange(`${newBase} - ক্লাস ${klass}`);
+          } else {
+            onChange(newBase);
+          }
+        }}
+        placeholder="পেশা লিখুন (যেমন: ছাত্র, চাকরি)"
+      />
+      {isStudent && (
+        <Input
+          value={klass}
+          onChange={(e) => {
+            const k = e.target.value;
+            onChange(k ? `${base} - ক্লাস ${k}` : base);
+          }}
+          placeholder="ক্লাস (যেমন: ৮ম শ্রেণি, অনার্স ২য় বর্ষ)"
+        />
+      )}
+    </div>
+  );
+}
+
 type Kind = "tenant" | "owner";
 type Config = {
   infoTable: "tenant_info" | "owner_info";
