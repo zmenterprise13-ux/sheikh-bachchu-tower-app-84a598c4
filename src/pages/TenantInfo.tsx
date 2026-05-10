@@ -300,6 +300,16 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
       if (error) throw error;
       const { data } = supabase.storage.from("tenant-photos").getPublicUrl(path);
       updateTenant({ photo_url: data.publicUrl });
+      // For flat owners updating their own info, sync the photo to their profile
+      // (flats.owner_photo_url) so dashboards/committee views auto-update.
+      if (kind === "owner") {
+        try {
+          await (supabase as any).rpc("update_my_owner_photo", { _photo_url: data.publicUrl });
+        } catch (e) {
+          // Non-blocking: profile photo sync failure shouldn't fail the upload
+          console.warn("owner photo sync failed", e);
+        }
+      }
       toast.success("ছবি আপলোড হয়েছে");
     } catch (err: any) {
       toast.error(err.message ?? "আপলোড ব্যর্থ");
@@ -541,6 +551,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                     <Field label="১. নাম *"><Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} /></Field>
                     <Field label="নাম (English)"><Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} /></Field>
                     <Field label="২. পিতার নাম"><Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} /></Field>
+                    <Field label="মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
                     <Field label="৩. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
                     <Field label="বৈবাহিক অবস্থা">
                       <Select value={tenant.marital_status} onValueChange={(v) => updateTenant({ marital_status: v })}>
