@@ -293,21 +293,21 @@ export default function OwnerDashboard() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] sm:text-xs uppercase tracking-[0.18em] font-semibold opacity-90 flex items-center gap-1.5">
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.22em] font-semibold text-white/75 flex items-center gap-1.5">
                     <span>{greeting}</span>
-                    <span className="opacity-60">·</span>
-                    <span className="opacity-80">{t("welcome")}</span>
+                    <span className="text-white/40">·</span>
+                    <span className="text-white/65">{t("welcome")}</span>
                   </div>
-                  <h1 className="mt-1 text-xl sm:text-3xl font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent drop-shadow-sm">
+                  <h1 className="mt-1.5 text-[22px] sm:text-[34px] leading-[1.1] font-black tracking-tight truncate bg-gradient-to-r from-white via-white to-white/75 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
                     {displayName}
                   </h1>
 
-                  <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {/* Premium flat badge */}
                     {showFlatSwitcher ? (
                       <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
-                        <SelectTrigger className="h-8 w-auto bg-white/20 backdrop-blur-md border border-white/40 text-primary-foreground hover:bg-white/30 px-3 text-xs font-semibold rounded-full shadow-md transition-all">
-                          <Building2 className="h-3.5 w-3.5 mr-1.5 opacity-90" />
+                        <SelectTrigger className="h-8 w-auto bg-white/25 backdrop-blur-md border border-white/50 text-primary-foreground hover:bg-white/35 px-3 text-xs font-bold rounded-full shadow-md transition-all">
+                          <Building2 className="h-3.5 w-3.5 mr-1.5 opacity-95" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -323,12 +323,12 @@ export default function OwnerDashboard() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 px-3 py-1 text-xs font-bold shadow-md">
-                        <Building2 className="h-3.5 w-3.5 opacity-90" />
-                        {t("flatNo")} <span className="font-extrabold tracking-wide">{flat.flat_no}</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/25 backdrop-blur-md border border-white/50 px-3 py-1 text-xs font-bold shadow-md tracking-wide">
+                        <Building2 className="h-3.5 w-3.5 opacity-95" />
+                        {t("flatNo")} <span className="font-black tracking-wider">{flat.flat_no}</span>
                       </span>
                     )}
-                    <span className="inline-flex items-center rounded-full bg-white/15 border border-white/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="inline-flex items-center rounded-full bg-white/15 border border-white/35 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white/90">
                       {roleLabel}
                     </span>
                   </div>
@@ -374,7 +374,7 @@ export default function OwnerDashboard() {
           <div className="relative p-3 sm:p-5">
             {/* Header chips */}
             <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 flex-wrap">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 px-2.5 py-1 shadow-sm">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-md border border-border px-2.5 py-1 shadow-sm">
                 <span
                   className={cn(
                     "inline-flex h-4 w-4 items-center justify-center rounded-full",
@@ -383,7 +383,7 @@ export default function OwnerDashboard() {
                 >
                   {isPaid ? <CheckCircle2 className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/80">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-foreground">
                   {isTenant
                     ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
                     : showFlatSwitcher
@@ -391,7 +391,7 @@ export default function OwnerDashboard() {
                       : (lang === "bn" ? "বকেয়া" : "Due")}
                 </span>
               </div>
-              <div className="text-[10px] font-medium text-muted-foreground tabular-nums truncate max-w-full">
+              <div className="text-[10px] font-semibold text-muted-foreground/80 tabular-nums tracking-wide truncate max-w-full">
                 {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
               </div>
             </div>
@@ -421,17 +421,17 @@ export default function OwnerDashboard() {
               <div className="min-w-0 flex-1 basis-0">
                 <div
                   className={cn(
-                    "text-xl sm:text-[28px] leading-none font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm break-all",
+                    "text-[22px] sm:text-[30px] leading-none font-black tabular-nums tracking-tight bg-clip-text text-transparent break-all",
                     isPaid
-                      ? "bg-gradient-to-br from-success via-success to-success/60"
+                      ? "bg-gradient-to-br from-success via-success to-success/70 drop-shadow-[0_2px_6px_hsl(var(--success)/0.25)]"
                       : totalDueScoped > 0
-                        ? "bg-gradient-to-br from-destructive via-destructive to-destructive/60"
-                        : "bg-gradient-to-br from-foreground to-foreground/60"
+                        ? "bg-gradient-to-br from-destructive via-destructive to-destructive/70 drop-shadow-[0_2px_6px_hsl(var(--destructive)/0.25)]"
+                        : "bg-gradient-to-br from-foreground to-foreground/70"
                   )}
                 >
                   <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground line-clamp-1">
+                <div className="mt-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground line-clamp-1">
                   {isPaid
                     ? (lang === "bn" ? "এই মাসের সব বিল পরিশোধিত ✨" : "All bills cleared ✨")
                     : (lang === "bn" ? "এখনই পরিশোধ করুন" : "Pay to clear dues")}
@@ -463,14 +463,14 @@ export default function OwnerDashboard() {
                 ].map((s, i) => (
                   <div
                     key={s.label}
-                    className="px-2 py-1.5 sm:px-2.5 sm:py-2 min-w-0 animate-slide-up-fade"
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 min-w-0 animate-slide-up-fade"
                     style={{ animationDelay: `${200 + i * 80}ms` }}
                   >
-                    <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <div className="flex items-center gap-1 text-[9px] sm:text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-bold">
                       <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", s.dot)} />
                       <span className="truncate">{s.label}</span>
                     </div>
-                    <div className={cn("mt-0.5 text-xs sm:text-sm font-extrabold tabular-nums truncate", s.tone)}>
+                    <div className={cn("mt-1 text-[13px] sm:text-base font-black tabular-nums truncate tracking-tight", s.tone)}>
                       <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
                     </div>
                   </div>
