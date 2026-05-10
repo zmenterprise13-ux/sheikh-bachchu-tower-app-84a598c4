@@ -51,6 +51,8 @@ type Flat = {
   owner_name: string | null;
   owner_user_id: string | null;
   is_rented: boolean;
+  phone: string | null;
+  owner_photo_url: string | null;
 };
 
 type FamilyMember = {
