@@ -266,9 +266,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
       } else {
         const base = emptyTenant(selectedFlatId);
         if (kind === "owner") {
-          const f = (data || []).find?.((x: any) => x.id === selectedFlatId) as Flat | undefined;
-          // also fall back to in-memory selectedFlat lookup below
-          const sf = f;
+          const sf = flats.find((x) => x.id === selectedFlatId);
           if (sf) {
             base.tenant_name = sf.owner_name || "";
             base.phone = sf.phone || "";
