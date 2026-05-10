@@ -293,21 +293,21 @@ export default function OwnerDashboard() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] sm:text-xs uppercase tracking-[0.18em] font-semibold opacity-90 flex items-center gap-1.5">
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.22em] font-semibold text-white/75 flex items-center gap-1.5">
                     <span>{greeting}</span>
-                    <span className="opacity-60">·</span>
-                    <span className="opacity-80">{t("welcome")}</span>
+                    <span className="text-white/40">·</span>
+                    <span className="text-white/65">{t("welcome")}</span>
                   </div>
-                  <h1 className="mt-1 text-xl sm:text-3xl font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent drop-shadow-sm">
+                  <h1 className="mt-1.5 text-[22px] sm:text-[34px] leading-[1.1] font-black tracking-tight truncate bg-gradient-to-r from-white via-white to-white/75 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
                     {displayName}
                   </h1>
 
-                  <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {/* Premium flat badge */}
                     {showFlatSwitcher ? (
                       <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
-                        <SelectTrigger className="h-8 w-auto bg-white/20 backdrop-blur-md border border-white/40 text-primary-foreground hover:bg-white/30 px-3 text-xs font-semibold rounded-full shadow-md transition-all">
-                          <Building2 className="h-3.5 w-3.5 mr-1.5 opacity-90" />
+                        <SelectTrigger className="h-8 w-auto bg-white/25 backdrop-blur-md border border-white/50 text-primary-foreground hover:bg-white/35 px-3 text-xs font-bold rounded-full shadow-md transition-all">
+                          <Building2 className="h-3.5 w-3.5 mr-1.5 opacity-95" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -323,12 +323,12 @@ export default function OwnerDashboard() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 px-3 py-1 text-xs font-bold shadow-md">
-                        <Building2 className="h-3.5 w-3.5 opacity-90" />
-                        {t("flatNo")} <span className="font-extrabold tracking-wide">{flat.flat_no}</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/25 backdrop-blur-md border border-white/50 px-3 py-1 text-xs font-bold shadow-md tracking-wide">
+                        <Building2 className="h-3.5 w-3.5 opacity-95" />
+                        {t("flatNo")} <span className="font-black tracking-wider">{flat.flat_no}</span>
                       </span>
                     )}
-                    <span className="inline-flex items-center rounded-full bg-white/15 border border-white/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="inline-flex items-center rounded-full bg-white/15 border border-white/35 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white/90">
                       {roleLabel}
                     </span>
                   </div>
