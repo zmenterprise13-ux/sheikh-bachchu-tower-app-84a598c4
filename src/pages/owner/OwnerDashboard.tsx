@@ -7,7 +7,7 @@ import { StatCard } from "@/components/StatCard";
 import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2, Bell, FileText, TrendingUp, Sparkles } from "lucide-react";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2, Bell, FileText, TrendingUp, Sparkles, UserSquare2, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
