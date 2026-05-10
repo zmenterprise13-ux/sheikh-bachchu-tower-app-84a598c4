@@ -172,7 +172,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Emergency */}
-            <Section title="১০. জরুরি যোগাযোগ">
+            <Section title="১১. জরুরি যোগাযোগ">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.emergency_name} />
                 <ViewRow label="সম্পর্ক" value={tenant.emergency_relation} />
