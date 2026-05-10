@@ -338,114 +338,102 @@ export default function OwnerDashboard() {
         })()}
 
 
-        {/* HERO summary card: due / paid / progress — premium animated */}
+        {/* HERO summary card — compact 3D */}
         <div
           className={cn(
-            "relative overflow-hidden rounded-3xl border p-5 sm:p-6 shadow-elevated transition-colors animate-slide-up-fade",
+            "group relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-elevated animate-slide-up-fade",
+            "transition-all duration-500 hover:-translate-y-0.5 hover:shadow-2xl",
+            "[transform-style:preserve-3d] [perspective:1000px]",
             isPaid
-              ? "border-success/40 bg-gradient-to-br from-success/10 via-success/[0.04] to-transparent"
+              ? "border-success/40 bg-gradient-to-br from-success/15 via-success/5 to-background"
               : totalDueScoped > 0
-                ? "border-destructive/40 bg-gradient-to-br from-destructive/10 via-destructive/[0.04] to-transparent"
-                : "border-border bg-card"
+                ? "border-destructive/40 bg-gradient-to-br from-destructive/15 via-destructive/5 to-background"
+                : "border-border bg-gradient-to-br from-card via-card to-muted/40"
           )}
           style={{ animationDelay: "120ms" }}
         >
-          {/* Decorative blurred orb that tints with status */}
+          {/* 3D glossy highlight */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 via-transparent to-transparent dark:from-white/[0.06] opacity-70" />
+          {/* Inner ring for depth */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 dark:ring-white/5" />
+          {/* Tinted orb */}
           <div
             aria-hidden
             className={cn(
-              "pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full blur-3xl animate-float-slow",
-              isPaid ? "bg-success/20" : totalDueScoped > 0 ? "bg-destructive/20" : "bg-primary/15"
+              "pointer-events-none absolute -top-12 -right-10 h-36 w-36 rounded-full blur-3xl animate-float-slow",
+              isPaid ? "bg-success/25" : totalDueScoped > 0 ? "bg-destructive/25" : "bg-primary/15"
             )}
           />
-          {/* Subtle shimmer sweep */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
-            <div className="absolute inset-y-0 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-foreground/[0.04] to-transparent skew-x-12 animate-shimmer" />
+          {/* Shimmer sweep */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+            <div className="absolute inset-y-0 -left-1/2 w-1/4 bg-gradient-to-r from-transparent via-foreground/[0.05] to-transparent skew-x-12 animate-shimmer" />
           </div>
 
-          <div className="relative flex items-start justify-between gap-3 flex-wrap">
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground flex items-center gap-1.5">
+          {/* Top row: label + amount + action */}
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground flex items-center gap-1.5">
                 <span
                   className={cn(
-                    "inline-flex h-6 w-6 items-center justify-center rounded-full",
-                    isPaid ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
+                    "inline-flex h-5 w-5 items-center justify-center rounded-full shadow-sm",
+                    isPaid ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
                   )}
                 >
-                  {isPaid ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5 animate-sparkle-twinkle" />}
+                  {isPaid ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3 animate-sparkle-twinkle" />}
                 </span>
                 {isTenant
                   ? (lang === "bn" ? "আপনার বকেয়া" : "Your Due")
                   : showFlatSwitcher
-                    ? (lang === "bn" ? "মোট বকেয়া (সব ফ্ল্যাট)" : "Total Due (all flats)")
-                    : (lang === "bn" ? "মোট বকেয়া" : "Total Due")}
+                    ? (lang === "bn" ? "মোট বকেয়া" : "Total Due")
+                    : (lang === "bn" ? "বকেয়া" : "Due")}
+                <span className="text-muted-foreground/70 font-normal normal-case tracking-normal text-[10px]">
+                  · {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
+                </span>
               </div>
               <div
                 className={cn(
-                  "mt-2 text-4xl sm:text-5xl font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent",
+                  "mt-1 text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm",
                   isPaid
-                    ? "bg-gradient-to-r from-success via-success to-success/70"
+                    ? "bg-gradient-to-br from-success via-success to-success/60"
                     : totalDueScoped > 0
-                      ? "bg-gradient-to-r from-destructive via-destructive to-destructive/70 drop-shadow-sm"
-                      : "bg-gradient-to-r from-foreground to-foreground/70"
+                      ? "bg-gradient-to-br from-destructive via-destructive to-destructive/60"
+                      : "bg-gradient-to-br from-foreground to-foreground/60"
                 )}
+                style={{ transform: "translateZ(20px)" }}
               >
                 <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
               </div>
-              <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-medium">
-                  {month}
-                </span>
-                <span>·</span>
-                <span>{showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${flat.flat_no}`}</span>
-              </div>
             </div>
-            {totalDueScoped > 0 && (
-              <Button asChild size="lg" className="gap-2 shadow-glow rounded-full hover-scale">
+            {totalDueScoped > 0 ? (
+              <Button asChild size="sm" className="gap-1.5 shadow-glow rounded-full hover-scale h-9 px-4 shrink-0">
                 <Link to={`/owner/payments?pay=1${showFlatSwitcher ? "" : `&flat=${flat.id}`}`}>
-                  <CreditCard className="h-4 w-4" />
+                  <CreditCard className="h-3.5 w-3.5" />
                   {t("payNow")}
                 </Link>
               </Button>
-            )}
-            {isPaid && (
-              <div className="flex items-center gap-1.5 rounded-full bg-success/15 text-success border border-success/30 px-3.5 py-1.5 text-sm font-bold animate-slide-up-fade">
-                <CheckCircle2 className="h-4 w-4" />
-                {lang === "bn" ? "সম্পূর্ণ পরিশোধিত" : "All Paid"}
+            ) : isPaid ? (
+              <div className="flex items-center gap-1 rounded-full bg-success/20 text-success border border-success/40 px-2.5 py-1 text-xs font-bold shadow-sm shrink-0">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {lang === "bn" ? "পরিশোধিত" : "Paid"}
               </div>
-            )}
+            ) : null}
           </div>
 
-          {/* Mini stat tiles: Billed / Paid / Due */}
+          {/* Compact stats row + inline progress */}
           {totalBilledScoped > 0 && (
-            <div className="relative mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="relative mt-3 flex items-center gap-2 sm:gap-3">
               {[
-                {
-                  label: lang === "bn" ? "মোট বিল" : "Billed",
-                  value: totalBilledScoped,
-                  tone: "text-foreground",
-                  bg: "bg-muted/60",
-                },
-                {
-                  label: lang === "bn" ? "পরিশোধিত" : "Paid",
-                  value: totalPaidScoped,
-                  tone: "text-success",
-                  bg: "bg-success/10",
-                },
-                {
-                  label: lang === "bn" ? "বকেয়া" : "Due",
-                  value: totalDueScoped,
-                  tone: totalDueScoped > 0 ? "text-destructive" : "text-success",
-                  bg: totalDueScoped > 0 ? "bg-destructive/10" : "bg-success/10",
-                },
+                { label: lang === "bn" ? "বিল" : "Billed", value: totalBilledScoped, tone: "text-foreground" },
+                { label: lang === "bn" ? "পরিশোধিত" : "Paid", value: totalPaidScoped, tone: "text-success" },
+                { label: lang === "bn" ? "বকেয়া" : "Due", value: totalDueScoped, tone: totalDueScoped > 0 ? "text-destructive" : "text-success" },
               ].map((s, i) => (
                 <div
                   key={s.label}
-                  className={cn("rounded-2xl px-3 py-2.5 backdrop-blur-sm animate-slide-up-fade", s.bg)}
-                  style={{ animationDelay: `${200 + i * 90}ms` }}
+                  className="flex-1 min-w-0 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 px-2.5 py-1.5 shadow-sm animate-slide-up-fade"
+                  style={{ animationDelay: `${200 + i * 80}ms`, transform: "translateZ(8px)" }}
                 >
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{s.label}</div>
-                  <div className={cn("mt-0.5 text-sm sm:text-base font-extrabold tabular-nums truncate", s.tone)}>
+                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold leading-none">{s.label}</div>
+                  <div className={cn("mt-0.5 text-xs sm:text-sm font-bold tabular-nums truncate", s.tone)}>
                     <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
                   </div>
                 </div>
@@ -453,19 +441,13 @@ export default function OwnerDashboard() {
             </div>
           )}
 
-          {/* Animated progress bar */}
+          {/* Slim progress bar */}
           {totalBilledScoped > 0 && (
-            <div className="relative mt-4">
-              <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
-                <span className="font-medium">
-                  {lang === "bn" ? "অগ্রগতি" : "Progress"}
-                </span>
-                <span className="font-bold text-foreground tabular-nums">{formatNumber(scopedPct, lang)}%</span>
-              </div>
-              <div className="relative h-2.5 rounded-full bg-secondary overflow-hidden">
+            <div className="relative mt-3">
+              <div className="relative h-1.5 rounded-full bg-secondary/70 overflow-hidden shadow-inner">
                 <div
                   className={cn(
-                    "relative h-full rounded-full transition-all duration-1000 ease-out",
+                    "relative h-full rounded-full transition-all duration-1000 ease-out shadow-sm",
                     scopedPct >= 100
                       ? "bg-gradient-to-r from-success/80 via-success to-success/80"
                       : scopedPct > 0
@@ -474,11 +456,13 @@ export default function OwnerDashboard() {
                   )}
                   style={{ width: `${Math.max(4, scopedPct)}%` }}
                 >
-                  {/* Shimmer inside progress */}
                   <div className="absolute inset-0 overflow-hidden rounded-full">
-                    <div className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 animate-shimmer" />
+                    <div className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 animate-shimmer" />
                   </div>
                 </div>
+              </div>
+              <div className="absolute -top-0.5 right-0 -translate-y-full text-[10px] font-bold text-foreground/80 tabular-nums">
+                {formatNumber(scopedPct, lang)}%
               </div>
             </div>
           )}
