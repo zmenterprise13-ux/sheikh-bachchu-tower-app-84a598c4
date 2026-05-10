@@ -482,6 +482,14 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
           </CardContent>
         </Card>
 
+        {editLocked && (
+          <Card className="print:hidden border-amber-400/60 bg-amber-50 dark:bg-amber-950/30">
+            <CardContent className="py-3 text-sm text-amber-900 dark:text-amber-200">
+              এই ফ্ল্যাট এখনো অ্যাডমিন কর্তৃক "ভাড়ায় চলছে" হিসেবে চিহ্নিত হয়নি, তাই ভাড়াটিয়ার তথ্য হালনাগাদ করা যাবে না। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <Skeleton className="h-96" />
         ) : tenant ? (
