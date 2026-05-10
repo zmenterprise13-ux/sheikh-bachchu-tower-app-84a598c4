@@ -212,7 +212,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Helper */}
-            <Section title="১২. গৃহকর্মীর তথ্য">
+            <Section title="১৩. গৃহকর্মীর তথ্য">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.helper_name} />
                 <ViewRow label="NID" value={toBn(tenant.helper_nid)} />
