@@ -134,10 +134,23 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
           <Card><CardContent className="py-10 text-center text-muted-foreground">এই ফ্ল্যাটে কোনো ভাড়াটিয়ার তথ্য পাওয়া যায়নি।</CardContent></Card>
         ) : (
           <div id="tenant-print-area" className="tenant-print-a4 mx-auto bg-white text-black border border-border shadow-soft">
-            {/* Header */}
-            <div className="text-center border-b border-black pb-3 mb-4">
-              <h2 className="text-xl font-bold">{cfg.formTitle}</h2>
-              <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no ?? ""} {selectedFlat?.owner_name ? `— মালিক: ${selectedFlat.owner_name}` : ""}</p>
+            {/* Header — consistent for tenant & owner */}
+            <div className="border-b-2 border-black pb-3 mb-4">
+              <div className="text-center">
+                <h1 className="text-lg font-bold">শেখ বাচ্চু টাওয়ার</h1>
+                <p className="text-xs">১৪/২, মোক্তার বাড়ী রোড, আউচপাড়া, টঙ্গী, গাজীপুর।</p>
+                <h2 className="text-base font-bold mt-1 underline underline-offset-2">{cfg.formTitle}</h2>
+              </div>
+              <div className="flex justify-between items-end text-sm mt-2">
+                <div>
+                  <span className="font-semibold">ফ্ল্যাট নং:</span> {toBn(selectedFlat?.flat_no ?? "—")}
+                  {selectedFlat?.floor != null && <> &nbsp;|&nbsp; <span className="font-semibold">তলা:</span> {toBn(selectedFlat.floor)}</>}
+                  {selectedFlat?.owner_name && <> &nbsp;|&nbsp; <span className="font-semibold">মালিক:</span> {selectedFlat.owner_name}</>}
+                </div>
+                <div>
+                  <span className="font-semibold">তারিখ:</span> {fmtDate(new Date().toISOString())}
+                </div>
+              </div>
             </div>
 
             {/* Photo + basic */}
