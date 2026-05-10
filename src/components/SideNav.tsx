@@ -145,7 +145,10 @@ const ownerGroups: NavGroup[] = [
   },
   {
     label: "groupPeople" as TKey,
-    items: [{ to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 }],
+    items: [
+      { to: "/owner-info", key: "ownerDetailedInfo" as TKey, icon: UserSquare2 },
+      { to: "/tenant-info", key: "tenantInfo" as TKey, icon: UserSquare2 },
+    ],
   },
   {
     label: "groupAccount" as TKey,

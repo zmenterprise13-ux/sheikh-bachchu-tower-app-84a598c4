@@ -7,7 +7,7 @@ import { StatCard } from "@/components/StatCard";
 import { CombinedBillStatus, FlatStatus, GenerationStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2, Bell, FileText, TrendingUp, Sparkles } from "lucide-react";
+import { CreditCard, Receipt, Megaphone, Home, AlertTriangle, Loader2, Download, Building2, CheckCircle2, Bell, FileText, TrendingUp, Sparkles, UserSquare2, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -607,6 +607,18 @@ export default function OwnerDashboard() {
               </div>
             </div>
             <Bell className="h-4 w-4 text-accent-foreground group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+          <Link to="/owner-info" className="group rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 p-4 shadow-soft flex items-center justify-between gap-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <UserSquare2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold text-foreground text-sm">{lang === "bn" ? "মালিকের তথ্য আপডেট" : "Update Owner Info"}</div>
+                <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "ব্যক্তিগত ও পারিবারিক তথ্য সম্পাদনা" : "Edit personal & family details"}</div>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
