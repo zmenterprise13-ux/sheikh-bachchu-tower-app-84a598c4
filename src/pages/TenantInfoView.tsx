@@ -244,10 +244,10 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             {/* Signature */}
             <div className="grid grid-cols-2 gap-12 mt-12 pt-4 text-sm">
               <div className="text-center">
-                <div className="border-t border-black pt-1">ভাড়াটিয়ার স্বাক্ষর</div>
+                <div className="border-t border-black pt-1">{kind === "owner" ? "মালিকের স্বাক্ষর" : "ভাড়াটিয়ার স্বাক্ষর"}</div>
               </div>
               <div className="text-center">
-                <div className="border-t border-black pt-1">বাড়িওয়ালার স্বাক্ষর</div>
+                <div className="border-t border-black pt-1">{kind === "owner" ? "ব্যবস্থাপকের স্বাক্ষর" : "বাড়িওয়ালার স্বাক্ষর"}</div>
               </div>
             </div>
           </div>
