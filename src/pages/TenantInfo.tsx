@@ -311,6 +311,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   const save = async () => {
     if (!tenant) return;
+    if (editLocked) return toast.error("এই ফ্ল্যাট এখনো ভাড়ায় চিহ্নিত নয় — অ্যাডমিনকে অনুরোধ করুন");
     if (!tenant.tenant_name.trim()) return toast.error(`${cfg.personLabel}ের নাম দিন`);
     const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
     if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
