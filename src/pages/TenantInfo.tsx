@@ -51,6 +51,8 @@ type Flat = {
   owner_name: string | null;
   owner_user_id: string | null;
   is_rented: boolean;
+  phone: string | null;
+  owner_photo_url: string | null;
 };
 
 type FamilyMember = {
@@ -188,6 +190,72 @@ function RelationPicker({ value, onChange }: { value: string; onChange: (v: stri
   );
 }
 
+const RELIGION_OPTIONS = ["ইসলাম", "হিন্দু", "খ্রিস্টান", "বৌদ্ধ", "অন্যান্য"];
+
+function ReligionPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const isPreset = !value || RELIGION_OPTIONS.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  const selectValue = custom ? "__other__" : (value || "");
+  return (
+    <div className="flex gap-1">
+      <Select
+        value={selectValue}
+        onValueChange={(v) => {
+          if (v === "__other__") { setCustom(true); onChange(""); }
+          else { setCustom(false); onChange(v); }
+        }}
+      >
+        <SelectTrigger><SelectValue placeholder="ধর্ম নির্বাচন" /></SelectTrigger>
+        <SelectContent>
+          {RELIGION_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+          <SelectItem value="__other__">অন্যান্য…</SelectItem>
+        </SelectContent>
+      </Select>
+      {custom && (
+        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="ধর্ম লিখুন" className="flex-1" />
+      )}
+    </div>
+  );
+}
+
+const STUDENT_RE = /^(ছাত্র|ছাত্রী|student)\b/i;
+function parseOccupation(raw: string): { base: string; klass: string } {
+  if (!raw) return { base: "", klass: "" };
+  const m = raw.match(/^(ছাত্র|ছাত্রী|Student)(?:\s*[-–—:]\s*ক্লাস\s*(.+))?$/i);
+  if (m) return { base: m[1], klass: m[2]?.trim() || "" };
+  return { base: raw, klass: "" };
+}
+function OccupationPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { base, klass } = parseOccupation(value);
+  const isStudent = STUDENT_RE.test(base);
+  return (
+    <div className="flex flex-col gap-1">
+      <Input
+        value={base}
+        onChange={(e) => {
+          const newBase = e.target.value;
+          if (STUDENT_RE.test(newBase) && klass) {
+            onChange(`${newBase} - ক্লাস ${klass}`);
+          } else {
+            onChange(newBase);
+          }
+        }}
+        placeholder="পেশা লিখুন (যেমন: ছাত্র, চাকরি)"
+      />
+      {isStudent && (
+        <Input
+          value={klass}
+          onChange={(e) => {
+            const k = e.target.value;
+            onChange(k ? `${base} - ক্লাস ${k}` : base);
+          }}
+          placeholder="ক্লাস (যেমন: ৮ম শ্রেণি, অনার্স ২য় বর্ষ)"
+        />
+      )}
+    </div>
+  );
+}
+
 type Kind = "tenant" | "owner";
 type Config = {
   infoTable: "tenant_info" | "owner_info";
@@ -238,7 +306,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id, is_rented").order("floor").order("flat_no");
+      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id, is_rented, phone, owner_photo_url").order("floor").order("flat_no");
       if (error) { toast.error(error.message); return; }
       const list = (data || []) as Flat[];
       const visible = isAdmin ? list : list.filter((f) => f.owner_user_id === user?.id);
@@ -262,7 +330,16 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
           id: m.id, name: m.name ?? "", relation: m.relation ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
       } else {
-        setTenant(emptyTenant(selectedFlatId));
+        const base = emptyTenant(selectedFlatId);
+        if (kind === "owner") {
+          const sf = flats.find((x) => x.id === selectedFlatId);
+          if (sf) {
+            base.tenant_name = sf.owner_name || "";
+            base.phone = sf.phone || "";
+            base.photo_url = sf.owner_photo_url || null;
+          }
+        }
+        setTenant(base);
         setMembers([]);
       }
       if (cfg.archiveEnabled) {
@@ -551,8 +628,8 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                     <Field label="১. নাম *"><Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} /></Field>
                     <Field label="নাম (English)"><Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} /></Field>
                     <Field label="২. পিতার নাম"><Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} /></Field>
-                    <Field label="মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
-                    <Field label="৩. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
+                    <Field label="৩. মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
+                    <Field label="৪. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
                     <Field label="বৈবাহিক অবস্থা">
                       <Select value={tenant.marital_status} onValueChange={(v) => updateTenant({ marital_status: v })}>
                         <SelectTrigger><SelectValue placeholder="নির্বাচন" /></SelectTrigger>
@@ -564,26 +641,33 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label="৪. স্থায়ী ঠিকানা" full>
+                    <Field label="৫. স্থায়ী ঠিকানা" full>
                       <PermanentAddressFields
                         value={parsePermanentAddress(tenant.permanent_address)}
                         onChange={(addr) => updateTenant({ permanent_address: serializePermanentAddress(addr) })}
                       />
                     </Field>
-                    <Field label="৫. পেশা"><Input value={tenant.occupation} onChange={(e) => updateTenant({ occupation: e.target.value })} /></Field>
+                    <Field label="৬. পেশা">
+                      <OccupationPicker
+                        value={tenant.occupation}
+                        onChange={(v) => updateTenant({ occupation: v })}
+                      />
+                    </Field>
                     <Field label="প্রতিষ্ঠান/কর্মস্থলের ঠিকানা"><Input value={tenant.workplace} onChange={(e) => updateTenant({ workplace: e.target.value })} /></Field>
-                    <Field label="৬. ধর্ম"><Input value={tenant.religion} onChange={(e) => updateTenant({ religion: e.target.value })} /></Field>
+                    <Field label="৭. ধর্ম">
+                      <ReligionPicker value={tenant.religion} onChange={(v) => updateTenant({ religion: v })} />
+                    </Field>
                     <Field label="শিক্ষাগত যোগ্যতা"><Input value={tenant.education} onChange={(e) => updateTenant({ education: e.target.value })} /></Field>
-                    <Field label="৭. মোবাইল নম্বর"><Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} /></Field>
+                    <Field label="৮. মোবাইল নম্বর"><Input value={tenant.phone} onChange={(e) => updateTenant({ phone: e.target.value })} /></Field>
                     <Field label="ই-মেইল"><Input value={tenant.email} onChange={(e) => updateTenant({ email: e.target.value })} /></Field>
-                    <Field label="৮. জাতীয় পরিচয়পত্র নম্বর"><Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} /></Field>
-                    <Field label="৯. পাসপোর্ট নম্বর (যদি থাকে)"><Input value={tenant.passport_number} onChange={(e) => updateTenant({ passport_number: e.target.value })} /></Field>
+                    <Field label="৯. জাতীয় পরিচয়পত্র নম্বর"><Input value={tenant.nid_number} onChange={(e) => updateTenant({ nid_number: e.target.value })} /></Field>
+                    <Field label="১০. পাসপোর্ট নম্বর (যদি থাকে)"><Input value={tenant.passport_number} onChange={(e) => updateTenant({ passport_number: e.target.value })} /></Field>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Emergency contact */}
+            {/* Emergency renumbered */}
             <Card>
               <CardHeader><CardTitle className="text-base">১০. জরুরি যোগাযোগ</CardTitle></CardHeader>
               <CardContent>

@@ -239,7 +239,17 @@ export function PermanentAddressFields({
 
       <div>
         <Label className="text-xs text-muted-foreground">গ্রাম / এলাকা</Label>
-        <Input value={value.village} onChange={(e) => set({ village: e.target.value })} placeholder="গ্রাম বা এলাকার নাম" />
+        <Input
+          value={value.village}
+          onChange={(e) => set({ village: e.target.value })}
+          placeholder={value.thana ? "গ্রাম বা এলাকার নাম (পোস্ট অফিস থেকে বাছাই করুন)" : "গ্রাম বা এলাকার নাম"}
+          list="village-options"
+        />
+        <datalist id="village-options">
+          {postOffices.map((p) => (
+            <option key={p.name} value={p.name} />
+          ))}
+        </datalist>
       </div>
 
       <div>
