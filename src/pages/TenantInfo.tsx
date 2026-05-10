@@ -551,6 +551,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                     <Field label="১. নাম *"><Input value={tenant.tenant_name} onChange={(e) => updateTenant({ tenant_name: e.target.value })} /></Field>
                     <Field label="নাম (English)"><Input value={tenant.tenant_name_bn} onChange={(e) => updateTenant({ tenant_name_bn: e.target.value })} /></Field>
                     <Field label="২. পিতার নাম"><Input value={tenant.father_name} onChange={(e) => updateTenant({ father_name: e.target.value })} /></Field>
+                    <Field label="মাতার নাম"><Input value={tenant.mother_name} onChange={(e) => updateTenant({ mother_name: e.target.value })} /></Field>
                     <Field label="৩. জন্ম তারিখ"><Input type="date" value={tenant.birth_date} onChange={(e) => updateTenant({ birth_date: e.target.value })} /></Field>
                     <Field label="বৈবাহিক অবস্থা">
                       <Select value={tenant.marital_status} onValueChange={(v) => updateTenant({ marital_status: v })}>
