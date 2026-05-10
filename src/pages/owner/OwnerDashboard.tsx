@@ -480,6 +480,8 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
+        {/* Daily Hadith — random per visit */}
+        <HadithCard />
 
         {/* Multi-flat picker (compact) */}
         {showFlatSwitcher && (
