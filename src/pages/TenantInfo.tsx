@@ -50,6 +50,7 @@ type Flat = {
   floor: number;
   owner_name: string | null;
   owner_user_id: string | null;
+  is_rented: boolean;
 };
 
 type FamilyMember = {
@@ -237,7 +238,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id").order("floor").order("flat_no");
+      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id, is_rented").order("floor").order("flat_no");
       if (error) { toast.error(error.message); return; }
       const list = (data || []) as Flat[];
       const visible = isAdmin ? list : list.filter((f) => f.owner_user_id === user?.id);
@@ -310,6 +311,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   const save = async () => {
     if (!tenant) return;
+    if (editLocked) return toast.error("এই ফ্ল্যাট এখনো ভাড়ায় চিহ্নিত নয় — অ্যাডমিনকে অনুরোধ করুন");
     if (!tenant.tenant_name.trim()) return toast.error(`${cfg.personLabel}ের নাম দিন`);
     const addrErr = validatePermanentAddress(parsePermanentAddress(tenant.permanent_address));
     if (addrErr) return toast.error(`স্থায়ী ঠিকানা: ${addrErr}`);
@@ -355,6 +357,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
   };
 
   const archiveTenant = async () => {
+    if (editLocked) return toast.error("এই ফ্ল্যাট ভাড়ায় চিহ্নিত নয়");
     if (!tenant?.id) return toast.error("সংরক্ষিত ভাড়াটিয়া নেই");
     setArchiving(true);
     try {
@@ -401,6 +404,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
   };
 
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
+  const editLocked = kind === "tenant" && !isAdmin && !!selectedFlat && !selectedFlat.is_rented;
   const handlePrintFilled = () => window.print();
   const handleDownloadBlankPdf = () => {
     const w = window.open("/tenant-info/blank-form", "_blank");
@@ -429,7 +433,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
             <Button variant="outline" size="sm" onClick={handlePrintFilled}>
               <Printer className="h-4 w-4 mr-1" /> প্রিন্ট
             </Button>
-            {cfg.archiveEnabled && tenant?.id && (
+            {cfg.archiveEnabled && tenant?.id && !editLocked && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" disabled={archiving}>
@@ -450,7 +454,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            {tenant && (
+            {tenant && !editLocked && (
               <Button onClick={save} disabled={saving} size="sm">
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
                 সংরক্ষণ
@@ -478,6 +482,14 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
             </Select>
           </CardContent>
         </Card>
+
+        {editLocked && (
+          <Card className="print:hidden border-amber-400/60 bg-amber-50 dark:bg-amber-950/30">
+            <CardContent className="py-3 text-sm text-amber-900 dark:text-amber-200">
+              এই ফ্ল্যাট এখনো অ্যাডমিন কর্তৃক "ভাড়ায় চলছে" হিসেবে চিহ্নিত হয়নি, তাই ভাড়াটিয়ার তথ্য হালনাগাদ করা যাবে না। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।
+            </CardContent>
+          </Card>
+        )}
 
         {loading ? (
           <Skeleton className="h-96" />
