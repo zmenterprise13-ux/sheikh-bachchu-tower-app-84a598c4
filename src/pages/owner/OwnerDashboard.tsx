@@ -251,52 +251,92 @@ export default function OwnerDashboard() {
           className="pointer-events-none absolute inset-0 -z-10 rounded-2xl animate-fade-in"
           style={{ ...flatTintStyle, transition: "opacity 600ms ease" }}
         />
-        {/* Compact greeting header */}
-        <div className="relative rounded-2xl gradient-hero text-primary-foreground p-4 sm:p-5 shadow-elevated overflow-hidden">
-          <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-          <div className="relative flex items-center gap-3">
-            <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-white/50 shadow-lg shrink-0">
-              {(profileName.avatar || flat.owner_photo_url) ? (
-                <AvatarImageWithSkeleton
-                  src={(profileName.avatar || flat.owner_photo_url) as string}
-                  alt={flat.owner_name ?? "profile"}
-                  className="object-cover"
-                />
-              ) : null}
-              <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-lg" />
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs opacity-90">{t("welcome")},</div>
-              <h1 className="text-base sm:text-xl font-bold truncate">
-                {residentName(flat, lang) || profileName.bn || profileName.en || "—"}
-              </h1>
-              <div className="text-[11px] opacity-90 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <Building2 className="h-3 w-3 opacity-80" />
-                {showFlatSwitcher ? (
-                  <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
-                    <SelectTrigger className="h-6 w-auto bg-white/15 border-white/30 text-primary-foreground hover:bg-white/25 px-2 text-[11px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {flats.map((f) => {
-                        const b = allBills[f.id];
-                        const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
-                        return (
-                          <SelectItem key={f.id} value={f.id}>
-                            {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <span>{t("flatNo")}: <span className="font-bold">{flat.flat_no}</span></span>
-                )}
-                <span className="opacity-70">· {(flat.occupant_type ?? "").toLowerCase() === "tenant" ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant") : (lang === "bn" ? "মালিক" : "Owner")}</span>
+        {/* Premium greeting header */}
+        {(() => {
+          const hour = new Date().getHours();
+          const greeting = lang === "bn"
+            ? (hour < 12 ? "সুপ্রভাত" : hour < 17 ? "শুভ অপরাহ্ণ" : hour < 20 ? "শুভ সন্ধ্যা" : "শুভ রাত্রি")
+            : (hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 20 ? "Good evening" : "Good night");
+          const displayName = residentName(flat, lang) || profileName.bn || profileName.en || "—";
+          const roleLabel = (flat.occupant_type ?? "").toLowerCase() === "tenant"
+            ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant")
+            : (lang === "bn" ? "মালিক" : "Owner");
+          return (
+            <div className="relative rounded-3xl gradient-hero text-primary-foreground p-5 sm:p-7 shadow-elevated overflow-hidden animate-slide-up-fade">
+              {/* Decorative blurred orbs */}
+              <div className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-white/15 blur-3xl animate-float-slow" />
+              <div className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+              {/* Shimmer sweep */}
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+                <div className="absolute inset-y-0 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 animate-shimmer" />
+              </div>
+              {/* Twinkling sparkles */}
+              <Sparkles className="pointer-events-none absolute top-3 right-4 h-4 w-4 text-white/80 animate-sparkle-twinkle" />
+              <Sparkles className="pointer-events-none absolute bottom-4 right-12 h-3 w-3 text-white/60 animate-sparkle-twinkle" style={{ animationDelay: "0.7s" }} />
+              <Sparkles className="pointer-events-none absolute top-8 left-1/2 h-3 w-3 text-white/50 animate-sparkle-twinkle" style={{ animationDelay: "1.3s" }} />
+
+              <div className="relative flex items-center gap-4 sm:gap-5">
+                {/* Bigger avatar with glowing animated ring */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 rounded-full animate-ring-glow" />
+                  <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 border-[3px] border-white/70 shadow-2xl ring-2 ring-white/20 ring-offset-2 ring-offset-transparent">
+                    {(profileName.avatar || flat.owner_photo_url) ? (
+                      <AvatarImageWithSkeleton
+                        src={(profileName.avatar || flat.owner_photo_url) as string}
+                        alt={flat.owner_name ?? "profile"}
+                        className="object-cover"
+                      />
+                    ) : null}
+                    <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-2xl" />
+                  </Avatar>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] sm:text-xs uppercase tracking-[0.18em] font-semibold opacity-90 flex items-center gap-1.5">
+                    <span>{greeting}</span>
+                    <span className="opacity-60">·</span>
+                    <span className="opacity-80">{t("welcome")}</span>
+                  </div>
+                  <h1 className="mt-1 text-xl sm:text-3xl font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent drop-shadow-sm">
+                    {displayName}
+                  </h1>
+
+                  <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                    {/* Premium flat badge */}
+                    {showFlatSwitcher ? (
+                      <Select value={flat.id} onValueChange={(v) => setSelectedFlatId(v)}>
+                        <SelectTrigger className="h-8 w-auto bg-white/20 backdrop-blur-md border border-white/40 text-primary-foreground hover:bg-white/30 px-3 text-xs font-semibold rounded-full shadow-md transition-all">
+                          <Building2 className="h-3.5 w-3.5 mr-1.5 opacity-90" />
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {flats.map((f) => {
+                            const b = allBills[f.id];
+                            const d = b ? Math.max(0, Number(b.total) - Number(b.paid_amount)) : 0;
+                            return (
+                              <SelectItem key={f.id} value={f.id}>
+                                {f.flat_no} {d > 0 && <span className="text-destructive ml-1">· {formatMoney(d, lang)}</span>}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 px-3 py-1 text-xs font-bold shadow-md">
+                        <Building2 className="h-3.5 w-3.5 opacity-90" />
+                        {t("flatNo")} <span className="font-extrabold tracking-wide">{flat.flat_no}</span>
+                      </span>
+                    )}
+                    <span className="inline-flex items-center rounded-full bg-white/15 border border-white/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">
+                      {roleLabel}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
+
 
         {/* HERO summary card: due / paid / progress */}
         <div className={cn(
