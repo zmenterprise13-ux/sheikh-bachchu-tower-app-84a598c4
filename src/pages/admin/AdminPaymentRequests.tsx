@@ -25,7 +25,7 @@ type PR = {
   submitted_by: string | null;
   created_at: string;
   bills?: { month: string } | null;
-  flats?: { flat_no: string; owner_name: string | null } | null;
+  flats?: { flat_no: string; owner_name: string | null; owner_name_bn: string | null } | null;
 };
 
 type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null; phone: string | null };
@@ -46,7 +46,7 @@ export default function AdminPaymentRequests() {
   const refresh = async () => {
     setLoading(true);
     let q = supabase.from("payment_requests")
-      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name)")
+      .select("id, bill_id, flat_id, amount, method, reference, note, status, review_note, reviewed_at, reviewed_by, submitted_by, created_at, bills(month), flats(flat_no, owner_name, owner_name_bn)")
       .order("created_at", { ascending: false });
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
@@ -129,10 +129,11 @@ export default function AdminPaymentRequests() {
           // fetch flat info for nicer toast
           const { data: f } = await supabase
             .from("flats")
-            .select("flat_no, owner_name")
+            .select("flat_no, owner_name, owner_name_bn")
             .eq("id", row.flat_id)
             .maybeSingle();
-          const who = f ? `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${f.flat_no}${f.owner_name ? " · " + f.owner_name : ""}` : "";
+          const ownerLabel = f ? (lang === "bn" ? f.owner_name_bn || f.owner_name : f.owner_name) : null;
+          const who = f ? `${lang === "bn" ? "ফ্ল্যাট" : "Flat"} ${f.flat_no}${ownerLabel ? " · " + ownerLabel : ""}` : "";
           toast.info(
             lang === "bn" ? "নতুন পেমেন্ট রিকোয়েস্ট" : "New payment request",
             { description: `${who} — ${formatMoney(Number(row.amount), lang)}` }
@@ -220,7 +221,7 @@ export default function AdminPaymentRequests() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-foreground">
-                    {t("flatNo")} {pr.flats?.flat_no ?? "-"} · {pr.flats?.owner_name ?? "-"}
+                    {t("flatNo")} {pr.flats?.flat_no ?? "-"} · {(lang === "bn" ? pr.flats?.owner_name_bn || pr.flats?.owner_name : pr.flats?.owner_name) ?? "-"}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {pr.bills?.month ?? "-"} · {t(pr.method as any) || pr.method}
