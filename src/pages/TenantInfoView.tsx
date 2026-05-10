@@ -20,7 +20,7 @@ type TenantRow = Record<string, any> | null;
 type Kind = "tenant" | "owner";
 const VIEW_CONFIGS = {
   tenant: { infoTable: "tenant_info", familyTable: "tenant_family_members", familyFk: "tenant_info_id", title: "ভাড়াটিয়ার তথ্য (ভিউ)", formTitle: "ভাড়াটিয়া নিবন্ধন ফরম", emptyMsg: "এই ফ্ল্যাটে কোনো ভাড়াটিয়ার তথ্য পাওয়া যায়নি।", editPath: "/tenant-info" },
-  owner:  { infoTable: "owner_info",  familyTable: "owner_family_members",  familyFk: "owner_info_id",  title: "মালিকের তথ্য (ভিউ)",     formTitle: "ফ্ল্যাট মালিকের বিস্তারিত তথ্য", emptyMsg: "এই ফ্ল্যাটে মালিকের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।", editPath: "/owner-info" },
+  owner:  { infoTable: "owner_info",  familyTable: "owner_family_members",  familyFk: "owner_info_id",  title: "মালিকের তথ্য (ভিউ)",     formTitle: "ফ্ল্যাট মালিকের তথ্য", emptyMsg: "এই ফ্ল্যাটে মালিকের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।", editPath: "/owner-info" },
 } as const;
 
 const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
@@ -136,7 +136,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
           <div id="tenant-print-area" className="tenant-print-a4 mx-auto bg-white text-black border border-border shadow-soft">
             {/* Header */}
             <div className="text-center border-b border-black pb-3 mb-4">
-              <h2 className="text-xl font-bold">ভাড়াটিয়া নিবন্ধন ফরম</h2>
+              <h2 className="text-xl font-bold">{cfg.formTitle}</h2>
               <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no ?? ""} {selectedFlat?.owner_name ? `— মালিক: ${selectedFlat.owner_name}` : ""}</p>
             </div>
 
