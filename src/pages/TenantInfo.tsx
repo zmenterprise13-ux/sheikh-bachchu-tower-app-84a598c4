@@ -403,6 +403,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
   };
 
   const selectedFlat = flats.find((f) => f.id === selectedFlatId);
+  const editLocked = kind === "tenant" && !isAdmin && !!selectedFlat && !selectedFlat.is_rented;
   const handlePrintFilled = () => window.print();
   const handleDownloadBlankPdf = () => {
     const w = window.open("/tenant-info/blank-form", "_blank");
