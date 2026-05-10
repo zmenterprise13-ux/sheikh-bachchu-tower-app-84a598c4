@@ -238,7 +238,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id").order("floor").order("flat_no");
+      const { data, error } = await supabase.from("flats").select("id, flat_no, floor, owner_name, owner_user_id, is_rented").order("floor").order("flat_no");
       if (error) { toast.error(error.message); return; }
       const list = (data || []) as Flat[];
       const visible = isAdmin ? list : list.filter((f) => f.owner_user_id === user?.id);
