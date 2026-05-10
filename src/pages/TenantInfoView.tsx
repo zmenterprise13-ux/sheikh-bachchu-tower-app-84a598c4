@@ -182,7 +182,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Family members */}
-            <Section title={`১১. পরিবার / মেসের সদস্যবৃন্দ (${toBn(members.length)} জন)`}>
+            <Section title={`১২. পরিবার / মেসের সদস্যবৃন্দ (${toBn(members.length)} জন)`}>
               {members.length === 0 ? (
                 <p className="text-sm text-muted-foreground">কোনো সদস্য নেই</p>
               ) : (
