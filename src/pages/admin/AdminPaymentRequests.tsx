@@ -220,7 +220,7 @@ export default function AdminPaymentRequests() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-foreground">
-                    {t("flatNo")} {pr.flats?.flat_no ?? "-"} · {pr.flats?.owner_name ?? "-"}
+                    {t("flatNo")} {pr.flats?.flat_no ?? "-"} · {(lang === "bn" ? pr.flats?.owner_name_bn || pr.flats?.owner_name : pr.flats?.owner_name) ?? "-"}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {pr.bills?.month ?? "-"} · {t(pr.method as any) || pr.method}
