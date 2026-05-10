@@ -154,25 +154,25 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
                 <ViewRow label="২. পিতার নাম" value={tenant.father_name} />
                 <ViewRow label="৩. মাতার নাম" value={tenant.mother_name} />
                 <ViewRow label="৪. জন্ম তারিখ" value={fmtDate(tenant.birth_date)} />
-                <ViewRow label="বৈবাহিক অবস্থা" value={tenant.marital_status} />
-                <ViewRow label="৬. পেশা" value={tenant.occupation} />
+                <ViewRow label="৫. বৈবাহিক অবস্থা" value={tenant.marital_status} />
+                <ViewRow label="৭. পেশা" value={tenant.occupation} />
                 <ViewRow label="কর্মস্থল" value={tenant.workplace} />
-                <ViewRow label="৭. ধর্ম" value={tenant.religion} />
+                <ViewRow label="৮. ধর্ম" value={tenant.religion} />
                 <ViewRow label="শিক্ষাগত যোগ্যতা" value={tenant.education} />
-                <ViewRow label="৮. মোবাইল" value={toBn(tenant.phone)} />
-                <ViewRow label="ই-মেইল" value={tenant.email} />
-                <ViewRow label="৯. NID" value={toBn(tenant.nid_number)} />
-                <ViewRow label="১০. পাসপোর্ট" value={tenant.passport_number} />
+                <ViewRow label="৯. মোবাইল" value={toBn(tenant.phone)} />
+                <ViewRow label="১০. ই-মেইল" value={tenant.email} />
+                <ViewRow label="১১. NID" value={toBn(tenant.nid_number)} />
+                <ViewRow label="১২. পাসপোর্ট" value={tenant.passport_number} />
               </div>
             </div>
 
             {/* Address */}
-            <Section title="৫. স্থায়ী ঠিকানা">
+            <Section title="৬. স্থায়ী ঠিকানা">
               <p className="text-sm">{permanentAddr || "—"}</p>
             </Section>
 
             {/* Emergency */}
-            <Section title="১১. জরুরি যোগাযোগ">
+            <Section title="১৩. জরুরি যোগাযোগ">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.emergency_name} />
                 <ViewRow label="সম্পর্ক" value={tenant.emergency_relation} />
