@@ -421,17 +421,17 @@ export default function OwnerDashboard() {
               <div className="min-w-0 flex-1 basis-0">
                 <div
                   className={cn(
-                    "text-xl sm:text-[28px] leading-none font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm break-all",
+                    "text-[22px] sm:text-[30px] leading-none font-black tabular-nums tracking-tight bg-clip-text text-transparent break-all",
                     isPaid
-                      ? "bg-gradient-to-br from-success via-success to-success/60"
+                      ? "bg-gradient-to-br from-success via-success to-success/70 drop-shadow-[0_2px_6px_hsl(var(--success)/0.25)]"
                       : totalDueScoped > 0
-                        ? "bg-gradient-to-br from-destructive via-destructive to-destructive/60"
-                        : "bg-gradient-to-br from-foreground to-foreground/60"
+                        ? "bg-gradient-to-br from-destructive via-destructive to-destructive/70 drop-shadow-[0_2px_6px_hsl(var(--destructive)/0.25)]"
+                        : "bg-gradient-to-br from-foreground to-foreground/70"
                   )}
                 >
                   <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground line-clamp-1">
+                <div className="mt-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground line-clamp-1">
                   {isPaid
                     ? (lang === "bn" ? "এই মাসের সব বিল পরিশোধিত ✨" : "All bills cleared ✨")
                     : (lang === "bn" ? "এখনই পরিশোধ করুন" : "Pay to clear dues")}
