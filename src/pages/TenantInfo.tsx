@@ -357,6 +357,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
   };
 
   const archiveTenant = async () => {
+    if (editLocked) return toast.error("এই ফ্ল্যাট ভাড়ায় চিহ্নিত নয়");
     if (!tenant?.id) return toast.error("সংরক্ষিত ভাড়াটিয়া নেই");
     setArchiving(true);
     try {
