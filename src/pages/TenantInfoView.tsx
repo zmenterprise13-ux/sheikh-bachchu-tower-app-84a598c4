@@ -232,11 +232,11 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             {/* Landlord */}
             <Section title="পূর্ববর্তী ও বর্তমান বাড়িওয়ালার তথ্য">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                <ViewRow label="১৫. পূর্ববর্তী বাড়িওয়ালা" value={tenant.previous_landlord_name} />
+                <ViewRow label="১৭. পূর্ববর্তী বাড়িওয়ালা" value={tenant.previous_landlord_name} />
                 <ViewRow label="মোবাইল" value={toBn(tenant.previous_landlord_phone)} />
-                <ViewRow label="১৬. বাসা ছাড়ার কারণ" value={tenant.leave_reason} full />
-                <ViewRow label="১৭. বর্তমান বাড়িওয়ালা" value={tenant.current_landlord_name} />
-                <ViewRow label="১৮. বসবাস শুরু" value={fmtDate(tenant.move_in_date)} />
+                <ViewRow label="১৮. বাসা ছাড়ার কারণ" value={tenant.leave_reason} full />
+                <ViewRow label="১৯. বর্তমান বাড়িওয়ালা" value={tenant.current_landlord_name} />
+                <ViewRow label="২০. বসবাস শুরু" value={fmtDate(tenant.move_in_date)} />
                 <ViewRow label="মন্তব্য" value={tenant.notes} full />
               </div>
             </Section>
