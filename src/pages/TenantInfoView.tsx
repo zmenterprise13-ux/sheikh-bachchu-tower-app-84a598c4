@@ -136,7 +136,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
           <div id="tenant-print-area" className="tenant-print-a4 mx-auto bg-white text-black border border-border shadow-soft">
             {/* Header */}
             <div className="text-center border-b border-black pb-3 mb-4">
-              <h2 className="text-xl font-bold">ভাড়াটিয়া নিবন্ধন ফরম</h2>
+              <h2 className="text-xl font-bold">{cfg.formTitle}</h2>
               <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no ?? ""} {selectedFlat?.owner_name ? `— মালিক: ${selectedFlat.owner_name}` : ""}</p>
             </div>
 
