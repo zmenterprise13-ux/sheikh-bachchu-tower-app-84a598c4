@@ -8,9 +8,11 @@ import { UpdateBanner } from "./UpdateBanner";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div
-      className="min-h-screen flex flex-col bg-background"
+      className="min-h-screen flex flex-col bg-background overflow-x-hidden"
       style={{
+        minHeight: "100dvh",
         paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
         paddingLeft: "env(safe-area-inset-left)",
         paddingRight: "env(safe-area-inset-right)",
       }}

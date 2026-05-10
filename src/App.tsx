@@ -1,5 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
+
+// Use HashRouter on native (Capacitor file://) so routes resolve correctly inside Android/iOS WebView.
+const isNative =
+  typeof window !== "undefined" &&
+  (window.location.protocol === "file:" ||
+    window.location.protocol === "capacitor:" ||
+    // @ts-ignore
+    !!(window as any).Capacitor?.isNativePlatform?.());
+const Router = isNative ? HashRouter : BrowserRouter;
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,7 +78,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <ReportPadDebugProbe />
-          <BrowserRouter>
+          <Router>
             <ForceUpdateGate>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -132,7 +141,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </ForceUpdateGate>
-          </BrowserRouter>
+          </Router>
         </TooltipProvider>
       </AuthProvider>
     </LangProvider>
