@@ -84,11 +84,36 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(200%)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        "ring-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(255,255,255,0.45), 0 0 22px 4px rgba(255,255,255,0.18)" },
+          "50%": { boxShadow: "0 0 0 4px rgba(255,255,255,0.10), 0 0 36px 10px rgba(255,255,255,0.30)" },
+        },
+        "sparkle-twinkle": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(0.85) rotate(0deg)" },
+          "50%": { opacity: "1", transform: "scale(1.15) rotate(20deg)" },
+        },
+        "slide-up-fade": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         marquee: "marquee 20s linear infinite",
+        shimmer: "shimmer 2.8s ease-in-out infinite",
+        "float-slow": "float-slow 4s ease-in-out infinite",
+        "ring-glow": "ring-glow 2.6s ease-in-out infinite",
+        "sparkle-twinkle": "sparkle-twinkle 2s ease-in-out infinite",
+        "slide-up-fade": "slide-up-fade 0.6s ease-out both",
       },
     },
   },
