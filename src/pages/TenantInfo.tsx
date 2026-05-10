@@ -592,7 +592,7 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
         ) : tenant ? (
           <div className="space-y-4 print-area">
             <div className="hidden print:block text-center mb-4">
-              <h1 className="text-xl font-bold">ভাড়াটিয়া নিবন্ধন ফরম</h1>
+              <h1 className="text-xl font-bold">{cfg.title}</h1>
               <p className="text-sm">ফ্ল্যাট {selectedFlat?.flat_no}</p>
             </div>
 
