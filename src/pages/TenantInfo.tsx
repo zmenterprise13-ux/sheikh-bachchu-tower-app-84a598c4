@@ -50,6 +50,7 @@ type Flat = {
   floor: number;
   owner_name: string | null;
   owner_user_id: string | null;
+  is_rented: boolean;
 };
 
 type FamilyMember = {
