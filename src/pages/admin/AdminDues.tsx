@@ -241,6 +241,20 @@ export default function AdminDues() {
     }
     setPaySaving(true);
     if (isAccountant) {
+      // Duplicate guard: if a pending/reviewed request for this bill already exists, refuse
+      const { data: dup } = await supabase
+        .from("payment_requests")
+        .select("id")
+        .eq("bill_id", paying.id)
+        .in("status", ["pending", "reviewed"])
+        .limit(1);
+      if (dup && dup.length > 0) {
+        setPaySaving(false);
+        toast.error(lang === "bn"
+          ? "এই বিলের জন্য একটি অনুরোধ ইতিমধ্যে অ্যাডমিন অপেক্ষায় আছে"
+          : "A request for this bill is already awaiting admin");
+        return;
+      }
       const { error } = await supabase.from("payment_requests").insert({
         bill_id: paying.id,
         flat_id: paying.flat_id,
@@ -381,7 +395,22 @@ export default function AdminDues() {
     }
     setBulkPaySaving(true);
     if (isAccountant) {
-      const inserts = targets.map((b) => ({
+      // Skip bills that already have a pending/reviewed request
+      const { data: existing } = await supabase
+        .from("payment_requests")
+        .select("bill_id")
+        .in("bill_id", targets.map((b) => b.id))
+        .in("status", ["pending", "reviewed"]);
+      const blocked = new Set((existing ?? []).map((r: any) => r.bill_id));
+      const filtered = targets.filter((b) => !blocked.has(b.id));
+      if (filtered.length === 0) {
+        setBulkPaySaving(false);
+        toast.error(lang === "bn"
+          ? "সব বিলের জন্য অনুরোধ ইতিমধ্যে অপেক্ষায় আছে"
+          : "All selected bills already have pending requests");
+        return;
+      }
+      const inserts = filtered.map((b) => ({
         bill_id: b.id,
         flat_id: b.flat_id,
         amount: Number(b.total) - Number(b.paid_amount),
