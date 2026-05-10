@@ -276,11 +276,11 @@ export default function OwnerDashboard() {
               <Sparkles className="pointer-events-none absolute bottom-4 right-12 h-3 w-3 text-white/60 animate-sparkle-twinkle" style={{ animationDelay: "0.7s" }} />
               <Sparkles className="pointer-events-none absolute top-8 left-1/2 h-3 w-3 text-white/50 animate-sparkle-twinkle" style={{ animationDelay: "1.3s" }} />
 
-              <div className="relative flex items-center gap-4 sm:gap-5">
+              <div className="relative flex items-center gap-3 sm:gap-5">
                 {/* Bigger avatar with glowing animated ring */}
                 <div className="relative shrink-0">
                   <div className="absolute inset-0 rounded-full animate-ring-glow" />
-                  <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 border-[3px] border-white/70 shadow-2xl ring-2 ring-white/20 ring-offset-2 ring-offset-transparent">
+                  <Avatar className="relative h-16 w-16 sm:h-24 sm:w-24 border-[3px] border-white/70 shadow-2xl ring-2 ring-white/20 ring-offset-2 ring-offset-transparent">
                     {(profileName.avatar || flat.owner_photo_url) ? (
                       <AvatarImageWithSkeleton
                         src={(profileName.avatar || flat.owner_photo_url) as string}
@@ -288,7 +288,7 @@ export default function OwnerDashboard() {
                         className="object-cover"
                       />
                     ) : null}
-                    <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-2xl" />
+                    <InitialsFallback name={flat.owner_name} seed={flat.id} className="text-xl sm:text-2xl" />
                   </Avatar>
                 </div>
 
