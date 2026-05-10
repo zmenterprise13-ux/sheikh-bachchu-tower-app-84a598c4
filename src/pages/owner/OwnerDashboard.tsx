@@ -371,9 +371,9 @@ export default function OwnerDashboard() {
             <div className="absolute inset-y-0 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-12 animate-shimmer" />
           </div>
 
-          <div className="relative p-4 sm:p-5">
+          <div className="relative p-3 sm:p-5">
             {/* Header chips */}
-            <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 flex-wrap">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 px-2.5 py-1 shadow-sm">
                 <span
                   className={cn(
@@ -391,17 +391,17 @@ export default function OwnerDashboard() {
                       : (lang === "bn" ? "বকেয়া" : "Due")}
                 </span>
               </div>
-              <div className="text-[10px] font-medium text-muted-foreground tabular-nums">
+              <div className="text-[10px] font-medium text-muted-foreground tabular-nums truncate max-w-full">
                 {month} · {showFlatSwitcher ? `${scopeFlats.length} ${lang === "bn" ? "ফ্ল্যাট" : "flats"}` : flat.flat_no}
               </div>
             </div>
 
             {/* Amount + Progress ring + Action */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
               {/* Progress ring */}
               {totalBilledScoped > 0 && (
-                <div className="relative shrink-0" style={{ width: 64, height: 64 }}>
-                  <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90 drop-shadow-sm">
+                <div className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16">
+                  <svg viewBox="0 0 64 64" className="w-full h-full -rotate-90 drop-shadow-sm">
                     <circle cx="32" cy="32" r="26" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
                     <circle
                       cx="32" cy="32" r="26" fill="none"
@@ -412,16 +412,16 @@ export default function OwnerDashboard() {
                       className="transition-all duration-1000 ease-out"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center text-[11px] font-extrabold tabular-nums text-foreground">
+                  <div className="absolute inset-0 flex items-center justify-center text-[10px] sm:text-[11px] font-extrabold tabular-nums text-foreground">
                     {formatNumber(scopedPct, lang)}%
                   </div>
                 </div>
               )}
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 basis-0">
                 <div
                   className={cn(
-                    "text-2xl sm:text-[28px] leading-none font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm",
+                    "text-xl sm:text-[28px] leading-none font-extrabold tabular-nums tracking-tight bg-clip-text text-transparent drop-shadow-sm break-all",
                     isPaid
                       ? "bg-gradient-to-br from-success via-success to-success/60"
                       : totalDueScoped > 0
@@ -431,7 +431,7 @@ export default function OwnerDashboard() {
                 >
                   <AnimatedNumber value={totalDueScoped} format={(n) => formatMoney(n, lang)} />
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">
+                <div className="mt-1 text-[11px] text-muted-foreground line-clamp-1">
                   {isPaid
                     ? (lang === "bn" ? "এই মাসের সব বিল পরিশোধিত ✨" : "All bills cleared ✨")
                     : (lang === "bn" ? "এখনই পরিশোধ করুন" : "Pay to clear dues")}
@@ -439,10 +439,10 @@ export default function OwnerDashboard() {
               </div>
 
               {totalDueScoped > 0 ? (
-                <Button asChild size="sm" className="gap-1.5 shadow-glow rounded-full hover-scale h-9 px-3.5 shrink-0">
+                <Button asChild size="sm" className="gap-1.5 shadow-glow rounded-full hover-scale h-9 px-3 sm:px-3.5 shrink-0">
                   <Link to={`/owner/payments?pay=1${showFlatSwitcher ? "" : `&flat=${flat.id}`}`}>
                     <CreditCard className="h-3.5 w-3.5" />
-                    <span className="hidden xs:inline sm:inline">{t("payNow")}</span>
+                    <span>{t("payNow")}</span>
                   </Link>
                 </Button>
               ) : isPaid ? (
@@ -455,7 +455,7 @@ export default function OwnerDashboard() {
 
             {/* Stats strip */}
             {totalBilledScoped > 0 && (
-              <div className="relative mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 overflow-hidden shadow-sm">
+              <div className="relative mt-3 sm:mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 overflow-hidden shadow-sm">
                 {[
                   { label: lang === "bn" ? "বিল" : "Billed", value: totalBilledScoped, tone: "text-foreground", dot: "bg-muted-foreground/50" },
                   { label: lang === "bn" ? "পরিশোধিত" : "Paid", value: totalPaidScoped, tone: "text-success", dot: "bg-success" },
@@ -463,14 +463,14 @@ export default function OwnerDashboard() {
                 ].map((s, i) => (
                   <div
                     key={s.label}
-                    className="px-2.5 py-2 animate-slide-up-fade"
+                    className="px-2 py-1.5 sm:px-2.5 sm:py-2 min-w-0 animate-slide-up-fade"
                     style={{ animationDelay: `${200 + i * 80}ms` }}
                   >
                     <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
-                      <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
-                      {s.label}
+                      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", s.dot)} />
+                      <span className="truncate">{s.label}</span>
                     </div>
-                    <div className={cn("mt-0.5 text-sm font-extrabold tabular-nums truncate", s.tone)}>
+                    <div className={cn("mt-0.5 text-xs sm:text-sm font-extrabold tabular-nums truncate", s.tone)}>
                       <AnimatedNumber value={s.value} format={(n) => formatMoney(n, lang)} />
                     </div>
                   </div>
