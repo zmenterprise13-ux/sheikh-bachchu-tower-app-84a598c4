@@ -263,7 +263,7 @@ export default function OwnerDashboard() {
             ? (lang === "bn" ? "ভাড়াটিয়া" : "Tenant")
             : (lang === "bn" ? "মালিক" : "Owner");
           return (
-            <div className="relative rounded-3xl gradient-hero text-primary-foreground p-5 sm:p-7 shadow-elevated overflow-hidden animate-slide-up-fade">
+            <div className="relative rounded-2xl sm:rounded-3xl gradient-hero text-primary-foreground p-4 sm:p-7 shadow-elevated overflow-hidden animate-slide-up-fade">
               {/* Decorative blurred orbs */}
               <div className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-white/15 blur-3xl animate-float-slow" />
               <div className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
