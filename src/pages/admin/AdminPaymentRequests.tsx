@@ -25,7 +25,7 @@ type PR = {
   submitted_by: string | null;
   created_at: string;
   bills?: { month: string } | null;
-  flats?: { flat_no: string; owner_name: string | null } | null;
+  flats?: { flat_no: string; owner_name: string | null; owner_name_bn: string | null } | null;
 };
 
 type ProfileLite = { user_id: string; display_name: string | null; display_name_bn: string | null; phone: string | null };
