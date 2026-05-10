@@ -175,14 +175,23 @@ export default function VersionInfo() {
               {lang === "bn" ? "আপডেট পেজে যান" : "Go to Update page"}
             </Link>
           </Button>
-          {latestUrl && (
-            <Button variant="outline" asChild className="gap-2" size="lg">
-              <a href={latestUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-                {lang === "bn" ? "GitHub-এ দেখুন" : "View on GitHub"}
-              </a>
-            </Button>
-          )}
+        </div>
+
+        {/* Developer credit */}
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.06] via-card to-card p-4 sm:p-5 shadow-soft text-center">
+          <p className="text-xs uppercase tracking-[0.18em] font-bold text-primary mb-1.5">
+            {lang === "bn" ? "ডেভেলপার" : "Developer"}
+          </p>
+          <p className="text-sm sm:text-base font-semibold text-foreground leading-relaxed">
+            {lang === "bn"
+              ? "এই অ্যাপটি ডেভেলপ করেছেন"
+              : "This app is developed by"}
+            {" — "}
+            <span className="font-extrabold text-primary">মো. রবিন হোসেন</span>
+          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            {lang === "bn" ? "সাধারণ সম্পাদক — শেখ বাচ্চু টাওয়ার" : "General Secretary — Sheikh Bachchu Tower"}
+          </p>
         </div>
       </div>
     </AppShell>
