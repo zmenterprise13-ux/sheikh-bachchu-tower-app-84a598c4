@@ -242,7 +242,7 @@ export default function OwnerDashboard() {
     <AppShell>
       <DuesPopup />
       <div
-        className="relative space-y-4 sm:space-y-5 animate-fade-in -m-2 sm:-m-4 p-2 sm:p-4 rounded-2xl border-l-4 overflow-hidden"
+        className="relative space-y-3 sm:space-y-5 animate-fade-in -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 sm:py-3 rounded-2xl border-l-4 overflow-hidden"
         style={{ transition: "border-color 600ms ease", ...flatAccentStyle }}
       >
         {/* Smoothly crossfading tint layer keyed by flat */}
