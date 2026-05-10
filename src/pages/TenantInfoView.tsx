@@ -152,27 +152,27 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
                 <ViewRow label="১. নাম" value={tenant.tenant_name} />
                 <ViewRow label="নাম (English)" value={tenant.tenant_name_bn} />
                 <ViewRow label="২. পিতার নাম" value={tenant.father_name} />
-                <ViewRow label="মাতার নাম" value={tenant.mother_name} />
-                <ViewRow label="৩. জন্ম তারিখ" value={fmtDate(tenant.birth_date)} />
+                <ViewRow label="৩. মাতার নাম" value={tenant.mother_name} />
+                <ViewRow label="৪. জন্ম তারিখ" value={fmtDate(tenant.birth_date)} />
                 <ViewRow label="বৈবাহিক অবস্থা" value={tenant.marital_status} />
-                <ViewRow label="৫. পেশা" value={tenant.occupation} />
+                <ViewRow label="৬. পেশা" value={tenant.occupation} />
                 <ViewRow label="কর্মস্থল" value={tenant.workplace} />
-                <ViewRow label="৬. ধর্ম" value={tenant.religion} />
+                <ViewRow label="৭. ধর্ম" value={tenant.religion} />
                 <ViewRow label="শিক্ষাগত যোগ্যতা" value={tenant.education} />
-                <ViewRow label="৭. মোবাইল" value={toBn(tenant.phone)} />
+                <ViewRow label="৮. মোবাইল" value={toBn(tenant.phone)} />
                 <ViewRow label="ই-মেইল" value={tenant.email} />
-                <ViewRow label="৮. NID" value={toBn(tenant.nid_number)} />
-                <ViewRow label="৯. পাসপোর্ট" value={tenant.passport_number} />
+                <ViewRow label="৯. NID" value={toBn(tenant.nid_number)} />
+                <ViewRow label="১০. পাসপোর্ট" value={tenant.passport_number} />
               </div>
             </div>
 
             {/* Address */}
-            <Section title="৪. স্থায়ী ঠিকানা">
+            <Section title="৫. স্থায়ী ঠিকানা">
               <p className="text-sm">{permanentAddr || "—"}</p>
             </Section>
 
             {/* Emergency */}
-            <Section title="১০. জরুরি যোগাযোগ">
+            <Section title="১১. জরুরি যোগাযোগ">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.emergency_name} />
                 <ViewRow label="সম্পর্ক" value={tenant.emergency_relation} />
@@ -182,7 +182,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Family members */}
-            <Section title={`১১. পরিবার / মেসের সদস্যবৃন্দ (${toBn(members.length)} জন)`}>
+            <Section title={`১২. পরিবার / মেসের সদস্যবৃন্দ (${toBn(members.length)} জন)`}>
               {members.length === 0 ? (
                 <p className="text-sm text-muted-foreground">কোনো সদস্য নেই</p>
               ) : (
@@ -212,7 +212,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Helper */}
-            <Section title="১২. গৃহকর্মীর তথ্য">
+            <Section title="১৩. গৃহকর্মীর তথ্য">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.helper_name} />
                 <ViewRow label="NID" value={toBn(tenant.helper_nid)} />
@@ -222,7 +222,7 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             </Section>
 
             {/* Driver */}
-            <Section title="১৩. ড্রাইভারের তথ্য">
+            <Section title="১৪. ড্রাইভারের তথ্য">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                 <ViewRow label="নাম" value={tenant.driver_name} />
                 <ViewRow label="NID" value={toBn(tenant.driver_nid)} />
@@ -232,11 +232,11 @@ export default function TenantInfoView({ kind = "tenant" as Kind }: { kind?: Kin
             {/* Landlord */}
             <Section title="পূর্ববর্তী ও বর্তমান বাড়িওয়ালার তথ্য">
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                <ViewRow label="১৪. পূর্ববর্তী বাড়িওয়ালা" value={tenant.previous_landlord_name} />
+                <ViewRow label="১৫. পূর্ববর্তী বাড়িওয়ালা" value={tenant.previous_landlord_name} />
                 <ViewRow label="মোবাইল" value={toBn(tenant.previous_landlord_phone)} />
-                <ViewRow label="১৫. বাসা ছাড়ার কারণ" value={tenant.leave_reason} full />
-                <ViewRow label="১৬. বর্তমান বাড়িওয়ালা" value={tenant.current_landlord_name} />
-                <ViewRow label="১৭. বসবাস শুরু" value={fmtDate(tenant.move_in_date)} />
+                <ViewRow label="১৬. বাসা ছাড়ার কারণ" value={tenant.leave_reason} full />
+                <ViewRow label="১৭. বর্তমান বাড়িওয়ালা" value={tenant.current_landlord_name} />
+                <ViewRow label="১৮. বসবাস শুরু" value={fmtDate(tenant.move_in_date)} />
                 <ViewRow label="মন্তব্য" value={tenant.notes} full />
               </div>
             </Section>

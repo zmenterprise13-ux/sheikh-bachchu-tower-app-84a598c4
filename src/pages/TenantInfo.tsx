@@ -324,7 +324,16 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
       const { data: ti, error } = await sb.from(cfg.infoTable).select("*").eq("flat_id", selectedFlatId).maybeSingle();
       if (error && error.code !== "PGRST116") toast.error(error.message);
       if (ti) {
-        setTenant({ ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null });
+        const merged = { ...emptyTenant(selectedFlatId), ...(ti as any), photo_url: (ti as any).photo_url ?? null };
+        if (kind === "owner") {
+          const sf = flats.find((x) => x.id === selectedFlatId);
+          if (sf) {
+            if (!merged.photo_url && sf.owner_photo_url) merged.photo_url = sf.owner_photo_url;
+            if (!merged.tenant_name && sf.owner_name) merged.tenant_name = sf.owner_name;
+            if (!merged.phone && sf.phone) merged.phone = sf.phone;
+          }
+        }
+        setTenant(merged);
         const { data: fm } = await sb.from(cfg.familyTable).select("*").eq(cfg.familyFk, (ti as any).id).order("sort_order").order("created_at");
         setMembers(((fm || []) as any[]).map((m) => ({
           id: m.id, name: m.name ?? "", relation: m.relation ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
