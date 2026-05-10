@@ -264,7 +264,18 @@ export default function TenantInfoPage({ kind = "tenant" }: { kind?: Kind } = {}
           id: m.id, name: m.name ?? "", relation: m.relation ?? "", age: m.age, occupation: m.occupation ?? "", phone: m.phone ?? "",
         })));
       } else {
-        setTenant(emptyTenant(selectedFlatId));
+        const base = emptyTenant(selectedFlatId);
+        if (kind === "owner") {
+          const f = (data || []).find?.((x: any) => x.id === selectedFlatId) as Flat | undefined;
+          // also fall back to in-memory selectedFlat lookup below
+          const sf = f;
+          if (sf) {
+            base.tenant_name = sf.owner_name || "";
+            base.phone = sf.phone || "";
+            base.photo_url = sf.owner_photo_url || null;
+          }
+        }
+        setTenant(base);
         setMembers([]);
       }
       if (cfg.archiveEnabled) {
