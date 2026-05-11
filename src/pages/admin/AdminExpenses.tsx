@@ -569,6 +569,13 @@ export default function AdminExpenses() {
                                 {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
                               </span>
                             )}
+                            {e.attachment_url && (
+                              <a href={e.attachment_url} target="_blank" rel="noreferrer"
+                                className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                {e.attachment_type === "pdf" ? <FileText className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
+                                {lang === "bn" ? "সংযুক্তি" : "Attachment"}
+                              </a>
+                            )}
                           </div>
                           <div className="md:col-span-3">
                             <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
