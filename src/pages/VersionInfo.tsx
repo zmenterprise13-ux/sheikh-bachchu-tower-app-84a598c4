@@ -193,13 +193,28 @@ export default function VersionInfo() {
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {lang === "bn" ? "সাধারণ সম্পাদক — শেখ বাচ্চু টাওয়ার" : "General Secretary — Sheikh Bachchu Tower"}
           </p>
-          <a
-            href="tel:01613458260"
-            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/10 hover:bg-primary/15 border border-primary/30 px-3 py-1 text-xs sm:text-sm font-bold text-primary tabular-nums transition-colors"
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-            01613458260
-          </a>
+          <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+            <a
+              href="tel:01613458260"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 hover:bg-primary/15 border border-primary/30 px-3 py-1 text-xs sm:text-sm font-bold text-primary tabular-nums transition-colors"
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              01613458260
+            </a>
+            <a
+              href={`https://wa.me/8801613458260?text=${encodeURIComponent(
+                lang === "bn"
+                  ? "আসসালামু আলাইকুম, শেখ বাচ্চু টাওয়ার অ্যাপ সম্পর্কে জানতে চাই।"
+                  : "Assalamu Alaikum, I would like to know about the Sheikh Bachchu Tower app."
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-success/15 hover:bg-success/25 border border-success/40 px-3 py-1 text-xs sm:text-sm font-bold text-success transition-colors"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     </AppShell>
