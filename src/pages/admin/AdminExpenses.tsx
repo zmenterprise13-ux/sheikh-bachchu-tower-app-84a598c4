@@ -103,8 +103,48 @@ export default function AdminExpenses() {
       description: "",
       amount: "",
       service_month: "",
+      attachment_url: "",
+      attachment_type: "",
     });
     setEditingId(null);
+  };
+
+  const handleAttachmentPick = async (file: File | null | undefined) => {
+    if (!file) return;
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isImage && !isPdf) {
+      toast.error(lang === "bn" ? "শুধু ছবি বা PDF আপলোড করা যাবে" : "Only image or PDF allowed");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error(lang === "bn" ? "ফাইল সাইজ ১৫MB এর বেশি" : "File too large (max 15MB)");
+      return;
+    }
+    setUploadingAttachment(true);
+    try {
+      let toUpload: Blob = file;
+      let ext = "pdf";
+      let contentType = "application/pdf";
+      if (isImage) {
+        toUpload = await compressImageToTarget(file, 100 * 1024);
+        ext = "jpg";
+        contentType = "image/jpeg";
+      }
+      const path = `expenses/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("expense-attachments")
+        .upload(path, toUpload, { upsert: false, contentType });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("expense-attachments").getPublicUrl(path);
+      setForm((f) => ({ ...f, attachment_url: data.publicUrl, attachment_type: isImage ? "image" : "pdf" }));
+      const kb = Math.round(toUpload.size / 1024);
+      toast.success(lang === "bn" ? `আপলোড হয়েছে (${kb}KB)` : `Uploaded (${kb}KB)`);
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
 
   const loadCategories = async () => {
