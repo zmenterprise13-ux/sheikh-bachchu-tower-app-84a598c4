@@ -432,6 +432,7 @@ export default function AdminExpenses() {
                         ? "যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে মাসে দিলে এখানে এপ্রিল সিলেক্ট করুন। ফাঁকা থাকলে তারিখের মাসই ধরা হবে।"
                         : "E.g. paying April's security salary in May — select April here. Leave blank to use the date's month."}
                     </p>
+                  </div>
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-1.5">
                       <Paperclip className="h-3.5 w-3.5" />
