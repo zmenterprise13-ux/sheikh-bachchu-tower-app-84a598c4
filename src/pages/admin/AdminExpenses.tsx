@@ -84,7 +84,11 @@ export default function AdminExpenses() {
     description: "",
     amount: "",
     service_month: "",
+    attachment_url: "" as string | null | "",
+    attachment_type: "" as string | null | "",
   });
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const fileInputRef = (typeof window !== "undefined") ? { current: null as HTMLInputElement | null } : { current: null };
 
   const catLabel = (c: Category) => (lang === "bn" ? c.name_bn || c.name : c.name);
   const labelByName = (name: string) => {
