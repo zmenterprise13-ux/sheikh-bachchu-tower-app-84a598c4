@@ -36,6 +36,8 @@ type Expense = {
   service_month?: string | null;
   approval_status?: string | null;
   reject_reason?: string | null;
+  attachment_url?: string | null;
+  attachment_type?: string | null;
 };
 
 export default function AdminExpenses() {
