@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Wallet, Pencil, Trash2, Settings2, X, ChevronDown, ChevronRight, Calendar, List, ClipboardList, Check, AlertCircle } from "lucide-react";
+import { Plus, Wallet, Pencil, Trash2, Settings2, X, ChevronDown, ChevronRight, Calendar, List, ClipboardList, Check, AlertCircle, Paperclip, FileText, Image as ImageIcon, Loader2, Eye } from "lucide-react";
+import { compressImageToTarget } from "@/lib/compressTo";
 import { TKey } from "@/i18n/translations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +36,8 @@ type Expense = {
   service_month?: string | null;
   approval_status?: string | null;
   reject_reason?: string | null;
+  attachment_url?: string | null;
+  attachment_type?: string | null;
 };
 
 export default function AdminExpenses() {
@@ -81,7 +84,11 @@ export default function AdminExpenses() {
     description: "",
     amount: "",
     service_month: "",
+    attachment_url: "" as string | null | "",
+    attachment_type: "" as string | null | "",
   });
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const fileInputRef = (typeof window !== "undefined") ? { current: null as HTMLInputElement | null } : { current: null };
 
   const catLabel = (c: Category) => (lang === "bn" ? c.name_bn || c.name : c.name);
   const labelByName = (name: string) => {
@@ -96,8 +103,48 @@ export default function AdminExpenses() {
       description: "",
       amount: "",
       service_month: "",
+      attachment_url: "",
+      attachment_type: "",
     });
     setEditingId(null);
+  };
+
+  const handleAttachmentPick = async (file: File | null | undefined) => {
+    if (!file) return;
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isImage && !isPdf) {
+      toast.error(lang === "bn" ? "শুধু ছবি বা PDF আপলোড করা যাবে" : "Only image or PDF allowed");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error(lang === "bn" ? "ফাইল সাইজ ১৫MB এর বেশি" : "File too large (max 15MB)");
+      return;
+    }
+    setUploadingAttachment(true);
+    try {
+      let toUpload: Blob = file;
+      let ext = "pdf";
+      let contentType = "application/pdf";
+      if (isImage) {
+        toUpload = await compressImageToTarget(file, 100 * 1024);
+        ext = "jpg";
+        contentType = "image/jpeg";
+      }
+      const path = `expenses/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("expense-attachments")
+        .upload(path, toUpload, { upsert: false, contentType });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("expense-attachments").getPublicUrl(path);
+      setForm((f) => ({ ...f, attachment_url: data.publicUrl, attachment_type: isImage ? "image" : "pdf" }));
+      const kb = Math.round(toUpload.size / 1024);
+      toast.success(lang === "bn" ? `আপলোড হয়েছে (${kb}KB)` : `Uploaded (${kb}KB)`);
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
 
   const loadCategories = async () => {
@@ -113,7 +160,7 @@ export default function AdminExpenses() {
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
-      .select("id, date, category, description, amount, service_month, approval_status, reject_reason")
+      .select("id, date, category, description, amount, service_month, approval_status, reject_reason, attachment_url, attachment_type")
       .order("date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data ?? []) as Expense[]);
@@ -156,6 +203,8 @@ export default function AdminExpenses() {
       description: e.description,
       amount: String(e.amount),
       service_month: e.service_month ?? "",
+      attachment_url: e.attachment_url ?? "",
+      attachment_type: e.attachment_type ?? "",
     });
     setOpen(true);
   };
@@ -176,6 +225,8 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         service_month: sm,
+        attachment_url: form.attachment_url || null,
+        attachment_type: form.attachment_type || null,
       }).eq("id", editingId));
     } else {
       ({ error } = await supabase.from("expenses").insert({
@@ -184,6 +235,8 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         service_month: sm,
+        attachment_url: form.attachment_url || null,
+        attachment_type: form.attachment_type || null,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       }));
@@ -380,10 +433,48 @@ export default function AdminExpenses() {
                         : "E.g. paying April's security salary in May — select April here. Leave blank to use the date's month."}
                     </p>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      <Paperclip className="h-3.5 w-3.5" />
+                      {lang === "bn" ? "সংযুক্তি (ছবি বা PDF, ঐচ্ছিক)" : "Attachment (image or PDF, optional)"}
+                    </Label>
+                    {form.attachment_url ? (
+                      <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
+                        {form.attachment_type === "pdf" ? (
+                          <FileText className="h-5 w-5 text-primary shrink-0" />
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-primary shrink-0" />
+                        )}
+                        <a href={form.attachment_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
+                          {lang === "bn" ? "সংযুক্তি দেখুন" : "View attachment"}
+                        </a>
+                        <Button type="button" size="sm" variant="ghost" className="h-7 px-2"
+                          onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          disabled={uploadingAttachment}
+                          onChange={(e) => handleAttachmentPick(e.target.files?.[0])}
+                          className="text-xs"
+                        />
+                        {uploadingAttachment && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                      </div>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">
+                      {lang === "bn"
+                        ? "ছবি অটোমেটিক ~১০০KB সাইজে কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
+                        : "Images are auto-compressed to ~100KB. PDF max 15MB."}
+                    </p>
+                  </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting}>{t("cancel")}</Button>
-                  <Button className="gradient-primary text-primary-foreground" onClick={submit} disabled={submitting}>
+                  <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting || uploadingAttachment}>{t("cancel")}</Button>
+                  <Button className="gradient-primary text-primary-foreground" onClick={submit} disabled={submitting || uploadingAttachment}>
                     {submitting ? "..." : t("save")}
                   </Button>
                 </DialogFooter>
@@ -478,6 +569,13 @@ export default function AdminExpenses() {
                                 {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
                               </span>
                             )}
+                            {e.attachment_url && (
+                              <a href={e.attachment_url} target="_blank" rel="noreferrer"
+                                className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                {e.attachment_type === "pdf" ? <FileText className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
+                                {lang === "bn" ? "সংযুক্তি" : "Attachment"}
+                              </a>
+                            )}
                           </div>
                           <div className="md:col-span-3">
                             <ApprovalBadge table="expenses" id={e.id} status={e.approval_status} rejectReason={e.reject_reason} onChanged={load} />
@@ -545,6 +643,13 @@ export default function AdminExpenses() {
                       <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
                         {lang === "bn" ? `${monthLabel(e.service_month)} এর বিল` : `for ${monthLabel(e.service_month)}`}
                       </span>
+                    )}
+                    {e.attachment_url && (
+                      <a href={e.attachment_url} target="_blank" rel="noreferrer"
+                        className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {e.attachment_type === "pdf" ? <FileText className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
+                        {lang === "bn" ? "সংযুক্তি" : "Attachment"}
+                      </a>
                     )}
                   </div>
                   <div className="md:col-span-3">

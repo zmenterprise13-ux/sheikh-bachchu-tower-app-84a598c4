@@ -393,6 +393,8 @@ export type Database = {
           approval_status: string
           approved_at: string | null
           approved_by: string | null
+          attachment_type: string | null
+          attachment_url: string | null
           category: string
           created_at: string
           created_by: string | null
@@ -409,6 +411,8 @@ export type Database = {
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           category: string
           created_at?: string
           created_by?: string | null
@@ -425,6 +429,8 @@ export type Database = {
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           category?: string
           created_at?: string
           created_by?: string | null
