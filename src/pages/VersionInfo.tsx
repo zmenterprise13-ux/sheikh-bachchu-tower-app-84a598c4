@@ -12,6 +12,7 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertCircle,
+  MessageCircle,
 } from "lucide-react";
 
 const GITHUB_OWNER = "zmenterprise13-ux";
