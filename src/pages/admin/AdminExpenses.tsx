@@ -203,6 +203,8 @@ export default function AdminExpenses() {
       description: e.description,
       amount: String(e.amount),
       service_month: e.service_month ?? "",
+      attachment_url: e.attachment_url ?? "",
+      attachment_type: e.attachment_type ?? "",
     });
     setOpen(true);
   };
