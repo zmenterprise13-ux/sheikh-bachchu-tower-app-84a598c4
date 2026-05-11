@@ -225,6 +225,8 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         service_month: sm,
+        attachment_url: form.attachment_url || null,
+        attachment_type: form.attachment_type || null,
       }).eq("id", editingId));
     } else {
       ({ error } = await supabase.from("expenses").insert({
@@ -233,6 +235,8 @@ export default function AdminExpenses() {
         description: form.description.trim(),
         amount: amt,
         service_month: sm,
+        attachment_url: form.attachment_url || null,
+        attachment_type: form.attachment_type || null,
         created_by: user?.id ?? null,
         ...approvalFieldsForInsert(role, user?.id),
       }));
