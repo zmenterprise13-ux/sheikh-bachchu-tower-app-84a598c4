@@ -432,11 +432,48 @@ export default function AdminExpenses() {
                         ? "যেমন: এপ্রিল মাসের সিকিউরিটি বেতন মে মাসে দিলে এখানে এপ্রিল সিলেক্ট করুন। ফাঁকা থাকলে তারিখের মাসই ধরা হবে।"
                         : "E.g. paying April's security salary in May — select April here. Leave blank to use the date's month."}
                     </p>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      <Paperclip className="h-3.5 w-3.5" />
+                      {lang === "bn" ? "সংযুক্তি (ছবি বা PDF, ঐচ্ছিক)" : "Attachment (image or PDF, optional)"}
+                    </Label>
+                    {form.attachment_url ? (
+                      <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
+                        {form.attachment_type === "pdf" ? (
+                          <FileText className="h-5 w-5 text-primary shrink-0" />
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-primary shrink-0" />
+                        )}
+                        <a href={form.attachment_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
+                          {lang === "bn" ? "সংযুক্তি দেখুন" : "View attachment"}
+                        </a>
+                        <Button type="button" size="sm" variant="ghost" className="h-7 px-2"
+                          onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          disabled={uploadingAttachment}
+                          onChange={(e) => handleAttachmentPick(e.target.files?.[0])}
+                          className="text-xs"
+                        />
+                        {uploadingAttachment && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                      </div>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">
+                      {lang === "bn"
+                        ? "ছবি অটোমেটিক ~১০০KB সাইজে কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
+                        : "Images are auto-compressed to ~100KB. PDF max 15MB."}
+                    </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting}>{t("cancel")}</Button>
-                  <Button className="gradient-primary text-primary-foreground" onClick={submit} disabled={submitting}>
+                  <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }} disabled={submitting || uploadingAttachment}>{t("cancel")}</Button>
+                  <Button className="gradient-primary text-primary-foreground" onClick={submit} disabled={submitting || uploadingAttachment}>
                     {submitting ? "..." : t("save")}
                   </Button>
                 </DialogFooter>
