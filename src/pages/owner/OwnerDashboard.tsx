@@ -717,6 +717,18 @@ export default function OwnerDashboard() {
             </div>
             <TrendingUp className="h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
           </Link>
+          <Link to="/owner/online-payments" className="group rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/10 p-4 shadow-soft flex items-center justify-between gap-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold text-foreground text-sm">{lang === "bn" ? "অনলাইন পেমেন্ট ইতিহাস" : "Online Payment History"}</div>
+                <div className="text-[11px] text-muted-foreground">{lang === "bn" ? "SSLCommerz দিয়ে করা সকল পেমেন্ট" : "All payments via SSLCommerz"}</div>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+          </Link>
           <Link to="/owner/info" className="group rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-4 shadow-soft flex items-center justify-between gap-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center shrink-0">
