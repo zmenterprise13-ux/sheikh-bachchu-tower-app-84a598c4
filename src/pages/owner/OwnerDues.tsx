@@ -282,7 +282,7 @@ export default function OwnerDues() {
         })}
       </div>
 
-      <Dialog open={!!preview} onOpenChange={(v) => !v && setPayingId(null) === undefined && setPreview(null)}>
+      <Dialog open={!!preview} onOpenChange={(v) => { if (!v) setPreview(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
