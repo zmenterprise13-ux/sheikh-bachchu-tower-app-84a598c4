@@ -281,6 +281,90 @@ export default function OwnerDues() {
           );
         })}
       </div>
+
+      <Dialog open={!!preview} onOpenChange={(v) => !v && setPayingId(null) === undefined && setPreview(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              {lang === "bn" ? "পেমেন্ট প্রিভিউ" : "Payment preview"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "bn"
+                ? "নিচের অংক ও ফি যাচাই করে এগিয়ে যান।"
+                : "Review the breakdown below before continuing."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {preview && (
+            <div className="space-y-3">
+              <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{lang === "bn" ? "ফ্ল্যাট" : "Flat"}</span>
+                  <span className="font-semibold text-foreground">{preview.flatNo} · {preview.month}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{lang === "bn" ? "মোড" : "Mode"}</span>
+                  <span className="font-semibold text-foreground capitalize">{sslcz.mode}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border p-3 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{lang === "bn" ? "বকেয়া" : "Bill due"}</span>
+                  <span className="tabular-nums font-semibold text-foreground">{formatMoney(preview.due, lang)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {lang === "bn" ? "অনলাইন ফি" : "Online fee"} ({((sslcz.fee_pct || 0) * 100).toFixed(2)}%)
+                  </span>
+                  <span className="tabular-nums text-foreground">+ {formatMoney(preview.fee, lang)}</span>
+                </div>
+                <div className="border-t border-border pt-2 flex justify-between">
+                  <span className="font-semibold text-foreground">{lang === "bn" ? "মোট পরিশোধ" : "Total to pay"}</span>
+                  <span className="tabular-nums font-bold text-primary text-base">{formatMoney(preview.total, lang)}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border p-3 text-[11px] text-muted-foreground space-y-1">
+                <div className="flex justify-between">
+                  <span>{lang === "bn" ? "অনুমোদিত সীমা" : "Allowed range"}</span>
+                  <span className="text-foreground">
+                    ৳{sslcz.min_amount} – {sslcz.max_amount > 0 ? `৳${sslcz.max_amount}` : (lang === "bn" ? "সীমা নেই" : "no limit")}
+                  </span>
+                </div>
+              </div>
+
+              {preview.errors.length > 0 && (
+                <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-3 text-xs space-y-1">
+                  {preview.errors.map((er, i) => (
+                    <div key={i} className="flex items-start gap-2 text-destructive">
+                      <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <span>{er}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPreview(null)}>
+              {lang === "bn" ? "বাতিল" : "Cancel"}
+            </Button>
+            <Button
+              onClick={confirmPay}
+              disabled={!preview || preview.errors.length > 0 || payingId === preview?.billId}
+              className="gradient-primary text-primary-foreground gap-2"
+            >
+              {payingId === preview?.billId
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <CreditCard className="h-4 w-4" />}
+              {lang === "bn" ? "এগিয়ে যান" : "Proceed to gateway"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
