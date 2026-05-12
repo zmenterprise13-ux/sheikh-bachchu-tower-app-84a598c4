@@ -262,7 +262,7 @@ export default function OwnerDues() {
                               {sslcz.enabled && (
                                 <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5"
                                   disabled={payingId === b.id}
-                                  onClick={() => sslOnline(b.id, b.flat_id, due)}>
+                                  onClick={() => openPreview(b, g.flat, due)}>
                                   {payingId === b.id
                                     ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     : <>💳</>}
