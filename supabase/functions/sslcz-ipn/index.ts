@@ -63,9 +63,13 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Resolve mode (sandbox/live) from app_settings
+    const { data: setRow } = await admin.from("app_settings").select("value").eq("key", "sslcommerz_gateway").maybeSingle();
+    const mode: "sandbox" | "live" = ((setRow?.value as any)?.mode === "live") ? "live" : "sandbox";
+
     // Need val_id to validate. If IPN gave it, use it; else look it up via tran query.
     if (!val_id) {
-      const q = new URL("https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php");
+      const q = new URL(LOOKUP_URLS[mode]);
       q.searchParams.set("tran_id", tran_id);
       q.searchParams.set("store_id", STORE_ID);
       q.searchParams.set("store_passwd", STORE_PASS);
@@ -80,7 +84,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const v = new URL(VALIDATOR_URL);
+    const v = new URL(VALIDATOR_URLS[mode]);
     v.searchParams.set("val_id", val_id);
     v.searchParams.set("store_id", STORE_ID);
     v.searchParams.set("store_passwd", STORE_PASS);
