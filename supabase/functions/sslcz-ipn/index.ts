@@ -26,22 +26,26 @@ Deno.serve(async (req) => {
     const SB_URL = Deno.env.get("SUPABASE_URL")!;
     const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Accept either IPN POST (form) OR client confirmation GET (?tran_id=...)
+    // Accept either IPN POST (form) OR client confirmation GET (?tran_id=...&result=success|fail|cancel)
     let tran_id = "";
     let val_id = "";
+    let result = "success";
     if (req.method === "GET") {
       const u = new URL(req.url);
       tran_id = u.searchParams.get("tran_id") || "";
       val_id = u.searchParams.get("val_id") || "";
+      result = (u.searchParams.get("result") || "success").toLowerCase();
     } else {
       const ct = req.headers.get("content-type") || "";
       if (ct.includes("application/json")) {
         const j = await req.json();
         tran_id = j.tran_id || ""; val_id = j.val_id || "";
+        result = (j.result || "success").toLowerCase();
       } else {
         const form = await req.formData();
         tran_id = String(form.get("tran_id") || "");
         val_id = String(form.get("val_id") || "");
+        result = String(form.get("status") || "success").toLowerCase();
       }
     }
 
@@ -60,6 +64,21 @@ Deno.serve(async (req) => {
     }
     if (pr.status === "approved") {
       return new Response(JSON.stringify({ ok: true, already: true, status: "approved" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Fail / cancel: mark rejected so the bill clearly stays unpaid (no validation needed)
+    if (result === "fail" || result === "cancel" || result === "failed" || result === "cancelled") {
+      if (pr.status !== "rejected") {
+        await admin.from("payment_requests").update({
+          status: "rejected",
+          review_note: result === "cancel" || result === "cancelled"
+            ? "User cancelled at SSLCommerz"
+            : "Payment failed at SSLCommerz",
+          gateway_raw: { client_result: result, tran_id, at: new Date().toISOString() },
+        }).eq("id", pr.id);
+      }
+      return new Response(JSON.stringify({ ok: false, status: "rejected", reason: result }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
