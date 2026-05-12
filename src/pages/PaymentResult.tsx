@@ -15,19 +15,27 @@ export default function PaymentResult({ mode }: { mode: Mode }) {
   const [msg, setMsg] = useState<string>("");
 
   useEffect(() => {
-    if (mode !== "success" || !tran_id) {
-      setState(mode === "fail" ? "failed" : "pending");
+    if (!tran_id) {
+      setState(mode === "success" ? "pending" : "failed");
       return;
     }
     (async () => {
       try {
         const SB_URL = import.meta.env.VITE_SUPABASE_URL;
-        const r = await fetch(`${SB_URL}/functions/v1/sslcz-ipn?tran_id=${encodeURIComponent(tran_id)}`);
+        const r = await fetch(
+          `${SB_URL}/functions/v1/sslcz-ipn?tran_id=${encodeURIComponent(tran_id)}&result=${mode}`
+        );
         const j = await r.json();
-        if (j?.ok && j?.status === "approved") setState("approved");
-        else { setState("pending"); setMsg(j?.error || j?.status || ""); }
+        if (mode === "success") {
+          if (j?.ok && j?.status === "approved") setState("approved");
+          else { setState("pending"); setMsg(j?.error || j?.status || ""); }
+        } else {
+          setState("failed");
+          setMsg(j?.reason || j?.status || "");
+        }
       } catch (e: any) {
-        setState("pending"); setMsg(String(e));
+        setState(mode === "success" ? "pending" : "failed");
+        setMsg(String(e));
       }
     })();
   }, [mode, tran_id]);
