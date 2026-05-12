@@ -505,7 +505,10 @@ export default function AdminExpenses() {
                             </div>
                           </div>
                           <Button type="button" size="sm" variant="ghost" className="h-7 px-2 shrink-0"
-                            onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
+                            onClick={() => {
+                              if (form.attachment_url) deleteCloudinaryAttachment(form.attachment_url);
+                              setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }));
+                            }}>
                             <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
