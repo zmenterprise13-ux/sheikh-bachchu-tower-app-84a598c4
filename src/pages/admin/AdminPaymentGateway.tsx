@@ -56,6 +56,30 @@ export default function AdminPaymentGateway() {
     else toast.success(lang === "bn" ? "সংরক্ষিত হয়েছে" : "Saved");
   };
 
+  const onTest = async () => {
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sslcz-test", {
+        body: { amount: testAmount, mode: form.mode },
+      });
+      const at = new Date().toLocaleString();
+      if (error) {
+        setLogs((p) => [{ ok: false, at, error: error.message }, ...p].slice(0, 10));
+        toast.error(error.message);
+      } else {
+        const log: TestLog = { ...(data as any), at };
+        setLogs((p) => [log, ...p].slice(0, 10));
+        if (log.ok) toast.success(lang === "bn" ? "টেস্ট সফল ✅" : "Test succeeded ✅");
+        else toast.error(lang === "bn" ? "টেস্ট ব্যর্থ ❌" : "Test failed ❌");
+      }
+    } catch (e: any) {
+      setLogs((p) => [{ ok: false, at: new Date().toLocaleString(), error: String(e?.message || e) }, ...p].slice(0, 10));
+      toast.error(String(e?.message || e));
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
