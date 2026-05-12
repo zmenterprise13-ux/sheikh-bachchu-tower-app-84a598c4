@@ -364,8 +364,11 @@ export default function OwnerPayments() {
               <Textarea value={note} onChange={(e)=>setNote(e.target.value)} rows={2}/>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={()=>setOpen(false)}>{t("cancel")}</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={()=>setOpen(false)} className="sm:mr-auto">{t("cancel")}</Button>
+            <Button onClick={payOnline} disabled={submitting || !billId} variant="secondary" className="gap-2">
+              💳 {lang === "bn" ? "অনলাইনে পে করুন" : "Pay Online"}
+            </Button>
             <Button onClick={submit} disabled={submitting} className="gradient-primary text-primary-foreground">{t("submit")}</Button>
           </DialogFooter>
         </DialogContent>
