@@ -174,7 +174,8 @@ export default function AdminExpenses() {
       let contentType = "application/pdf";
       if (isImage) {
         try {
-          toUpload = await compressImageToTarget(file, 100 * 1024);
+          // Better resolution at small size: target ~350KB, allow up to 2000px on longest side
+          toUpload = await compressImageToTarget(file, 350 * 1024, { startMaxDim: 2000, minDim: 1000 });
         } catch {
           toast.dismiss(uploadingToastId);
           toast.error(lang === "bn" ? "ছবি প্রক্রিয়া করা যায়নি" : "Could not process image");
@@ -577,8 +578,8 @@ export default function AdminExpenses() {
                     )}
                     <p className="text-[11px] text-muted-foreground">
                       {lang === "bn"
-                        ? "ছবি অটোমেটিক ~১০০KB সাইজে কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
-                        : "Images are auto-compressed to ~100KB. PDF max 15MB."}
+                        ? "ছবি ভালো রেজুলেশন রেখে ~৩৫০KB এ কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
+                        : "Images are compressed to ~350KB while keeping good resolution. PDF max 15MB."}
                     </p>
                   </div>
                 </div>
