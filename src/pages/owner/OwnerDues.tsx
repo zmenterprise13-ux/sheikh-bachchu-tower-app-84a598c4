@@ -45,25 +45,52 @@ export default function OwnerDues() {
   const { settings: sslcz } = useSslczSettings();
   const navigate = useNavigate();
 
-  const sslOnline = async (billId: string, flatId: string, amount: number) => {
+  type Preview = {
+    billId: string;
+    flatId: string;
+    flatNo?: string;
+    month?: string;
+    due: number;
+    fee: number;
+    total: number;
+    errors: string[];
+  };
+  const [preview, setPreview] = useState<Preview | null>(null);
+
+  const openPreview = (bill: Bill, flat: OwnerFlat | undefined, due: number) => {
+    const errors: string[] = [];
     if (!sslcz.enabled) {
-      toast.error(lang === "bn" ? "অনলাইন পেমেন্ট চালু নেই" : "Online payment is disabled");
-      return;
+      errors.push(lang === "bn" ? "অনলাইন পেমেন্ট চালু নেই" : "Online payment is disabled");
     }
-    if (amount < sslcz.min_amount) {
-      toast.error(lang === "bn" ? `সর্বনিম্ন ৳${sslcz.min_amount}` : `Minimum ৳${sslcz.min_amount}`);
-      return;
+    if (due < sslcz.min_amount) {
+      errors.push(
+        lang === "bn"
+          ? `সর্বনিম্ন পরিমাণ ৳${sslcz.min_amount} (এই বিল ৳${due})`
+          : `Minimum allowed is ৳${sslcz.min_amount} (this bill is ৳${due})`
+      );
     }
-    if (sslcz.max_amount > 0 && amount > sslcz.max_amount) {
-      toast.error(lang === "bn" ? `সর্বোচ্চ ৳${sslcz.max_amount}` : `Maximum ৳${sslcz.max_amount}`);
-      return;
+    if (sslcz.max_amount > 0 && due > sslcz.max_amount) {
+      errors.push(
+        lang === "bn"
+          ? `সর্বোচ্চ পরিমাণ ৳${sslcz.max_amount} (এই বিল ৳${due})`
+          : `Maximum allowed is ৳${sslcz.max_amount} (this bill is ৳${due})`
+      );
     }
-    const fee = +(amount * (sslcz.fee_pct || 0)).toFixed(2);
-    const total = +(amount + fee).toFixed(2);
-    setPayingId(billId);
+    const fee = +(due * (sslcz.fee_pct || 0)).toFixed(2);
+    const total = +(due + fee).toFixed(2);
+    setPreview({
+      billId: bill.id, flatId: bill.flat_id,
+      flatNo: flat?.flat_no, month: bill.month,
+      due, fee, total, errors,
+    });
+  };
+
+  const confirmPay = async () => {
+    if (!preview || preview.errors.length > 0) return;
+    setPayingId(preview.billId);
     try {
       const { data, error } = await supabase.functions.invoke("sslcz-init", {
-        body: { bill_id: billId, flat_id: flatId, amount: total, return_origin: window.location.origin },
+        body: { bill_id: preview.billId, flat_id: preview.flatId, amount: preview.total, return_origin: window.location.origin },
       });
       if (error) throw error;
       if (!data?.url) throw new Error(data?.error || "Gateway init failed");
