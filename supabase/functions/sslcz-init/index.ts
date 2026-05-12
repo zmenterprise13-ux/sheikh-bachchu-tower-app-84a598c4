@@ -7,7 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SSLCZ_SANDBOX_URL = "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
+const SSLCZ_URLS = {
+  sandbox: "https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
+  live: "https://securepay.sslcommerz.com/gwprocess/v4/api.php",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
