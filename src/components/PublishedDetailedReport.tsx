@@ -293,6 +293,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
                 const baseLabel = lang === "bn" ? (cd?.name_bn || cd?.name || (t(r.category as TKey) as string) || r.category) : (cd?.name || (t(r.category as TKey) as string) || r.category);
                 const descs = expenseDescByCat[r.category] ?? [];
                 const label = descs.length > 0 ? `${baseLabel} : ${descs.join(", ")}` : baseLabel;
+                const atts = attachmentsByCat[r.category] ?? [];
                 return (
                   <div key={r.category}>
                     <div className="flex items-start justify-between text-sm mb-1 gap-3">
@@ -302,6 +303,33 @@ export function PublishedDetailedReport({ month }: { month: string }) {
                     <div className="h-2 rounded-full bg-secondary overflow-hidden">
                       <div className="h-full gradient-primary" style={{ width: `${(Number(r.amount) / max) * 100}%` }} />
                     </div>
+                    {atts.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {atts.map((a, i) => {
+                          const isPdf = a.type === "pdf";
+                          const Icon = isPdf ? FileText : ImageIcon;
+                          const labelTxt = a.description
+                            ? a.description
+                            : (lang === "bn"
+                                ? (isPdf ? "পিডিএফ" : "ছবি")
+                                : (isPdf ? "PDF" : "Image"));
+                          return (
+                            <a
+                              key={i}
+                              href={a.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-2 py-0.5 text-[11px] font-medium"
+                              title={lang === "bn" ? "এ্যাটাচমেন্ট দেখুন" : "View attachment"}
+                            >
+                              <Paperclip className="h-3 w-3" />
+                              <Icon className="h-3 w-3" />
+                              <span className="truncate max-w-[140px]">{labelTxt}</span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               });
