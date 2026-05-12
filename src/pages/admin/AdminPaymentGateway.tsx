@@ -31,6 +31,9 @@ export default function AdminPaymentGateway() {
   const { settings, loading, save } = useSslczSettings();
   const [form, setForm] = useState<SslczSettings>(SSLCZ_DEFAULTS);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testAmount, setTestAmount] = useState<number>(10);
+  const [logs, setLogs] = useState<TestLog[]>([]);
 
   useEffect(() => { setForm(settings); }, [settings]);
 
