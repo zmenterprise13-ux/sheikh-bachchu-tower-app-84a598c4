@@ -8,7 +8,14 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
-const VALIDATOR_URL = "https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php";
+const VALIDATOR_URLS = {
+  sandbox: "https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php",
+  live: "https://securepay.sslcommerz.com/validator/api/validationserverAPI.php",
+};
+const LOOKUP_URLS = {
+  sandbox: "https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php",
+  live: "https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
