@@ -140,6 +140,9 @@ const App = () => (
               <Route path="/download" element={<Download />} />
               <Route path="/update" element={<ProtectedRoute><UpdateStatus /></ProtectedRoute>} />
               <Route path="/version" element={<VersionInfo />} />
+              <Route path="/payment/success" element={<PaymentResult mode="success" />} />
+              <Route path="/payment/fail" element={<PaymentResult mode="fail" />} />
+              <Route path="/payment/cancel" element={<PaymentResult mode="cancel" />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
