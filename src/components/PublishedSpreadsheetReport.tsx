@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock } from "lucide-react";
+import { Lock, Paperclip, FileText, ImageIcon } from "lucide-react";
 
 type Snapshot = {
   billed: number;
@@ -39,6 +39,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
   const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
+  const [attachmentsByCat, setAttachmentsByCat] = useState<Record<string, { url: string; type: string | null; description: string }[]>>({});
 
   useEffect(() => {
     (async () => {
@@ -56,7 +57,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
           .lt("paid_date", nextMonth),
         supabase
           .from("expenses")
-          .select("category, description")
+          .select("category, description, attachment_url, attachment_type")
           .eq("approval_status", "approved")
           .gte("date", start)
           .lt("date", nextMonth),
@@ -73,13 +74,20 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       }
       setLiveRepayLenders(Array.from(agg.values()).filter((x) => x.amount > 0));
       const descMap: Record<string, string[]> = {};
+      const attMap: Record<string, { url: string; type: string | null; description: string }[]> = {};
       for (const e of (expRes.data ?? []) as any[]) {
         const desc = String(e.description || "").trim();
-        if (!desc) continue;
-        if (!descMap[e.category]) descMap[e.category] = [];
-        if (!descMap[e.category].includes(desc)) descMap[e.category].push(desc);
+        if (desc) {
+          if (!descMap[e.category]) descMap[e.category] = [];
+          if (!descMap[e.category].includes(desc)) descMap[e.category].push(desc);
+        }
+        if (e.attachment_url) {
+          if (!attMap[e.category]) attMap[e.category] = [];
+          attMap[e.category].push({ url: e.attachment_url, type: e.attachment_type, description: desc });
+        }
       }
       setExpenseDescByCat(descMap);
+      setAttachmentsByCat(attMap);
       setLoading(false);
     })();
   }, [month]);
