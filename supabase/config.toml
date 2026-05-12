@@ -1,10 +1,1 @@
 project_id = "ogurhyuwaurxxivwgqnx"
-
-[functions.generate-monthly-bills]
-verify_jwt = false
-
-[functions.github-latest-release]
-verify_jwt = false
-
-[functions.sslcz-ipn]
-verify_jwt = false
