@@ -8,8 +8,23 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Save, KeyRound, CreditCard, ExternalLink } from "lucide-react";
+import { Save, KeyRound, CreditCard, ExternalLink, FlaskConical, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useSslczSettings, SSLCZ_DEFAULTS, type SslczSettings } from "@/hooks/useSslczSettings";
+import { supabase } from "@/integrations/supabase/client";
+
+type TestLog = {
+  ok: boolean;
+  at: string;
+  mode?: string;
+  httpStatus?: number;
+  tran_id?: string;
+  status?: string | null;
+  failedreason?: string | null;
+  gatewayPageURL?: string | null;
+  storeIdPreview?: string;
+  error?: string;
+  raw?: any;
+};
 
 export default function AdminPaymentGateway() {
   const { lang } = useLang();
