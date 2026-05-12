@@ -146,6 +146,24 @@ export default function OwnerPayments() {
     refresh(flats.map(f => f.id));
   };
 
+  const payOnline = async () => {
+    if (!submitFlatId || !billId || !amount || Number(amount) <= 0) {
+      toast.error(lang === "bn" ? "বিল ও সঠিক টাকার পরিমাণ নির্বাচন করুন" : "Select bill & valid amount"); return;
+    }
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sslcz-init", {
+        body: { bill_id: billId, flat_id: submitFlatId, amount: Number(amount), return_origin: window.location.origin },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error(data?.error || "Gateway init failed");
+      window.location.href = data.url;
+    } catch (e: any) {
+      toast.error(e?.message || String(e));
+      setSubmitting(false);
+    }
+  };
+
   const downloadReceipt = (pr: PR) => {
     const f = flats.find(x => x.id === pr.flat_id);
     return downloadReceiptPdf(pr as any, f ? { flat_no: f.flat_no, owner_name: f.owner_name } : null, { number: BKASH_NUMBER, fee_pct: BKASH_FEE_PCT });
@@ -346,8 +364,11 @@ export default function OwnerPayments() {
               <Textarea value={note} onChange={(e)=>setNote(e.target.value)} rows={2}/>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={()=>setOpen(false)}>{t("cancel")}</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={()=>setOpen(false)} className="sm:mr-auto">{t("cancel")}</Button>
+            <Button onClick={payOnline} disabled={submitting || !billId} variant="secondary" className="gap-2">
+              💳 {lang === "bn" ? "অনলাইনে পে করুন" : "Pay Online"}
+            </Button>
             <Button onClick={submit} disabled={submitting} className="gradient-primary text-primary-foreground">{t("submit")}</Button>
           </DialogFooter>
         </DialogContent>
