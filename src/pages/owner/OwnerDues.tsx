@@ -4,7 +4,7 @@ import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber } from "@/i18n/translations";
 import { StatusBadge, FlatStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { CreditCard, ChevronDown, Building2, Home, CheckCircle2 } from "lucide-react";
+import { CreditCard, ChevronDown, Building2, Home, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerFlats, OwnerFlat } from "@/hooks/useOwnerFlat";
@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useSslczSettings } from "@/hooks/useSslczSettings";
 
 
 type Bill = {
@@ -39,7 +40,38 @@ export default function OwnerDues() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const { settings: sslcz } = useSslczSettings();
   const navigate = useNavigate();
+
+  const sslOnline = async (billId: string, flatId: string, amount: number) => {
+    if (!sslcz.enabled) {
+      toast.error(lang === "bn" ? "অনলাইন পেমেন্ট চালু নেই" : "Online payment is disabled");
+      return;
+    }
+    if (amount < sslcz.min_amount) {
+      toast.error(lang === "bn" ? `সর্বনিম্ন ৳${sslcz.min_amount}` : `Minimum ৳${sslcz.min_amount}`);
+      return;
+    }
+    if (sslcz.max_amount > 0 && amount > sslcz.max_amount) {
+      toast.error(lang === "bn" ? `সর্বোচ্চ ৳${sslcz.max_amount}` : `Maximum ৳${sslcz.max_amount}`);
+      return;
+    }
+    const fee = +(amount * (sslcz.fee_pct || 0)).toFixed(2);
+    const total = +(amount + fee).toFixed(2);
+    setPayingId(billId);
+    try {
+      const { data, error } = await supabase.functions.invoke("sslcz-init", {
+        body: { bill_id: billId, flat_id: flatId, amount: total, return_origin: window.location.origin },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error(data?.error || "Gateway init failed");
+      window.location.href = data.url;
+    } catch (e: any) {
+      toast.error(e?.message || String(e));
+      setPayingId(null);
+    }
+  };
 
   useEffect(() => {
     if (flats.length === 0) {
@@ -194,10 +226,22 @@ export default function OwnerDues() {
                           </div>
                           <StatusBadge status={b.status} />
                           {due > 0 && (
-                            <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5"
-                              onClick={() => navigate(`/owner/payments?bill=${b.id}&pay=1`)}>
-                              <CreditCard className="h-3.5 w-3.5" /> {t("payNow")}
-                            </Button>
+                            <div className="flex flex-wrap gap-1.5 ml-auto">
+                              <Button size="sm" variant="outline" className="gap-1.5"
+                                onClick={() => navigate(`/owner/payments?bill=${b.id}&pay=1`)}>
+                                <CreditCard className="h-3.5 w-3.5" /> {t("payNow")}
+                              </Button>
+                              {sslcz.enabled && (
+                                <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5"
+                                  disabled={payingId === b.id}
+                                  onClick={() => sslOnline(b.id, b.flat_id, due)}>
+                                  {payingId === b.id
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    : <>💳</>}
+                                  {lang === "bn" ? "অনলাইনে পে" : "Pay Online"}
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
