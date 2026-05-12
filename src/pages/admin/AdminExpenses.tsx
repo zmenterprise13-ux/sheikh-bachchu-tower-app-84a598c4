@@ -131,13 +131,21 @@ export default function AdminExpenses() {
         ext = "jpg";
         contentType = "image/jpeg";
       }
-      const path = `expenses/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("expense-attachments")
-        .upload(path, toUpload, { upsert: false, contentType });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("expense-attachments").getPublicUrl(path);
-      setForm((f) => ({ ...f, attachment_url: data.publicUrl, attachment_type: isImage ? "image" : "pdf" }));
+      const cloudName = "dbwc5vwyf";
+      const uploadPreset = "skjmbuhc";
+      const fd = new FormData();
+      const filename = `expense_${Date.now()}.${ext}`;
+      fd.append("file", new File([toUpload], filename, { type: contentType }));
+      fd.append("upload_preset", uploadPreset);
+      fd.append("folder", "expense-attachments");
+      const resourceType = isImage ? "image" : "raw";
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
+        method: "POST",
+        body: fd,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.secure_url) throw new Error(json?.error?.message || "Cloudinary upload failed");
+      setForm((f) => ({ ...f, attachment_url: json.secure_url as string, attachment_type: isImage ? "image" : "pdf" }));
       const kb = Math.round(toUpload.size / 1024);
       toast.success(lang === "bn" ? `আপলোড হয়েছে (${kb}KB)` : `Uploaded (${kb}KB)`);
     } catch (err: any) {
