@@ -24,6 +24,8 @@ import { useOwnerReportStyle } from "@/hooks/useOwnerReportStyle";
 import { ReportPadSettingsCard } from "@/components/ReportPadSettingsCard";
 import { Textarea } from "@/components/ui/textarea";
 import { useReceiptSettings, RECEIPT_DEFAULTS, type ReceiptSettings } from "@/hooks/useReceiptSettings";
+import { Link } from "react-router-dom";
+import { CreditCard, ChevronRight } from "lucide-react";
 
 const monthRegex = /^\d{4}-\d{2}$/;
 const SettingsSchema = z.object({
@@ -367,6 +369,29 @@ export default function AdminSettings() {
             <OwnerReportStyleCard />
 
             <ReportPadSettingsCard />
+
+            {/* Payment gateway sub-page link */}
+            <Link
+              to="/admin/settings/payment-gateway"
+              className="block rounded-2xl bg-card border border-border p-5 shadow-soft hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 grid place-items-center text-primary">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-foreground">
+                    {lang === "bn" ? "পেমেন্ট গেটওয়ে (SSLCommerz)" : "Payment Gateway (SSLCommerz)"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {lang === "bn"
+                      ? "অনলাইন পেমেন্ট চালু/বন্ধ, mode, fee, credentials"
+                      : "Enable/disable online payment, mode, fee, credentials"}
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </Link>
 
             <ReceiptTemplateCard />
 
