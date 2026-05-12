@@ -224,6 +224,89 @@ export default function AdminPaymentGateway() {
                 </a>
               </div>
             </div>
+
+            {/* Test payment */}
+            <div className="rounded-2xl bg-card border border-border p-5 shadow-soft space-y-3">
+              <div className="font-semibold text-foreground flex items-center gap-2">
+                <FlaskConical className="h-4 w-4 text-primary" />
+                {lang === "bn" ? "টেস্ট পেমেন্ট" : "Test payment"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {lang === "bn"
+                  ? "Store credentials ও বর্তমান mode ঠিকঠাক কিনা যাচাই করতে SSLCommerz এ একটি ডামি সেশন তৈরি করে দেখায় (কোনো বিল/পেমেন্ট রেকর্ড তৈরি হয় না)।"
+                  : "Verifies your Store credentials and selected mode by creating a dummy session with SSLCommerz (no bill or payment record is created)."}
+              </p>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="w-32">
+                  <Label className="text-xs">{lang === "bn" ? "টেস্ট টাকা" : "Test amount"}</Label>
+                  <Input
+                    type="number" min={1}
+                    value={testAmount}
+                    onChange={(e) => setTestAmount(Math.max(1, Number(e.target.value) || 1))}
+                  />
+                </div>
+                <Button onClick={onTest} disabled={testing} variant="outline" className="gap-2">
+                  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
+                  {lang === "bn" ? "টেস্ট চালান" : "Run test"}
+                </Button>
+                <span className="text-[11px] text-muted-foreground">
+                  {lang === "bn" ? "মোড:" : "Mode:"} <b>{form.mode}</b>
+                </span>
+              </div>
+
+              {logs.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <div className="text-xs font-medium text-foreground">
+                    {lang === "bn" ? "ফলাফল লগ" : "Result log"}
+                  </div>
+                  <div className="space-y-2 max-h-80 overflow-auto">
+                    {logs.map((l, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-lg border p-3 text-xs ${
+                          l.ok
+                            ? "border-emerald-500/40 bg-emerald-500/5"
+                            : "border-destructive/40 bg-destructive/5"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 font-semibold">
+                            {l.ok ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            )}
+                            {l.ok
+                              ? (lang === "bn" ? "সফল" : "Success")
+                              : (lang === "bn" ? "ব্যর্থ" : "Failed")}
+                            {l.mode && <span className="text-muted-foreground font-normal">· {l.mode}</span>}
+                          </div>
+                          <span className="text-muted-foreground">{l.at}</span>
+                        </div>
+                        <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 text-muted-foreground">
+                          {l.tran_id && <div>tran_id: <span className="text-foreground">{l.tran_id}</span></div>}
+                          {l.httpStatus !== undefined && <div>HTTP: <span className="text-foreground">{l.httpStatus}</span></div>}
+                          {l.status && <div>status: <span className="text-foreground">{l.status}</span></div>}
+                          {l.storeIdPreview && <div>store: <span className="text-foreground">{l.storeIdPreview}</span></div>}
+                          {l.failedreason && <div className="sm:col-span-2">reason: <span className="text-destructive">{l.failedreason}</span></div>}
+                          {l.error && <div className="sm:col-span-2">error: <span className="text-destructive">{l.error}</span></div>}
+                        </div>
+                        {l.ok && l.gatewayPageURL && (
+                          <a
+                            href={l.gatewayPageURL}
+                            target="_blank" rel="noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            {lang === "bn" ? "Gateway পেজ খুলুন" : "Open gateway page"}
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
