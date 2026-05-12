@@ -447,19 +447,54 @@ export default function AdminExpenses() {
                       {lang === "bn" ? "সংযুক্তি (ছবি বা PDF, ঐচ্ছিক)" : "Attachment (image or PDF, optional)"}
                     </Label>
                     {form.attachment_url ? (
-                      <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
-                        {form.attachment_type === "pdf" ? (
-                          <FileText className="h-5 w-5 text-primary shrink-0" />
-                        ) : (
-                          <ImageIcon className="h-5 w-5 text-primary shrink-0" />
-                        )}
-                        <a href={form.attachment_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
-                          {lang === "bn" ? "সংযুক্তি দেখুন" : "View attachment"}
-                        </a>
-                        <Button type="button" size="sm" variant="ghost" className="h-7 px-2"
-                          onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
+                      <div className="rounded-lg border border-border bg-secondary/40 p-2 space-y-2">
+                        <div className="flex items-start gap-2">
+                          {form.attachment_type === "pdf" ? (
+                            <div className="h-16 w-16 rounded-md bg-background border border-border flex items-center justify-center shrink-0">
+                              <FileText className="h-7 w-7 text-primary" />
+                            </div>
+                          ) : (
+                            <a href={form.attachment_url} target="_blank" rel="noreferrer" className="shrink-0">
+                              <img
+                                src={form.attachment_url}
+                                alt="attachment preview"
+                                className="h-16 w-16 object-cover rounded-md border border-border"
+                              />
+                            </a>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="text-xs font-medium truncate">
+                              {form.attachment_type === "pdf"
+                                ? (lang === "bn" ? "PDF সংযুক্তি" : "PDF attachment")
+                                : (lang === "bn" ? "ছবি সংযুক্তি" : "Image attachment")}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <a
+                                href={form.attachment_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                {lang === "bn" ? "প্রিভিউ" : "Preview"}
+                              </a>
+                              <a
+                                href={form.attachment_url}
+                                download
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                                {lang === "bn" ? "ডাউনলোড" : "Download"}
+                              </a>
+                            </div>
+                          </div>
+                          <Button type="button" size="sm" variant="ghost" className="h-7 px-2 shrink-0"
+                            onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
