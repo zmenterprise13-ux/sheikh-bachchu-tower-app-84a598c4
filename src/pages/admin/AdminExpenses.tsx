@@ -109,6 +109,15 @@ export default function AdminExpenses() {
     setEditingId(null);
   };
 
+  const deleteCloudinaryAttachment = async (url?: string | null) => {
+    if (!url || !url.includes("cloudinary.com")) return;
+    try {
+      await supabase.functions.invoke("cloudinary-delete", { body: { url } });
+    } catch (err) {
+      console.warn("Cloudinary delete failed", err);
+    }
+  };
+
   const handleAttachmentPick = async (file: File | null | undefined) => {
     if (!file) return;
     const isImage = file.type.startsWith("image/");
@@ -121,6 +130,11 @@ export default function AdminExpenses() {
       toast.error(lang === "bn" ? "ফাইল সাইজ ১৫MB এর বেশি" : "File too large (max 15MB)");
       return;
     }
+    setForm((f) => {
+      // Replacing an existing attachment: delete old from Cloudinary
+      if (f.attachment_url) deleteCloudinaryAttachment(f.attachment_url);
+      return f;
+    });
     setUploadingAttachment(true);
     try {
       let toUpload: Blob = file;
@@ -259,9 +273,14 @@ export default function AdminExpenses() {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
+    const target = items.find((x) => x.id === deleteId);
     const { error } = await supabase.from("expenses").delete().eq("id", deleteId);
     if (error) toast.error(error.message);
-    else { toast.success(lang === "bn" ? "মুছে ফেলা হয়েছে" : "Deleted"); load(); }
+    else {
+      if (target?.attachment_url) deleteCloudinaryAttachment(target.attachment_url);
+      toast.success(lang === "bn" ? "মুছে ফেলা হয়েছে" : "Deleted");
+      load();
+    }
     setDeleteId(null);
   };
 
@@ -491,7 +510,10 @@ export default function AdminExpenses() {
                             </div>
                           </div>
                           <Button type="button" size="sm" variant="ghost" className="h-7 px-2 shrink-0"
-                            onClick={() => setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }))}>
+                            onClick={() => {
+                              if (form.attachment_url) deleteCloudinaryAttachment(form.attachment_url);
+                              setForm((f) => ({ ...f, attachment_url: "", attachment_type: "" }));
+                            }}>
                             <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
