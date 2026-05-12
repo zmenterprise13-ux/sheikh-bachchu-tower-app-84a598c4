@@ -273,9 +273,14 @@ export default function AdminExpenses() {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
+    const target = items.find((x) => x.id === deleteId);
     const { error } = await supabase.from("expenses").delete().eq("id", deleteId);
     if (error) toast.error(error.message);
-    else { toast.success(lang === "bn" ? "মুছে ফেলা হয়েছে" : "Deleted"); load(); }
+    else {
+      if (target?.attachment_url) deleteCloudinaryAttachment(target.attachment_url);
+      toast.success(lang === "bn" ? "মুছে ফেলা হয়েছে" : "Deleted");
+      load();
+    }
     setDeleteId(null);
   };
 
