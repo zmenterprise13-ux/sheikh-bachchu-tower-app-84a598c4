@@ -109,6 +109,15 @@ export default function AdminExpenses() {
     setEditingId(null);
   };
 
+  const deleteCloudinaryAttachment = async (url?: string | null) => {
+    if (!url || !url.includes("cloudinary.com")) return;
+    try {
+      await supabase.functions.invoke("cloudinary-delete", { body: { url } });
+    } catch (err) {
+      console.warn("Cloudinary delete failed", err);
+    }
+  };
+
   const handleAttachmentPick = async (file: File | null | undefined) => {
     if (!file) return;
     const isImage = file.type.startsWith("image/");
