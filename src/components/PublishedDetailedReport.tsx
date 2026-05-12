@@ -40,6 +40,7 @@ export function PublishedDetailedReport({ month }: { month: string }) {
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
   const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
+  const [attachmentsByCat, setAttachmentsByCat] = useState<Record<string, { url: string; type: string | null; description: string | null }[]>>({});
 
   useEffect(() => {
     (async () => {
@@ -57,19 +58,26 @@ export function PublishedDetailedReport({ month }: { month: string }) {
           .lt("paid_date", nextMonth),
         supabase
           .from("expenses")
-          .select("category, description")
+          .select("category, description, attachment_url, attachment_type")
           .eq("approval_status", "approved")
           .gte("date", start)
           .lt("date", nextMonth),
       ]);
       const descMap: Record<string, string[]> = {};
+      const attMap: Record<string, { url: string; type: string | null; description: string | null }[]> = {};
       for (const r of (expRes.data ?? []) as any[]) {
         const d = (r.description || "").trim();
-        if (!d) continue;
-        if (!descMap[r.category]) descMap[r.category] = [];
-        if (!descMap[r.category].includes(d)) descMap[r.category].push(d);
+        if (d) {
+          if (!descMap[r.category]) descMap[r.category] = [];
+          if (!descMap[r.category].includes(d)) descMap[r.category].push(d);
+        }
+        if (r.attachment_url) {
+          if (!attMap[r.category]) attMap[r.category] = [];
+          attMap[r.category].push({ url: r.attachment_url, type: r.attachment_type ?? null, description: d || null });
+        }
       }
       setExpenseDescByCat(descMap);
+      setAttachmentsByCat(attMap);
       setSnap((data as Snapshot | null) ?? null);
       setExpenseCats((catRes.data ?? []) as any);
       const agg = new Map<string, { lender: string; lender_bn: string | null; amount: number }>();
