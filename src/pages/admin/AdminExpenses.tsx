@@ -120,28 +120,67 @@ export default function AdminExpenses() {
 
   const handleAttachmentPick = async (file: File | null | undefined) => {
     if (!file) return;
-    const isImage = file.type.startsWith("image/");
-    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+
+    const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"];
+    const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
+    const MAX_PDF_BYTES = 15 * 1024 * 1024;   // 15MB
+    const fmtMB = (b: number) => `${(b / (1024 * 1024)).toFixed(1)}MB`;
+
+    const lowerName = file.name.toLowerCase();
+    const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|heic|heif)$/i.test(lowerName);
+    const isPdf = file.type === "application/pdf" || lowerName.endsWith(".pdf");
+
+    // Empty file
+    if (file.size === 0) {
+      toast.error(lang === "bn" ? "ফাইলটি খালি" : "File is empty");
+      return;
+    }
+    // Type check
     if (!isImage && !isPdf) {
-      toast.error(lang === "bn" ? "শুধু ছবি বা PDF আপলোড করা যাবে" : "Only image or PDF allowed");
+      toast.error(
+        lang === "bn"
+          ? "শুধু ছবি (JPG/PNG/WEBP) বা PDF আপলোড করা যাবে"
+          : "Only image (JPG/PNG/WEBP) or PDF files are allowed"
+      );
       return;
     }
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error(lang === "bn" ? "ফাইল সাইজ ১৫MB এর বেশি" : "File too large (max 15MB)");
+    if (isImage && file.type && !ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+      toast.error(
+        lang === "bn"
+          ? `এই ছবি ফরম্যাট সাপোর্ট করে না (${file.type})`
+          : `Unsupported image format (${file.type})`
+      );
       return;
     }
-    setForm((f) => {
-      // Replacing an existing attachment: delete old from Cloudinary
-      if (f.attachment_url) deleteCloudinaryAttachment(f.attachment_url);
-      return f;
-    });
+    // Size check
+    const limit = isImage ? MAX_IMAGE_BYTES : MAX_PDF_BYTES;
+    if (file.size > limit) {
+      toast.error(
+        lang === "bn"
+          ? `ফাইল সাইজ ${fmtMB(file.size)} — সর্বোচ্চ ${fmtMB(limit)} অনুমোদিত`
+          : `File is ${fmtMB(file.size)} — max ${fmtMB(limit)} allowed`
+      );
+      return;
+    }
+
+    // Replacing an existing attachment: delete old from Cloudinary
+    if (form.attachment_url) deleteCloudinaryAttachment(form.attachment_url);
+
     setUploadingAttachment(true);
+    const uploadingToastId = toast.loading(lang === "bn" ? "আপলোড হচ্ছে…" : "Uploading…");
     try {
       let toUpload: Blob = file;
       let ext = "pdf";
       let contentType = "application/pdf";
       if (isImage) {
-        toUpload = await compressImageToTarget(file, 100 * 1024);
+        try {
+          toUpload = await compressImageToTarget(file, 100 * 1024);
+        } catch {
+          toast.dismiss(uploadingToastId);
+          toast.error(lang === "bn" ? "ছবি প্রক্রিয়া করা যায়নি" : "Could not process image");
+          setUploadingAttachment(false);
+          return;
+        }
         ext = "jpg";
         contentType = "image/jpeg";
       }
@@ -157,13 +196,19 @@ export default function AdminExpenses() {
         method: "POST",
         body: fd,
       });
-      const json = await res.json();
-      if (!res.ok || !json.secure_url) throw new Error(json?.error?.message || "Cloudinary upload failed");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.secure_url) {
+        const msg = json?.error?.message || `Upload failed (${res.status})`;
+        throw new Error(msg);
+      }
       setForm((f) => ({ ...f, attachment_url: json.secure_url as string, attachment_type: isImage ? "image" : "pdf" }));
       const kb = Math.round(toUpload.size / 1024);
+      toast.dismiss(uploadingToastId);
       toast.success(lang === "bn" ? `আপলোড হয়েছে (${kb}KB)` : `Uploaded (${kb}KB)`);
     } catch (err: any) {
-      toast.error(err.message ?? "Upload failed");
+      toast.dismiss(uploadingToastId);
+      const msg = err?.message ?? (lang === "bn" ? "আপলোড ব্যর্থ" : "Upload failed");
+      toast.error(lang === "bn" ? `আপলোড ব্যর্থ: ${msg}` : `Upload failed: ${msg}`);
     } finally {
       setUploadingAttachment(false);
     }
