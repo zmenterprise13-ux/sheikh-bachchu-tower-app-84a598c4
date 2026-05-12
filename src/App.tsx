@@ -122,6 +122,7 @@ const App = () => (
               <Route path="/owner" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDashboard /></ProtectedRoute>} />
               <Route path="/owner/dues" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDues /></ProtectedRoute>} />
               <Route path="/owner/payments" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerPayments /></ProtectedRoute>} />
+              <Route path="/owner/online-payments" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerOnlinePayments /></ProtectedRoute>} />
               <Route path="/owner/ledger" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerLedger /></ProtectedRoute>} />
               <Route path="/owner/receipts" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerReceipts /></ProtectedRoute>} />
               <Route path="/owner/notices" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerNotices /></ProtectedRoute>} />
