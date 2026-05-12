@@ -53,6 +53,7 @@ import AdminReconcile from "./pages/admin/AdminReconcile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerDues from "./pages/owner/OwnerDues";
 import OwnerPayments from "./pages/owner/OwnerPayments";
+import OwnerOnlinePayments from "./pages/owner/OwnerOnlinePayments";
 import OwnerNotices from "./pages/owner/OwnerNotices";
 import OwnerReports from "./pages/owner/OwnerReports";
 import OwnerFinanceReport from "./pages/owner/OwnerFinanceReport";
