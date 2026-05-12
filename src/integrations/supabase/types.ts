@@ -1093,6 +1093,9 @@ export type Database = {
           bill_id: string
           created_at: string
           flat_id: string
+          gateway_raw: Json | null
+          gateway_tran_id: string | null
+          gateway_val_id: string | null
           id: string
           method: string
           note: string | null
@@ -1110,6 +1113,9 @@ export type Database = {
           bill_id: string
           created_at?: string
           flat_id: string
+          gateway_raw?: Json | null
+          gateway_tran_id?: string | null
+          gateway_val_id?: string | null
           id?: string
           method?: string
           note?: string | null
@@ -1127,6 +1133,9 @@ export type Database = {
           bill_id?: string
           created_at?: string
           flat_id?: string
+          gateway_raw?: Json | null
+          gateway_tran_id?: string | null
+          gateway_val_id?: string | null
           id?: string
           method?: string
           note?: string | null
