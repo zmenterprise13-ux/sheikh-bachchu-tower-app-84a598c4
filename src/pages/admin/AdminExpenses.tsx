@@ -174,7 +174,8 @@ export default function AdminExpenses() {
       let contentType = "application/pdf";
       if (isImage) {
         try {
-          toUpload = await compressImageToTarget(file, 100 * 1024);
+          // Better resolution at small size: target ~350KB, allow up to 2000px on longest side
+          toUpload = await compressImageToTarget(file, 350 * 1024, { startMaxDim: 2000, minDim: 1000 });
         } catch {
           toast.dismiss(uploadingToastId);
           toast.error(lang === "bn" ? "ছবি প্রক্রিয়া করা যায়নি" : "Could not process image");
