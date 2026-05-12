@@ -58,13 +58,30 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Load gateway settings (mode/enabled/limits)
+    const { data: setRow } = await admin.from("app_settings").select("value").eq("key", "sslcommerz_gateway").maybeSingle();
+    const cfg = (setRow?.value as any) || {};
+    const mode: "sandbox" | "live" = cfg.mode === "live" ? "live" : "sandbox";
+    if (cfg.enabled === false) {
+      return new Response(JSON.stringify({ error: "Online payment is disabled" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (typeof cfg.min_amount === "number" && amount < cfg.min_amount) {
+      return new Response(JSON.stringify({ error: `Minimum amount is ${cfg.min_amount}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (typeof cfg.max_amount === "number" && cfg.max_amount > 0 && amount > cfg.max_amount) {
+      return new Response(JSON.stringify({ error: `Maximum amount is ${cfg.max_amount}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const tran_id = `BCT-${bill_id.slice(0, 8)}-${Date.now()}`;
 
     // Insert pending payment_request linked via gateway_tran_id
     const { data: pr, error: prErr } = await admin.from("payment_requests").insert({
       bill_id, flat_id, submitted_by: user.id,
       amount, method: "sslcommerz",
-      reference: tran_id, note: `SSLCommerz online payment (sandbox) — ${bill.month}`,
+      reference: tran_id, note: `SSLCommerz online payment (${mode}) — ${bill.month}`,
       status: "pending", gateway_tran_id: tran_id,
     }).select("id").single();
     if (prErr) {
@@ -102,7 +119,7 @@ Deno.serve(async (req) => {
     form.set("value_a", pr.id);
     form.set("value_b", bill_id);
 
-    const res = await fetch(SSLCZ_SANDBOX_URL, { method: "POST", body: form });
+    const res = await fetch(SSLCZ_URLS[mode], { method: "POST", body: form });
     const data = await res.json();
 
     if (data?.status !== "SUCCESS" || !data?.GatewayPageURL) {
