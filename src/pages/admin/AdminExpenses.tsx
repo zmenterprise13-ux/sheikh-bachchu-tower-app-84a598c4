@@ -578,8 +578,8 @@ export default function AdminExpenses() {
                     )}
                     <p className="text-[11px] text-muted-foreground">
                       {lang === "bn"
-                        ? "ছবি অটোমেটিক ~১০০KB সাইজে কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
-                        : "Images are auto-compressed to ~100KB. PDF max 15MB."}
+                        ? "ছবি ভালো রেজুলেশন রেখে ~৩৫০KB এ কম্প্রেস হবে। PDF সর্বোচ্চ ১৫MB।"
+                        : "Images are compressed to ~350KB while keeping good resolution. PDF max 15MB."}
                     </p>
                   </div>
                 </div>
