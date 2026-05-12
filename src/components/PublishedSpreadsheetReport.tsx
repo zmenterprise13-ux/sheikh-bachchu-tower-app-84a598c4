@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
 import { formatMoney, formatNumber, TKey } from "@/i18n/translations";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock } from "lucide-react";
+import { Lock, Paperclip, FileText, ImageIcon } from "lucide-react";
 
 type Snapshot = {
   billed: number;
@@ -39,6 +39,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const [expenseCats, setExpenseCats] = useState<{ name: string; name_bn: string | null }[]>([]);
   const [liveRepayLenders, setLiveRepayLenders] = useState<{ lender: string; lender_bn: string | null; amount: number }[]>([]);
   const [expenseDescByCat, setExpenseDescByCat] = useState<Record<string, string[]>>({});
+  const [attachmentsByCat, setAttachmentsByCat] = useState<Record<string, { url: string; type: string | null; description: string }[]>>({});
 
   useEffect(() => {
     (async () => {
@@ -56,7 +57,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
           .lt("paid_date", nextMonth),
         supabase
           .from("expenses")
-          .select("category, description")
+          .select("category, description, attachment_url, attachment_type")
           .eq("approval_status", "approved")
           .gte("date", start)
           .lt("date", nextMonth),
@@ -73,13 +74,20 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       }
       setLiveRepayLenders(Array.from(agg.values()).filter((x) => x.amount > 0));
       const descMap: Record<string, string[]> = {};
+      const attMap: Record<string, { url: string; type: string | null; description: string }[]> = {};
       for (const e of (expRes.data ?? []) as any[]) {
         const desc = String(e.description || "").trim();
-        if (!desc) continue;
-        if (!descMap[e.category]) descMap[e.category] = [];
-        if (!descMap[e.category].includes(desc)) descMap[e.category].push(desc);
+        if (desc) {
+          if (!descMap[e.category]) descMap[e.category] = [];
+          if (!descMap[e.category].includes(desc)) descMap[e.category].push(desc);
+        }
+        if (e.attachment_url) {
+          if (!attMap[e.category]) attMap[e.category] = [];
+          attMap[e.category].push({ url: e.attachment_url, type: e.attachment_type, description: desc });
+        }
       }
       setExpenseDescByCat(descMap);
+      setAttachmentsByCat(attMap);
       setLoading(false);
     })();
   }, [month]);
@@ -118,7 +126,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const net = opening + totalCollection - totalExpense;
 
   // Build income rows
-  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean; breakdown?: boolean };
+  type Row = { label: string; detail?: string; amount: number; bold?: boolean; sub?: boolean; muted?: boolean; category?: boolean; breakdown?: boolean; attachments?: { url: string; type: string | null; description: string }[] };
   const incomeRows: Row[] = [];
   incomeRows.push({ label: lang === "bn" ? "পূর্বের ক্যাশ" : "Opening Cash", amount: opening, bold: true, category: true });
   incomeRows.push({ label: lang === "bn" ? "মোট বিল × ফ্ল্যাট" : "Total Bill × Flats", amount: grandBilled, bold: true, category: true });
@@ -169,7 +177,7 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
       : (cd?.name || (t(r.category as TKey) as string) || r.category);
     const descs = expenseDescByCat[r.category] || [];
     const label = descs.length > 0 ? `${baseLabel} : ${descs.join(", ")}` : baseLabel;
-    expenseRows.push({ label, amount: Number(r.amount) });
+    expenseRows.push({ label, amount: Number(r.amount), attachments: attachmentsByCat[r.category] || [] });
   });
   if (Number(snap.loan_repaid) > 0) {
     expenseRows.push({ label: lang === "bn" ? "লোন ফেরত" : "Loan Repaid", amount: NaN, bold: true });
@@ -217,7 +225,28 @@ export function PublishedSpreadsheetReport({ month }: { month: string }) {
   const renderExpenseRow = (r: Row) => (
     <>
       <td className={`${cellCls} ${r.sub ? "pl-4 text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
-        {r.label}
+        <span>{r.label}</span>
+        {r.attachments && r.attachments.length > 0 && (
+          <span className="ml-1 inline-flex flex-wrap gap-1 align-middle print:hidden">
+            {r.attachments.map((a, i) => {
+              const isImg = (a.type || "").startsWith("image");
+              const Icon = isImg ? ImageIcon : FileText;
+              return (
+                <a
+                  key={i}
+                  href={a.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={a.description || (isImg ? "Image" : "PDF")}
+                  className="inline-flex items-center gap-0.5 rounded border border-border bg-muted/40 px-1 py-0 text-[9.5px] text-primary hover:underline no-underline"
+                >
+                  <Paperclip className="h-2.5 w-2.5" />
+                  <Icon className="h-2.5 w-2.5" />
+                </a>
+              );
+            })}
+          </span>
+        )}
       </td>
       <td className={`${cellCls} ${numCls} ${r.sub ? "text-[10.5px]" : ""} ${r.muted ? "text-muted-foreground" : ""} ${r.bold ? "font-bold" : ""} ${r.category ? "text-success font-bold" : ""}`}>
         {Number.isFinite(r.amount) ? formatMoney(r.amount, lang) : ""}
