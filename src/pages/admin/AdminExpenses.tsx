@@ -130,6 +130,11 @@ export default function AdminExpenses() {
       toast.error(lang === "bn" ? "ফাইল সাইজ ১৫MB এর বেশি" : "File too large (max 15MB)");
       return;
     }
+    setForm((f) => {
+      // Replacing an existing attachment: delete old from Cloudinary
+      if (f.attachment_url) deleteCloudinaryAttachment(f.attachment_url);
+      return f;
+    });
     setUploadingAttachment(true);
     try {
       let toUpload: Blob = file;
