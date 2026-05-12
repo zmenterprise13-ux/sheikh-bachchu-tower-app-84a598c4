@@ -32,6 +32,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
+import AdminPaymentGateway from "./pages/admin/AdminPaymentGateway";
 import AdminChangeHistory from "./pages/admin/AdminChangeHistory";
 import AdminUserActivity from "./pages/admin/AdminUserActivity";
 import AdminLedger from "./pages/admin/AdminLedger";
@@ -112,6 +113,7 @@ const App = () => (
               <Route path="/admin/user-management" element={<ProtectedRoute requireRole="admin"><AdminUserManagement /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
+              <Route path="/admin/settings/payment-gateway" element={<ProtectedRoute requireRole="admin"><AdminPaymentGateway /></ProtectedRoute>} />
               <Route path="/admin/change-history" element={<ProtectedRoute requireRole="admin"><AdminChangeHistory /></ProtectedRoute>} />
               <Route path="/admin/user-activity" element={<ProtectedRoute requireRole="admin"><AdminUserActivity /></ProtectedRoute>} />
 
