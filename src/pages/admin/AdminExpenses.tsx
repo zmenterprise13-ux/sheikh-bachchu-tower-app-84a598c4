@@ -768,11 +768,23 @@ export default function AdminExpenses() {
                       </span>
                     )}
                     {e.attachment_url && (
-                      <a href={e.attachment_url} target="_blank" rel="noreferrer"
-                        className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {e.attachment_type === "pdf" ? <FileText className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
-                        {lang === "bn" ? "সংযুক্তি" : "Attachment"}
-                      </a>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        {e.attachment_type === "image" ? (
+                          <a href={e.attachment_url} target="_blank" rel="noreferrer" className="shrink-0">
+                            <img src={e.attachment_url} alt="attachment"
+                              className="h-10 w-10 rounded border border-border object-cover hover:opacity-80" />
+                          </a>
+                        ) : (
+                          <a href={e.attachment_url} target="_blank" rel="noreferrer"
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded border border-border bg-muted hover:bg-muted/70">
+                            <FileText className="h-5 w-5 text-primary" />
+                          </a>
+                        )}
+                        <a href={e.attachment_url} target="_blank" rel="noreferrer"
+                          className="text-[10px] text-primary hover:underline break-all line-clamp-2">
+                          {e.attachment_url}
+                        </a>
+                      </div>
                     )}
                   </div>
                   <div className="md:col-span-3">
