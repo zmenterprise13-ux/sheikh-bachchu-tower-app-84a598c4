@@ -1,4 +1,4 @@
-// Public edge function: fetches the latest GitHub release for the app repo.
+// Public edge function: fetches the latest GitHub APK release for this app.
 // Runs server-side so it bypasses GitHub's per-IP rate limit (which hits
 // mobile users sharing carrier NAT IPs) and avoids browser CORS issues
 // from github.com's HTML/atom endpoints.
@@ -8,8 +8,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const OWNER = "zmenterprise13-ux";
-const REPO = "sheikh-bachchu-tower-app-4d8f59dd";
+const DEFAULT_OWNER = "zmenterprise13-ux";
+
+type GithubAsset = { name: string; browser_download_url: string; size?: number; content_type?: string };
+type GithubRepo = { name: string; full_name: string; html_url: string; updated_at?: string };
+type GithubRelease = {
+  tag_name: string;
+  name?: string;
+  prerelease?: boolean;
+  draft?: boolean;
+  html_url: string;
+  published_at?: string;
+  body?: string;
+  assets?: GithubAsset[];
+  repository?: GithubRepo;
+};
 
 function versionParts(tag: string): number[] | null {
   const normalized = tag.trim().replace(/^v/i, "");
