@@ -2,26 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { AppRelease, fetchAppReleases, getInstalledTag } from "@/lib/appRelease";
 
-const GITHUB_OWNER = "zmenterprise13-ux";
-const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-// Single source of truth for "what version the user has".
-// INSTALLED_KEY is set when the user downloads an APK from the Update page.
-// LEGACY_SEEN_KEY is read for backward compatibility and migrated on first load.
-const INSTALLED_KEY = "sbt:installedReleaseTag";
-const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
 const DISMISS_KEY = "sbt:dismissedReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
-
-type Asset = { name: string; browser_download_url: string };
-type Release = {
-  tag_name: string;
-  name: string;
-  prerelease: boolean;
-  html_url: string;
-  assets: Asset[];
-};
 
 /**
  * Strict version comparator.
@@ -44,20 +28,6 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-function getInstalledTag(): string | null {
-  // Migrate legacy SEEN key → INSTALLED key (one-time, lazy)
-  let installed = localStorage.getItem(INSTALLED_KEY);
-  if (!installed) {
-    const legacy = localStorage.getItem(LEGACY_SEEN_KEY);
-    if (legacy) {
-      localStorage.setItem(INSTALLED_KEY, legacy);
-      localStorage.removeItem(LEGACY_SEEN_KEY);
-      installed = legacy;
-    }
-  }
-  return installed;
-}
-
 function isNewerThanInstalled(latestTag: string): boolean {
   const installed = getInstalledTag();
   // No installed record yet — assume outdated, prompt the user
@@ -68,7 +38,7 @@ function isNewerThanInstalled(latestTag: string): boolean {
 }
 
 export function UpdateBanner() {
-  const [release, setRelease] = useState<Release | null>(null);
+  const [release, setRelease] = useState<AppRelease | null>(null);
   const [hidden, setHidden] = useState(false);
   const navigate = useNavigate();
 
@@ -76,11 +46,7 @@ export function UpdateBanner() {
     let cancelled = false;
     const check = async () => {
       try {
-        const { data: fnData, error: fnErr } = await supabase.functions.invoke(
-          "github-latest-release"
-        );
-        if (fnErr || fnData?.error) return;
-        const latest: Release | null = fnData?.release ?? null;
+        const { release: latest } = await fetchAppReleases(1);
         if (cancelled) return;
         if (!latest) {
           setRelease(null);
