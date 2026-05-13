@@ -34,6 +34,7 @@ export const translations: T = {
   feedback: { bn: "মতামত ও পরামর্শ", en: "Feedback" },
  userFeedback: { bn: "ইউজার মতামত", en: "User Feedback" },
  userActivity: { bn: "ইউজার অ্যাক্টিভিটি", en: "User Activity" },
+ otaStatus: { bn: "OTA স্ট্যাটাস", en: "OTA Status" },
   myDues: { bn: "আমার বকেয়া", en: "My Dues" },
  myPayments: { bn: "পেমেন্ট হিস্ট্রি", en: "Payment History" },
 myReceipts: { bn: "রিসিপট ইতিহাস", en: "Receipts" },

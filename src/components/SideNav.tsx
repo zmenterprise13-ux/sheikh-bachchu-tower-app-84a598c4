@@ -100,6 +100,7 @@ const adminGroups: NavGroup[] = [
     items: [
       { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
       { to: "/admin/user-activity", key: "userActivity" as TKey, icon: Activity },
+      { to: "/ota", key: "otaStatus" as TKey, icon: Rocket },
       { to: "/admin/change-history", key: "changeHistory" as TKey, icon: History },
       { to: "/admin/settings", key: "settings", icon: SettingsIcon },
     ],
