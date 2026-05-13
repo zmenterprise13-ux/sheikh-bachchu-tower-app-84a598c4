@@ -62,6 +62,10 @@ export function getReleaseId(release: AppRelease | null | undefined): string | n
   return `${release.repository?.full_name ?? "unknown-repo"}@${release.tag_name}`;
 }
 
+export function getInstalledReleaseId(): string | null {
+  return localStorage.getItem(INSTALLED_RELEASE_ID_KEY);
+}
+
 export function getInstalledTag(): string | null {
   let installed = localStorage.getItem(INSTALLED_KEY);
   if (!installed) {
