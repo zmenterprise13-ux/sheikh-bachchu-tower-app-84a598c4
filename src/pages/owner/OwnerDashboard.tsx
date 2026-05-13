@@ -242,6 +242,7 @@ export default function OwnerDashboard() {
   return (
     <AppShell>
       <DuesPopup />
+      <PersonalNoticePopup />
       <div
         className="relative space-y-3 sm:space-y-5 animate-fade-in -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 sm:py-3 rounded-2xl border-l-4 overflow-hidden"
         style={{ transition: "border-color 600ms ease", ...flatAccentStyle }}
