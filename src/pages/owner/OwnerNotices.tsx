@@ -27,16 +27,28 @@ type DuesNotice = {
   read_at: string | null;
 };
 
+type PersonalNotice = {
+  id: string;
+  title: string;
+  title_bn: string | null;
+  body: string;
+  body_bn: string | null;
+  important: boolean;
+  created_at: string;
+  read_at: string | null;
+};
+
 export default function OwnerNotices() {
   const { t, lang } = useLang();
   const [items, setItems] = useState<Notice[]>([]);
   const [personal, setPersonal] = useState<DuesNotice[]>([]);
+  const [pnotices, setPnotices] = useState<PersonalNotice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [noticesRes, duesRes] = await Promise.all([
+      const [noticesRes, duesRes, pnRes] = await Promise.all([
         supabase
           .from("notices")
           .select("id, title, title_bn, body, body_bn, important, date")
@@ -45,18 +57,31 @@ export default function OwnerNotices() {
           .from("dues_notifications")
           .select("id, title, body, due_amount, month, created_at, read_at")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("personal_notices")
+          .select("id, title, title_bn, body, body_bn, important, created_at, read_at")
+          .order("created_at", { ascending: false }),
       ]);
       if (noticesRes.error) toast.error(noticesRes.error.message);
       setItems((noticesRes.data ?? []) as Notice[]);
       const dn = (duesRes.data ?? []) as DuesNotice[];
       setPersonal(dn);
-      // Mark unread as read
+      const pn = (pnRes.data ?? []) as PersonalNotice[];
+      setPnotices(pn);
+      // Mark unread as read for both
       const unreadIds = dn.filter((d) => !d.read_at).map((d) => d.id);
       if (unreadIds.length > 0) {
         await supabase
           .from("dues_notifications")
           .update({ read_at: new Date().toISOString() })
           .in("id", unreadIds);
+      }
+      const unreadPN = pn.filter((d) => !d.read_at).map((d) => d.id);
+      if (unreadPN.length > 0) {
+        await supabase
+          .from("personal_notices")
+          .update({ read_at: new Date().toISOString() })
+          .in("id", unreadPN);
       }
       setLoading(false);
     })();
