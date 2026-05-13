@@ -80,8 +80,8 @@ jobs:
 
           android {
               defaultConfig {
-                  versionCode ((System.getenv("GITHUB_RUN_NUMBER") ?: "1") as Integer) + 1
-                  versionName "1.${System.getenv("GITHUB_RUN_NUMBER") ?: "1"}"
+                  versionCode = (((System.getenv("GITHUB_RUN_NUMBER") ?: "1") as Integer) + 1)
+                  versionName = "1.${System.getenv("GITHUB_RUN_NUMBER") ?: "1"}".toString()
               }
               signingConfigs {
                   release {
