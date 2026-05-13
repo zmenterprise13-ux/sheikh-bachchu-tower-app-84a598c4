@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NoticeBody } from "@/components/NoticeBody";
+import { PersonalNoticeManager } from "@/components/PersonalNoticeManager";
 
 type Notice = {
   id: string;
@@ -274,6 +275,10 @@ export default function AdminNotices() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <div className="pt-6 border-t border-border">
+          <PersonalNoticeManager />
+        </div>
       </div>
     </AppShell>
   );
