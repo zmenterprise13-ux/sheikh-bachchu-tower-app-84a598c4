@@ -36,6 +36,7 @@ function isNewerThanInstalled(release: AppRelease): boolean {
   // No installed record yet — assume outdated, prompt the user
   if (!installed) return true;
   if (installedId && latestId && installedId !== latestId) return true;
+  if (!installedId && latestId) return true;
   // Same tag → already installed, never show again
   if (installed === latestTag) return false;
   return compareVersions(latestTag, installed) > 0;
