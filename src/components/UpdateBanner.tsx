@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AppRelease, fetchAppReleases, getInstalledTag } from "@/lib/appRelease";
+import { AppRelease, fetchAppReleases, getInstalledReleaseId, getInstalledTag, getReleaseId } from "@/lib/appRelease";
 
 const DISMISS_KEY = "sbt:dismissedReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
@@ -28,10 +28,14 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-function isNewerThanInstalled(latestTag: string): boolean {
+function isNewerThanInstalled(release: AppRelease): boolean {
+  const latestTag = release.tag_name;
+  const latestId = getReleaseId(release);
+  const installedId = getInstalledReleaseId();
   const installed = getInstalledTag();
   // No installed record yet — assume outdated, prompt the user
   if (!installed) return true;
+  if (installedId && latestId && installedId !== latestId) return true;
   // Same tag → already installed, never show again
   if (installed === latestTag) return false;
   return compareVersions(latestTag, installed) > 0;
@@ -53,7 +57,7 @@ export function UpdateBanner() {
           return;
         }
         const dismissed = localStorage.getItem(DISMISS_KEY);
-        if (isNewerThanInstalled(latest.tag_name) && latest.tag_name !== dismissed) {
+        if (isNewerThanInstalled(latest) && latest.tag_name !== dismissed) {
           setRelease(latest);
         } else {
           setRelease(null);
