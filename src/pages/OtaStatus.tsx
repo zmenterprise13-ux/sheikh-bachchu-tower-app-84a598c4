@@ -15,6 +15,21 @@ export default function OtaStatus() {
   const [lastUrl, setLastUrl] = useState<string | null>(null);
   const [loadOk, setLoadOk] = useState<boolean>(true);
   const [isNative, setIsNative] = useState<boolean>(false);
+  const [versionName, setVersionName] = useState<string | null>(null);
+  const [versionCode, setVersionCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        setVersionName(info.version ?? null);
+        setVersionCode(String(info.build ?? ""));
+      } catch {
+        // web — not available
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     try {
