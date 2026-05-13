@@ -310,7 +310,7 @@ export default function AdminBillsReport() {
   <table style="margin-top:12px">
     <thead><tr><th colspan="2" style="background:#fee2e2;color:#7f1d1d">${lang === "bn" ? "ব্যয়" : "Expense"}</th></tr></thead>
     <tbody>
-      ${expByCatRows || `<tr><td colspan="2" style="text-align:center; color:#999">${lang === "bn" ? "কোনো খরচ নেই" : "No expenses"}</td></tr>`}
+      <tr><td>${lang === "bn" ? "মাসিক খরচ" : "Monthly Expenses"}</td><td class="r">${fmtMoney(totalExpense)}</td></tr>
       <tr><td>${lang === "bn" ? "লোন পরিশোধ" : "Loan Repayment"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr>
     </tbody>
     <tfoot>
