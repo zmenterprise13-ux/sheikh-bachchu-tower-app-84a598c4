@@ -213,7 +213,7 @@ export default function AdminBillsReport() {
     <div class="card"><div class="label">${lang === "bn" ? "মোট বিল" : "Total Billed"}</div><div class="value">${fmtMoney(totalBilled)}</div></div>
     <div class="card success"><div class="label">${lang === "bn" ? "আদায়" : "Collected"}</div><div class="value">${fmtMoney(totalCollected)}</div></div>
     <div class="card dest"><div class="label">${lang === "bn" ? "বাকি" : "Due"}</div><div class="value">${fmtMoney(totalDue)}</div></div>
-    <div class="card warn"><div class="label">${lang === "bn" ? "খরচ" : "Expense"}</div><div class="value">${fmtMoney(totalExpense)}</div></div>
+    <div class="card warn"><div class="label">${lang === "bn" ? "খরচ (লোন পরিশোধ সহ)" : "Expense (incl. Loan Repaid)"}</div><div class="value">${fmtMoney(totalExpenseAll)}</div></div>
   </div>
 
   <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
