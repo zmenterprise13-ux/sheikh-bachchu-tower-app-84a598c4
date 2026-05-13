@@ -6,8 +6,10 @@ import { useLang } from "@/i18n/LangContext";
 import {
   AppRelease,
   fetchAppReleases,
+  getInstalledReleaseId,
   getInstalledTag,
   getReleaseApk,
+  getReleaseId,
   markReleaseDownloaded,
 } from "@/lib/appRelease";
 
@@ -72,8 +74,13 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
 
   const installed = getInstalledTag();
   const latestTag = release?.tag_name ?? null;
+  const installedId = getInstalledReleaseId();
+  const latestId = getReleaseId(release);
   const needsUpdate =
-    !!latestTag && (!installed || compareVersions(latestTag, installed) > 0);
+    !!latestTag &&
+    (!installed ||
+      (installedId && latestId && installedId !== latestId) ||
+      compareVersions(latestTag, installed) > 0);
 
   if (!needsUpdate) return <>{children}</>;
 
