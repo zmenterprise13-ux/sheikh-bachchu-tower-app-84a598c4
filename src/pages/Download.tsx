@@ -145,7 +145,7 @@ export default function Download() {
               )}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Sheikh Bachchu Tower — Android APK ও Play Store বান্ডল
+              {repo ? `${repo.full_name} — Android APK ও Play Store বান্ডল` : "একই GitHub account থেকে সর্বশেষ APK অটো-লোড হচ্ছে"}
             </p>
           </div>
           <Button asChild variant="outline">
@@ -166,17 +166,14 @@ export default function Download() {
           </Alert>
         )}
 
-        {!repoConfigured && (
+        {!loading && !repoConfigured && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>সেটআপ প্রয়োজন</AlertTitle>
+            <AlertTitle>APK রিলিজ পাওয়া যায়নি</AlertTitle>
             <AlertDescription className="space-y-2">
               <p>
-                GitHub repo এর সাথে কানেক্ট করার পর{" "}
-                <code className="px-1 py-0.5 bg-muted rounded">src/pages/Download.tsx</code> ফাইলে{" "}
-                <code className="px-1 py-0.5 bg-muted rounded">GITHUB_OWNER</code> ও{" "}
-                <code className="px-1 py-0.5 bg-muted rounded">GITHUB_REPO</code> আপডেট করুন। তারপর
-                সর্বশেষ APK / AAB এখানে অটো-লোড হবে।
+                GitHub account-এর public repos থেকে কোনো release-এর মধ্যে APK ফাইল পাওয়া যায়নি।
+                নতুন repo-তে release publish করে সেখানে <code className="px-1 py-0.5 bg-muted rounded">.apk</code> ফাইল attach করুন।
               </p>
             </AlertDescription>
           </Alert>
