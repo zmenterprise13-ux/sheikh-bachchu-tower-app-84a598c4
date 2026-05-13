@@ -94,6 +94,25 @@ export default function OtaStatus() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="text-base">Native App Version (APK)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <div>
+              <span className="text-muted-foreground">versionName: </span>
+              <span className="font-mono">{versionName || "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">versionCode: </span>
+              <span className="font-mono">{versionCode || "—"}</span>
+            </div>
+            <div className="text-xs text-muted-foreground pt-1">
+              নতুন APK ইনস্টল করলে এই সংখ্যা পরিবর্তন হবে। OTA আপডেটে এটি বদলায় না।
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle className="text-base">Currently Loaded From</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
