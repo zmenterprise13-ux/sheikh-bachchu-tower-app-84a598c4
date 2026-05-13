@@ -15,6 +15,21 @@ export default function OtaStatus() {
   const [lastUrl, setLastUrl] = useState<string | null>(null);
   const [loadOk, setLoadOk] = useState<boolean>(true);
   const [isNative, setIsNative] = useState<boolean>(false);
+  const [versionName, setVersionName] = useState<string | null>(null);
+  const [versionCode, setVersionCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        setVersionName(info.version ?? null);
+        setVersionCode(String(info.build ?? ""));
+      } catch {
+        // web — not available
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     try {
@@ -73,6 +88,25 @@ export default function OtaStatus() {
             <div className="font-mono text-sm break-all">{configuredUrl}</div>
             <div className="text-xs text-muted-foreground">
               capacitor.config.ts → server.url
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Native App Version (APK)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <div>
+              <span className="text-muted-foreground">versionName: </span>
+              <span className="font-mono">{versionName || "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">versionCode: </span>
+              <span className="font-mono">{versionCode || "—"}</span>
+            </div>
+            <div className="text-xs text-muted-foreground pt-1">
+              নতুন APK ইনস্টল করলে এই সংখ্যা পরিবর্তন হবে। OTA আপডেটে এটি বদলায় না।
             </div>
           </CardContent>
         </Card>
