@@ -176,10 +176,6 @@ export default function AdminBillsReport() {
           <td>${esc(x.source_name ?? x.description ?? "")}</td>
           <td class="r">${fmtMoney(Number(x.amount))}</td>
         </tr>`).join("");
-      const expByCatRows = Array.from(expenseByCat.entries())
-        .sort((a, b) => b[1] - a[1])
-        .map(([cat, amt]) => `<tr><td>${esc(cat)}</td><td class="r">${fmtMoney(amt)}</td></tr>`)
-        .join("");
 
       const html = `<!doctype html>
 <html lang="${lang}">
