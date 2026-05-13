@@ -149,6 +149,12 @@ export default function VersionInfo() {
             value={lang === "bn" ? "বাংলা" : "English"}
           />
           <Row
+            icon={<ExternalLink className="h-4 w-4" />}
+            label={lang === "bn" ? "আপডেট repo" : "Update repo"}
+            value={loadingLatest ? "…" : latestRepo || "—"}
+            mono
+          />
+          <Row
             icon={
               loadingLatest ? (
                 <AlertCircle className="h-4 w-4 animate-pulse" />
