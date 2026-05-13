@@ -2,23 +2,16 @@ import { ReactNode, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Rocket, Download as DownloadIcon, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangContext";
+import {
+  AppRelease,
+  fetchAppReleases,
+  getInstalledTag,
+  getReleaseApk,
+  markReleaseDownloaded,
+} from "@/lib/appRelease";
 
-const INSTALLED_KEY = "sbt:installedReleaseTag";
-const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
-
-type Asset = { name: string; browser_download_url: string; size: number };
-type Release = {
-  tag_name: string;
-  name: string;
-  prerelease: boolean;
-  html_url: string;
-  published_at: string;
-  body: string;
-  assets: Asset[];
-};
 
 function compareVersions(a: string, b: string): number {
   const parse = (s: string) => (s.match(/\d+/g) ?? []).map((n) => parseInt(n, 10));
@@ -35,22 +28,9 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-function getInstalledTag(): string | null {
-  let installed = localStorage.getItem(INSTALLED_KEY);
-  if (!installed) {
-    const legacy = localStorage.getItem(LEGACY_SEEN_KEY);
-    if (legacy) {
-      localStorage.setItem(INSTALLED_KEY, legacy);
-      localStorage.removeItem(LEGACY_SEEN_KEY);
-      installed = legacy;
-    }
-  }
-  return installed;
-}
-
 export function ForceUpdateGate({ children }: { children: ReactNode }) {
   const { lang } = useLang();
-  const [release, setRelease] = useState<Release | null>(null);
+  const [release, setRelease] = useState<AppRelease | null>(null);
   const [checked, setChecked] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,13 +41,8 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
   const load = async () => {
     setError(null);
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke(
-        "github-latest-release"
-      );
-      if (fnErr) throw fnErr;
-      if (data?.error) throw new Error(data.error);
-      const latest: Release | null = data?.release ?? null;
-      setRelease(latest);
+      const { release: latest } = await fetchAppReleases(1);
+      setRelease(latest ?? null);
     } catch (e: any) {
       setError(e?.message ?? "Network error");
     } finally {
@@ -102,7 +77,7 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
 
   if (!needsUpdate) return <>{children}</>;
 
-  const apk = release?.assets.find((a) => a.name.endsWith(".apk"));
+  const apk = getReleaseApk(release);
 
   const handleDownload = () => {
     if (!release) return;
@@ -117,7 +92,7 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    localStorage.setItem(INSTALLED_KEY, release.tag_name);
+    markReleaseDownloaded(release);
     setTimeout(() => setDownloading(false), 1500);
   };
 
