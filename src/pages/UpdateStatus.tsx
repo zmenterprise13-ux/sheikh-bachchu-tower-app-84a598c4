@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/i18n/LangContext";
-import { supabase } from "@/integrations/supabase/client";
+import { AppRelease, fetchAppReleases, getInstalledReleaseId, getReleaseApk, getReleaseId, INSTALLED_KEY, markReleaseDownloaded } from "@/lib/appRelease";
 import {
   Rocket,
   Download as DownloadIcon,
@@ -16,24 +16,9 @@ import {
   Loader2,
 } from "lucide-react";
 
-const GITHUB_OWNER = "zmenterprise13-ux";
-const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const INSTALLED_KEY = "sbt:installedReleaseTag";
-
-type Asset = { name: string; browser_download_url: string; size: number };
-type Release = {
-  tag_name: string;
-  name: string;
-  prerelease: boolean;
-  html_url: string;
-  published_at: string;
-  body: string;
-  assets: Asset[];
-};
-
 export default function UpdateStatus() {
   const { lang } = useLang();
-  const [release, setRelease] = useState<Release | null>(null);
+  const [release, setRelease] = useState<AppRelease | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -43,12 +28,7 @@ export default function UpdateStatus() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke(
-        "github-latest-release"
-      );
-      if (fnErr) throw fnErr;
-      if (data?.error) throw new Error(data.error);
-      const latest: Release | null = data?.release ?? null;
+      const { release: latest } = await fetchAppReleases(1);
       if (!latest) {
         throw new Error(lang === "bn" ? "কোনো রিলিজ পাওয়া যায়নি" : "No release found");
       }
@@ -64,8 +44,10 @@ export default function UpdateStatus() {
     load();
   }, []);
 
-  const apk = release?.assets.find((a) => a.name.endsWith(".apk"));
-  const isUpToDate = release && installedTag === release.tag_name;
+  const apk = getReleaseApk(release);
+  const installedReleaseId = getInstalledReleaseId();
+  const releaseId = getReleaseId(release);
+  const isUpToDate = release && installedTag === release.tag_name && (!installedReleaseId || !releaseId || installedReleaseId === releaseId);
 
   const formatBytes = (bytes: number) => {
     if (!bytes) return "—";
@@ -97,7 +79,7 @@ export default function UpdateStatus() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    localStorage.setItem(INSTALLED_KEY, release.tag_name);
+    markReleaseDownloaded(release);
     setTimeout(() => setDownloading(false), 1500);
   };
 
@@ -177,6 +159,15 @@ export default function UpdateStatus() {
                 </span>
                 <span className="font-medium text-foreground">{release.tag_name}</span>
               </div>
+              {release.repository && (
+                <div className="flex items-center gap-3 text-sm">
+                  <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground w-32">
+                    {lang === "bn" ? "রিপোজিটরি" : "Repository"}
+                  </span>
+                  <span className="font-medium text-foreground truncate">{release.repository.full_name}</span>
+                </div>
+              )}
               <div className="flex items-center gap-3 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground w-32">
