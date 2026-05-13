@@ -67,7 +67,7 @@ export function PersonalNoticeManager() {
     setLoadingBatches(true);
     const { data, error } = await supabase
       .from("personal_notices")
-      .select("id, batch_id, title, title_bn, body, body_bn, important, created_at, read_at, flat_id, flats(flat_no)")
+      .select("id, batch_id, title, title_bn, body, body_bn, important, created_at, read_at, flat_id")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) {
@@ -75,8 +75,18 @@ export function PersonalNoticeManager() {
       setLoadingBatches(false);
       return;
     }
+    const rows = (data ?? []) as any[];
+    const flatIds = Array.from(new Set(rows.map((r) => r.flat_id))) as string[];
+    const flatMap = new Map<string, string>();
+    if (flatIds.length > 0) {
+      const { data: fs } = await supabase
+        .from("flats")
+        .select("id, flat_no")
+        .in("id", flatIds);
+      (fs ?? []).forEach((f: any) => flatMap.set(f.id, f.flat_no));
+    }
     const map = new Map<string, BatchRow>();
-    for (const r of (data ?? []) as any[]) {
+    for (const r of rows) {
       const key = r.batch_id;
       if (!map.has(key)) {
         map.set(key, {
@@ -91,7 +101,7 @@ export function PersonalNoticeManager() {
         });
       }
       map.get(key)!.recipients.push({
-        flat_no: r.flats?.flat_no ?? "—",
+        flat_no: flatMap.get(r.flat_id) ?? "—",
         read_at: r.read_at,
       });
     }
