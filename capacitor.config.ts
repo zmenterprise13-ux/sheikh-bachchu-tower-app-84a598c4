@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Sheikh Bachchu Tower',
   webDir: 'dist',
   server: {
-    url: 'https://sheikh-bachchu-tower-app.lovable.app',
+    url: 'https://www.bacchutower.online',
     cleartext: true,
     androidScheme: 'https',
   },
