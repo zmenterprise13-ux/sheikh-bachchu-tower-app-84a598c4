@@ -181,7 +181,10 @@ const accountantGroups: NavGroup[] = [
   },
   {
     label: "groupReports" as TKey,
-    items: [{ to: "/admin/reports", key: "reports", icon: FileBarChart }],
+    items: [
+      { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/bills-report", key: "billsReport" as TKey, icon: FileBarChart },
+    ],
   },
   {
     label: "groupPeople" as TKey,
