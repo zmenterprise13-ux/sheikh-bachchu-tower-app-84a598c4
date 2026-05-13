@@ -44,8 +44,17 @@ jobs:
 
       - name: Add Android platform
         run: |
-          if [ ! -d "android" ]; then
+          # Preserve google-services.json if present, then (re)generate native project
+          if [ -f "android/app/google-services.json" ]; then
+            cp android/app/google-services.json /tmp/google-services.json
+          fi
+          if [ ! -f "android/gradlew" ]; then
+            rm -rf android
             npx cap add android
+          fi
+          if [ -f "/tmp/google-services.json" ]; then
+            mkdir -p android/app
+            cp /tmp/google-services.json android/app/google-services.json
           fi
 
       - name: Generate Android icons from assets/icon.png
