@@ -157,6 +157,15 @@ export default function UpdateStatus() {
                 </span>
                 <span className="font-medium text-foreground">{release.tag_name}</span>
               </div>
+              {release.repository && (
+                <div className="flex items-center gap-3 text-sm">
+                  <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground w-32">
+                    {lang === "bn" ? "রিপোজিটরি" : "Repository"}
+                  </span>
+                  <span className="font-medium text-foreground truncate">{release.repository.full_name}</span>
+                </div>
+              )}
               <div className="flex items-center gap-3 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground w-32">
