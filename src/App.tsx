@@ -29,6 +29,7 @@ import AdminParking from "./pages/admin/AdminParking";
 import AdminDues from "./pages/admin/AdminDues";
 import AdminExpenses from "./pages/admin/AdminExpenses";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminBillsReport from "./pages/admin/AdminBillsReport";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSettingsHistory from "./pages/admin/AdminSettingsHistory";
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/admin/expenses" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminExpenses /></ProtectedRoute>} />
               <Route path="/admin/loans" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminLoans /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminReports /></ProtectedRoute>} />
+              <Route path="/admin/bills-report" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminBillsReport /></ProtectedRoute>} />
               <Route path="/admin/notices" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminNotices /></ProtectedRoute>} />
               <Route path="/admin/committee" element={<ProtectedRoute requireRole="admin"><AdminCommittee /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute requireRole="admin"><AdminUsers /></ProtectedRoute>} />

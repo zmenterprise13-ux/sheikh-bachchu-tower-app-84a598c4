@@ -435,47 +435,12 @@ export default function AdminDashboard() {
                 className="h-9 w-[160px]"
               />
             </div>
-            <Button
-              variant="outline"
-              className="gap-2"
-              disabled={generating}
-              onClick={async () => {
-                setGenerating(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke(
-                    "generate-monthly-bills",
-                    { body: { month } },
-                  );
-                  if (error) throw error;
-                  const inserted = Number((data as any)?.inserted ?? 0);
-                  const skipped = Number((data as any)?.skipped ?? 0);
-                  toast.success(
-                    lang === "bn"
-                      ? `${inserted} টি ফ্ল্যাটের বিল তৈরি হয়েছে${skipped ? ` · ${skipped} টি আগে থেকেই ছিল` : ""}`
-                      : `Created bills for ${inserted} flat(s)${skipped ? ` · ${skipped} already existed` : ""}`,
-                  );
-                  await loadData();
-                } catch (e: any) {
-                  toast.error(e?.message ?? "Failed to generate bills");
-                } finally {
-                  setGenerating(false);
-                }
-              }}
-            >
-              {generating ? "..." : t("generateBills")}
-            </Button>
-
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleDownloadReport}
-              disabled={pdfBusy}
-            >
-              <FileText className="h-4 w-4" />
-              {pdfBusy
-                ? (lang === "bn" ? "তৈরি হচ্ছে..." : "Preparing...")
-                : (lang === "bn" ? "রিপোর্ট PDF" : "Report PDF")}
-            </Button>
+            <Link to="/admin/bills-report">
+              <Button variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" />
+                {lang === "bn" ? "বিল জেনারেট ও রিপোর্ট" : "Bill Generation & Report"}
+              </Button>
+            </Link>
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
