@@ -152,6 +152,17 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
           </div>
         )}
 
+        {release && !apk && (
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/40 p-3 flex gap-2 text-sm">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-amber-700 dark:text-amber-300 leading-relaxed">
+              {lang === "bn"
+                ? "এই রিলিজে কোনো .apk ফাইল attach করা নেই। GitHub পেজে গিয়ে ম্যানুয়ালি ডাউনলোড করুন অথবা পরে আবার চেক করুন।"
+                : "This release has no .apk file attached. Open the GitHub page to download manually or check again later."}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Button
             onClick={handleDownload}
@@ -164,7 +175,13 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
             ) : (
               <DownloadIcon className="h-4 w-4" />
             )}
-            {lang === "bn" ? "এখনই আপডেট ডাউনলোড করুন" : "Download update now"}
+            {apk
+              ? lang === "bn"
+                ? "এখনই আপডেট ডাউনলোড করুন"
+                : "Download update now"
+              : lang === "bn"
+              ? "GitHub-এ রিলিজ দেখুন"
+              : "Open release on GitHub"}
           </Button>
           <Button
             variant="outline"
