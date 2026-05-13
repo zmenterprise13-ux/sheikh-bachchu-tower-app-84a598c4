@@ -162,6 +162,30 @@ export default function AdminBillsReport() {
         </tr>`)
         .join("");
 
+      const lenderName = (l: any) => (lang === "bn" ? (l?.lender_name_bn || l?.lender_name || "—") : (l?.lender_name || "—"));
+      const loansInRows = loansIn.map((l: any) => `<tr>
+          <td>${esc(l.loan_date)}</td>
+          <td>${esc(lenderName(l))}</td>
+          <td>${esc(l.purpose ?? "")}</td>
+          <td class="r">${fmtMoney(Number(l.principal))}</td>
+        </tr>`).join("");
+      const loansOutRows = loansOut.map((l: any) => `<tr>
+          <td>${esc(l.paid_date)}</td>
+          <td>${esc(lenderName(l.loans))}</td>
+          <td>${esc(l.note ?? "")}</td>
+          <td class="r">${fmtMoney(Number(l.amount))}</td>
+        </tr>`).join("");
+      const otherIncRows = otherInc.map((x: any) => `<tr>
+          <td>${esc(x.date)}</td>
+          <td>${esc(x.category)}</td>
+          <td>${esc(x.source_name ?? x.description ?? "")}</td>
+          <td class="r">${fmtMoney(Number(x.amount))}</td>
+        </tr>`).join("");
+      const expByCatRows = Array.from(expenseByCat.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([cat, amt]) => `<tr><td>${esc(cat)}</td><td class="r">${fmtMoney(amt)}</td></tr>`)
+        .join("");
+
       const html = `<!doctype html>
 <html lang="${lang}">
 <head>
