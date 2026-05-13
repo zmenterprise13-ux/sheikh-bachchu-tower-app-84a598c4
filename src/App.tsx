@@ -69,6 +69,7 @@ import AccountProfile from "./pages/AccountProfile";
 import Download from "./pages/Download";
 import UpdateStatus from "./pages/UpdateStatus";
 import VersionInfo from "./pages/VersionInfo";
+import OtaStatus from "./pages/OtaStatus";
 import PaymentResult from "./pages/PaymentResult";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 import { ForceUpdateGate } from "@/components/ForceUpdateGate";
