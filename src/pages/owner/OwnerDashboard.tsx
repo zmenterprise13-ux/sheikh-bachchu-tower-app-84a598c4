@@ -298,7 +298,7 @@ export default function OwnerDashboard() {
                     <span className="text-white/40">·</span>
                     <span className="text-white/65">{t("welcome")}</span>
                   </div>
-                  <h1 className="mt-1.5 text-[22px] sm:text-[34px] leading-[1.1] font-black tracking-tight truncate bg-gradient-to-r from-white via-white to-white/75 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+                  <h1 className="mt-1.5 text-[22px] sm:text-[34px] leading-[1.45] sm:leading-[1.4] font-black tracking-tight truncate py-0.5 bg-gradient-to-r from-white via-white to-white/75 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
                     {displayName}
                   </h1>
 
