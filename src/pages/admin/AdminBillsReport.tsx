@@ -253,6 +253,42 @@ export default function AdminBillsReport() {
     </tr></tfoot>
   </table>
 
+  <h2>${lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "ক্যাটেগরি" : "Category"}</th>
+      <th>${lang === "bn" ? "উৎস / বিবরণ" : "Source / Description"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${otherIncRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো অন্যান্য আয় নেই" : "No other income"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalOtherInc)}</td></tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "লোন গ্রহণ (নেওয়া)" : "Loans Taken"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "দাতা" : "Lender"}</th>
+      <th>${lang === "bn" ? "উদ্দেশ্য" : "Purpose"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${loansInRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো লোন নেওয়া হয়নি" : "No loans taken"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalLoanIn)}</td></tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "লোন পরিশোধ (দেওয়া)" : "Loans Repaid"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "দাতা" : "Lender"}</th>
+      <th>${lang === "bn" ? "নোট" : "Note"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${loansOutRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো লোন পরিশোধ নেই" : "No loan repayments"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr></tfoot>
+  </table>
+
   <h2>${lang === "bn" ? "মাসিক খরচ" : "Monthly Expenses"}</h2>
   <table>
     <thead><tr>
@@ -266,6 +302,30 @@ export default function AdminBillsReport() {
       <td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td>
       <td class="r">${fmtMoney(totalExpense)}</td>
     </tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "মাসিক আয়-ব্যয় সারসংক্ষেপ" : "Monthly Cashflow Summary"}</h2>
+  <table>
+    <thead><tr><th colspan="2" style="background:#dcfce7;color:#14532d">${lang === "bn" ? "আয়" : "Income"}</th></tr></thead>
+    <tbody>
+      <tr><td>${lang === "bn" ? "পূর্বের ক্যাশ ব্যালেন্স" : "Opening Cash Balance"}</td><td class="r">${fmtMoney(openingCash)}</td></tr>
+      <tr><td>${lang === "bn" ? "ফ্ল্যাট থেকে আদায়" : "Flat Collections"}</td><td class="r">${fmtMoney(totalCollected)}</td></tr>
+      <tr><td>${lang === "bn" ? "লোন গ্রহণ" : "Loan Taken"}</td><td class="r">${fmtMoney(totalLoanIn)}</td></tr>
+      <tr><td>${lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</td><td class="r">${fmtMoney(totalOtherInc)}</td></tr>
+    </tbody>
+    <tfoot><tr><td><b>${lang === "bn" ? "মোট আয়" : "Total Income"}</b></td><td class="r"><b>${fmtMoney(totalIncome)}</b></td></tr></tfoot>
+  </table>
+
+  <table style="margin-top:12px">
+    <thead><tr><th colspan="2" style="background:#fee2e2;color:#7f1d1d">${lang === "bn" ? "ব্যয়" : "Expense"}</th></tr></thead>
+    <tbody>
+      ${expByCatRows || `<tr><td colspan="2" style="text-align:center; color:#999">${lang === "bn" ? "কোনো খরচ নেই" : "No expenses"}</td></tr>`}
+      <tr><td>${lang === "bn" ? "লোন পরিশোধ" : "Loan Repayment"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td><b>${lang === "bn" ? "মোট ব্যয়" : "Total Expense"}</b></td><td class="r"><b>${fmtMoney(totalOutflow)}</b></td></tr>
+      <tr><td><b>${lang === "bn" ? "বর্তমান ব্যালেন্স (মোট আয় − মোট ব্যয়)" : "Current Balance (Income − Expense)"}</b></td><td class="r" style="color:${currentBalance >= 0 ? "#15803d" : "#b91c1c"}"><b>${fmtMoney(currentBalance)}</b></td></tr>
+    </tfoot>
   </table>
 
   <div class="footer">${lang === "bn" ? "শেখ বাচ্চু টাওয়ার — অটোমেটেড রিপোর্ট" : "Sheikh Bachchu Tower — Automated report"}</div>
