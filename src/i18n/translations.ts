@@ -29,6 +29,7 @@ export const translations: T = {
   ownerDetailedInfo: { bn: "মালিকের বিস্তারিত তথ্য", en: "Owner Details" },
   changeHistory: { bn: "পরিবর্তন ইতিহাস", en: "Change History" },
   reports: { bn: "মাসিক রিপোর্ট", en: "Monthly Reports" },
+  billsReport: { bn: "বিল জেনারেট ও রিপোর্ট", en: "Bills Generate & Report" },
   notices: { bn: "নোটিশ", en: "Notices" },
   feedback: { bn: "মতামত ও পরামর্শ", en: "Feedback" },
  userFeedback: { bn: "ইউজার মতামত", en: "User Feedback" },
