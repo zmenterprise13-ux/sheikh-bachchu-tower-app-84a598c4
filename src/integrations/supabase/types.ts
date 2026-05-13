@@ -1192,6 +1192,56 @@ export type Database = {
           },
         ]
       }
+      personal_notices: {
+        Row: {
+          batch_id: string
+          body: string
+          body_bn: string | null
+          created_at: string
+          created_by: string | null
+          flat_id: string
+          id: string
+          important: boolean
+          read_at: string | null
+          title: string
+          title_bn: string | null
+        }
+        Insert: {
+          batch_id?: string
+          body: string
+          body_bn?: string | null
+          created_at?: string
+          created_by?: string | null
+          flat_id: string
+          id?: string
+          important?: boolean
+          read_at?: string | null
+          title: string
+          title_bn?: string | null
+        }
+        Update: {
+          batch_id?: string
+          body?: string
+          body_bn?: string | null
+          created_at?: string
+          created_by?: string | null
+          flat_id?: string
+          id?: string
+          important?: boolean
+          read_at?: string | null
+          title?: string
+          title_bn?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_notices_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
