@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/i18n/LangContext";
-import { AppRelease, fetchAppReleases, getReleaseApk, INSTALLED_KEY, markReleaseDownloaded } from "@/lib/appRelease";
+import { AppRelease, fetchAppReleases, getInstalledReleaseId, getReleaseApk, getReleaseId, INSTALLED_KEY, markReleaseDownloaded } from "@/lib/appRelease";
 import {
   Rocket,
   Download as DownloadIcon,
@@ -45,7 +45,9 @@ export default function UpdateStatus() {
   }, []);
 
   const apk = getReleaseApk(release);
-  const isUpToDate = release && installedTag === release.tag_name;
+  const installedReleaseId = getInstalledReleaseId();
+  const releaseId = getReleaseId(release);
+  const isUpToDate = release && installedTag === release.tag_name && (!installedReleaseId || !releaseId || installedReleaseId === releaseId);
 
   const formatBytes = (bytes: number) => {
     if (!bytes) return "—";
