@@ -86,10 +86,13 @@ async function fetchRepoReleases(repo: GithubRepo, headers: Record<string, strin
   return (data ?? []).map((release) => withRepository(release, repo));
 }
 
-async function findAccountReleases(owner: string, headers: Record<string, string>): Promise<GithubRelease[]> {
-  const repos = await fetchJson<GithubRepo[]>(
-    `https://api.github.com/users/${owner}/repos?per_page=100&sort=updated&type=owner`,
-    headers
+async function findAccountReleases(owner: string, headers: Record<string, string>, hasToken: boolean): Promise<GithubRelease[]> {
+  const reposUrl = hasToken
+    ? "https://api.github.com/user/repos?per_page=100&sort=updated&visibility=all&affiliation=owner"
+    : `https://api.github.com/users/${owner}/repos?per_page=100&sort=updated&type=owner`;
+  const reposData = await fetchJson<GithubRepo[]>(reposUrl, headers);
+  const repos = (reposData ?? []).filter((repo) =>
+    repo.full_name.toLowerCase().startsWith(`${owner.toLowerCase()}/`)
   );
   if (!repos?.length) return [];
 
@@ -120,7 +123,7 @@ Deno.serve(async (req) => {
     const token = Deno.env.get("GITHUB_TOKEN");
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const accountReleases = await findAccountReleases(owner, headers);
+    const accountReleases = await findAccountReleases(owner, headers, Boolean(token));
     if (accountReleases.length) {
       const sorted = [...accountReleases].sort((a, b) => {
         const scoreCompare = releaseScore(b) - releaseScore(a);
