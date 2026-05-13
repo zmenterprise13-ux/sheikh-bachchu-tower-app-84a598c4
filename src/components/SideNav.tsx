@@ -80,6 +80,7 @@ const adminGroups: NavGroup[] = [
     label: "groupReports" as TKey,
     items: [
       { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/bills-report", key: "billsReport" as TKey, icon: FileBarChart },
       { to: "/admin/notices", key: "notices", icon: Megaphone },
     ],
   },
@@ -180,7 +181,10 @@ const accountantGroups: NavGroup[] = [
   },
   {
     label: "groupReports" as TKey,
-    items: [{ to: "/admin/reports", key: "reports", icon: FileBarChart }],
+    items: [
+      { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/bills-report", key: "billsReport" as TKey, icon: FileBarChart },
+    ],
   },
   {
     label: "groupPeople" as TKey,
@@ -223,6 +227,7 @@ const managerGroups: NavGroup[] = [
     items: [
       { to: "/admin/notices", key: "notices", icon: Megaphone },
       { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/bills-report", key: "billsReport" as TKey, icon: FileBarChart },
       { to: "/admin/feedback", key: "userFeedback" as TKey, icon: MessageSquare },
     ],
   },
