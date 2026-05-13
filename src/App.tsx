@@ -73,8 +73,14 @@ import OtaStatus from "./pages/OtaStatus";
 import PaymentResult from "./pages/PaymentResult";
 import { ReportPadDebugProbe } from "@/components/ReportPadDebugProbe";
 import { ForceUpdateGate } from "@/components/ForceUpdateGate";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const queryClient = new QueryClient();
+
+function PushRegistrar() {
+  usePushNotifications();
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -84,6 +90,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <ReportPadDebugProbe />
+          <PushRegistrar />
           <Router>
             <ForceUpdateGate>
             <Routes>
