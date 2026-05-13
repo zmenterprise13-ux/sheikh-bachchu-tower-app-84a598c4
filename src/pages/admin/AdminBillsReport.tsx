@@ -117,13 +117,8 @@ export default function AdminBillsReport() {
       const totalOutflow = totalExpense + totalLoanOut;
       const currentBalance = totalIncome - totalOutflow;
 
-      const expenseByCat = new Map<string, number>();
-      exp.forEach((e: any) => {
-        const k = e.category || (lang === "bn" ? "অন্যান্য" : "Other");
-        expenseByCat.set(k, (expenseByCat.get(k) ?? 0) + Number(e.amount));
-      });
-
-      const net = totalCollected - totalExpense;
+      const totalExpenseAll = totalExpense + totalLoanOut;
+      const net = totalCollected - totalExpenseAll;
       const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
       const fmtMoney = (n: number) =>
@@ -181,10 +176,6 @@ export default function AdminBillsReport() {
           <td>${esc(x.source_name ?? x.description ?? "")}</td>
           <td class="r">${fmtMoney(Number(x.amount))}</td>
         </tr>`).join("");
-      const expByCatRows = Array.from(expenseByCat.entries())
-        .sort((a, b) => b[1] - a[1])
-        .map(([cat, amt]) => `<tr><td>${esc(cat)}</td><td class="r">${fmtMoney(amt)}</td></tr>`)
-        .join("");
 
       const html = `<!doctype html>
 <html lang="${lang}">
@@ -222,7 +213,7 @@ export default function AdminBillsReport() {
     <div class="card"><div class="label">${lang === "bn" ? "মোট বিল" : "Total Billed"}</div><div class="value">${fmtMoney(totalBilled)}</div></div>
     <div class="card success"><div class="label">${lang === "bn" ? "আদায়" : "Collected"}</div><div class="value">${fmtMoney(totalCollected)}</div></div>
     <div class="card dest"><div class="label">${lang === "bn" ? "বাকি" : "Due"}</div><div class="value">${fmtMoney(totalDue)}</div></div>
-    <div class="card warn"><div class="label">${lang === "bn" ? "খরচ" : "Expense"}</div><div class="value">${fmtMoney(totalExpense)}</div></div>
+    <div class="card warn"><div class="label">${lang === "bn" ? "খরচ (লোন পরিশোধ সহ)" : "Expense (incl. Loan Repaid)"}</div><div class="value">${fmtMoney(totalExpenseAll)}</div></div>
   </div>
 
   <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
@@ -319,7 +310,7 @@ export default function AdminBillsReport() {
   <table style="margin-top:12px">
     <thead><tr><th colspan="2" style="background:#fee2e2;color:#7f1d1d">${lang === "bn" ? "ব্যয়" : "Expense"}</th></tr></thead>
     <tbody>
-      ${expByCatRows || `<tr><td colspan="2" style="text-align:center; color:#999">${lang === "bn" ? "কোনো খরচ নেই" : "No expenses"}</td></tr>`}
+      <tr><td>${lang === "bn" ? "মাসিক খরচ" : "Monthly Expenses"}</td><td class="r">${fmtMoney(totalExpense)}</td></tr>
       <tr><td>${lang === "bn" ? "লোন পরিশোধ" : "Loan Repayment"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr>
     </tbody>
     <tfoot>
