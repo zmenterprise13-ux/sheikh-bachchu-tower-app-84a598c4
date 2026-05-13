@@ -59,36 +59,76 @@ export default function AdminBillsReport() {
       const [y, m] = month.split("-").map(Number);
       const monthEnd = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, summaryRes, loansInRes, loansOutRes, otherIncRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, status")
           .eq("month", month),
         supabase.from("expenses")
-          .select("date, category, description, amount")
+          .select("date, category, description, amount, approval_status")
           .gte("date", monthStart).lt("date", monthEnd)
           .order("date", { ascending: true }),
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
+        supabase.rpc("monthly_finance_summary", { _month: month }),
+        supabase.from("loans")
+          .select("loan_date, lender_name, lender_name_bn, principal, purpose, approval_status")
+          .gte("loan_date", monthStart).lt("loan_date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("loan_date", { ascending: true }),
+        supabase.from("loan_repayments")
+          .select("paid_date, amount, note, approval_status, loan_id, loans(lender_name, lender_name_bn)")
+          .gte("paid_date", monthStart).lt("paid_date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("paid_date", { ascending: true }),
+        supabase.from("other_incomes")
+          .select("date, category, source_name, description, amount, approval_status")
+          .gte("date", monthStart).lt("date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("date", { ascending: true }),
       ]);
       if (billsRes.error) throw billsRes.error;
       if (expRes.error) throw expRes.error;
       if (flatsRes.error) throw flatsRes.error;
+      if (summaryRes.error) throw summaryRes.error;
+      if (loansInRes.error) throw loansInRes.error;
+      if (loansOutRes.error) throw loansOutRes.error;
+      if (otherIncRes.error) throw otherIncRes.error;
 
       const bs = billsRes.data ?? [];
-      const exp = expRes.data ?? [];
+      const exp = (expRes.data ?? []).filter((e: any) => (e.approval_status ?? "approved") === "approved");
       const fl = flatsRes.data ?? [];
       const flatMap = new Map(fl.map((f: any) => [f.id, f]));
+      const summary: any = summaryRes.data ?? {};
+      const loansIn = loansInRes.data ?? [];
+      const loansOut = loansOutRes.data ?? [];
+      const otherInc = otherIncRes.data ?? [];
 
       const totalBilled = bs.reduce((s: number, b: any) => s + Number(b.total), 0);
       const totalCollected = bs.reduce((s: number, b: any) => s + Number(b.paid_amount), 0);
       const totalDue = totalBilled - totalCollected;
       const totalExpense = exp.reduce((s: number, e: any) => s + Number(e.amount), 0);
+      const totalLoanIn = loansIn.reduce((s: number, l: any) => s + Number(l.principal), 0);
+      const totalLoanOut = loansOut.reduce((s: number, l: any) => s + Number(l.amount), 0);
+      const totalOtherInc = otherInc.reduce((s: number, x: any) => s + Number(x.amount), 0);
+      const openingCash = Number(summary.opening_cash ?? 0);
+
+      const totalIncome = openingCash + totalCollected + totalLoanIn + totalOtherInc;
+      const totalOutflow = totalExpense + totalLoanOut;
+      const currentBalance = totalIncome - totalOutflow;
+
+      const expenseByCat = new Map<string, number>();
+      exp.forEach((e: any) => {
+        const k = e.category || (lang === "bn" ? "অন্যান্য" : "Other");
+        expenseByCat.set(k, (expenseByCat.get(k) ?? 0) + Number(e.amount));
+      });
+
       const net = totalCollected - totalExpense;
       const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
       const fmtMoney = (n: number) =>
         new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: 0 }).format(n) + " ৳";
+
       const esc = (s: string) =>
         String(s ?? "").replace(/[&<>"]/g, (c) =>
           ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" } as any)[c]);
@@ -120,6 +160,30 @@ export default function AdminBillsReport() {
           <td>${esc(e.description ?? "")}</td>
           <td class="r">${fmtMoney(Number(e.amount))}</td>
         </tr>`)
+        .join("");
+
+      const lenderName = (l: any) => (lang === "bn" ? (l?.lender_name_bn || l?.lender_name || "—") : (l?.lender_name || "—"));
+      const loansInRows = loansIn.map((l: any) => `<tr>
+          <td>${esc(l.loan_date)}</td>
+          <td>${esc(lenderName(l))}</td>
+          <td>${esc(l.purpose ?? "")}</td>
+          <td class="r">${fmtMoney(Number(l.principal))}</td>
+        </tr>`).join("");
+      const loansOutRows = loansOut.map((l: any) => `<tr>
+          <td>${esc(l.paid_date)}</td>
+          <td>${esc(lenderName(l.loans))}</td>
+          <td>${esc(l.note ?? "")}</td>
+          <td class="r">${fmtMoney(Number(l.amount))}</td>
+        </tr>`).join("");
+      const otherIncRows = otherInc.map((x: any) => `<tr>
+          <td>${esc(x.date)}</td>
+          <td>${esc(x.category)}</td>
+          <td>${esc(x.source_name ?? x.description ?? "")}</td>
+          <td class="r">${fmtMoney(Number(x.amount))}</td>
+        </tr>`).join("");
+      const expByCatRows = Array.from(expenseByCat.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([cat, amt]) => `<tr><td>${esc(cat)}</td><td class="r">${fmtMoney(amt)}</td></tr>`)
         .join("");
 
       const html = `<!doctype html>
@@ -189,6 +253,42 @@ export default function AdminBillsReport() {
     </tr></tfoot>
   </table>
 
+  <h2>${lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "ক্যাটেগরি" : "Category"}</th>
+      <th>${lang === "bn" ? "উৎস / বিবরণ" : "Source / Description"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${otherIncRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো অন্যান্য আয় নেই" : "No other income"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalOtherInc)}</td></tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "লোন গ্রহণ (নেওয়া)" : "Loans Taken"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "দাতা" : "Lender"}</th>
+      <th>${lang === "bn" ? "উদ্দেশ্য" : "Purpose"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${loansInRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো লোন নেওয়া হয়নি" : "No loans taken"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalLoanIn)}</td></tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "লোন পরিশোধ (দেওয়া)" : "Loans Repaid"}</h2>
+  <table>
+    <thead><tr>
+      <th>${lang === "bn" ? "তারিখ" : "Date"}</th>
+      <th>${lang === "bn" ? "দাতা" : "Lender"}</th>
+      <th>${lang === "bn" ? "নোট" : "Note"}</th>
+      <th class="r">${lang === "bn" ? "টাকা" : "Amount"}</th>
+    </tr></thead>
+    <tbody>${loansOutRows || `<tr><td colspan="4" style="text-align:center; padding:12px; color:#999">${lang === "bn" ? "কোনো লোন পরিশোধ নেই" : "No loan repayments"}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr></tfoot>
+  </table>
+
   <h2>${lang === "bn" ? "মাসিক খরচ" : "Monthly Expenses"}</h2>
   <table>
     <thead><tr>
@@ -202,6 +302,30 @@ export default function AdminBillsReport() {
       <td colspan="3">${lang === "bn" ? "মোট" : "Total"}</td>
       <td class="r">${fmtMoney(totalExpense)}</td>
     </tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "মাসিক আয়-ব্যয় সারসংক্ষেপ" : "Monthly Cashflow Summary"}</h2>
+  <table>
+    <thead><tr><th colspan="2" style="background:#dcfce7;color:#14532d">${lang === "bn" ? "আয়" : "Income"}</th></tr></thead>
+    <tbody>
+      <tr><td>${lang === "bn" ? "পূর্বের ক্যাশ ব্যালেন্স" : "Opening Cash Balance"}</td><td class="r">${fmtMoney(openingCash)}</td></tr>
+      <tr><td>${lang === "bn" ? "ফ্ল্যাট থেকে আদায়" : "Flat Collections"}</td><td class="r">${fmtMoney(totalCollected)}</td></tr>
+      <tr><td>${lang === "bn" ? "লোন গ্রহণ" : "Loan Taken"}</td><td class="r">${fmtMoney(totalLoanIn)}</td></tr>
+      <tr><td>${lang === "bn" ? "অন্যান্য আয়" : "Other Income"}</td><td class="r">${fmtMoney(totalOtherInc)}</td></tr>
+    </tbody>
+    <tfoot><tr><td><b>${lang === "bn" ? "মোট আয়" : "Total Income"}</b></td><td class="r"><b>${fmtMoney(totalIncome)}</b></td></tr></tfoot>
+  </table>
+
+  <table style="margin-top:12px">
+    <thead><tr><th colspan="2" style="background:#fee2e2;color:#7f1d1d">${lang === "bn" ? "ব্যয়" : "Expense"}</th></tr></thead>
+    <tbody>
+      ${expByCatRows || `<tr><td colspan="2" style="text-align:center; color:#999">${lang === "bn" ? "কোনো খরচ নেই" : "No expenses"}</td></tr>`}
+      <tr><td>${lang === "bn" ? "লোন পরিশোধ" : "Loan Repayment"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td><b>${lang === "bn" ? "মোট ব্যয়" : "Total Expense"}</b></td><td class="r"><b>${fmtMoney(totalOutflow)}</b></td></tr>
+      <tr><td><b>${lang === "bn" ? "বর্তমান ব্যালেন্স (মোট আয় − মোট ব্যয়)" : "Current Balance (Income − Expense)"}</b></td><td class="r" style="color:${currentBalance >= 0 ? "#15803d" : "#b91c1c"}"><b>${fmtMoney(currentBalance)}</b></td></tr>
+    </tfoot>
   </table>
 
   <div class="footer">${lang === "bn" ? "শেখ বাচ্চু টাওয়ার — অটোমেটেড রিপোর্ট" : "Sheikh Bachchu Tower — Automated report"}</div>
