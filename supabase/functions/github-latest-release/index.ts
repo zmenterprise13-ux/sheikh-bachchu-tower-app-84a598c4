@@ -109,8 +109,8 @@ Deno.serve(async (req) => {
 
   try {
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
-    const owner = Deno.env.get("GITHUB_OWNER") ?? body.owner ?? DEFAULT_OWNER;
-    const configuredRepo = Deno.env.get("GITHUB_REPO") ?? body.repo ?? "";
+    const owner = Deno.env.get("GITHUB_OWNER") ?? DEFAULT_OWNER;
+    const configuredRepo = Deno.env.get("GITHUB_REPO") ?? "";
     const limit = Math.min(Math.max(Number(body.limit ?? 5), 1), 20);
     const headers: Record<string, string> = {
       "User-Agent": "sheikh-bachchu-tower-app-updater",
@@ -119,26 +119,6 @@ Deno.serve(async (req) => {
     // Optional: if a GITHUB_TOKEN secret is set, use it for higher rate limits.
     const token = Deno.env.get("GITHUB_TOKEN");
     if (token) headers.Authorization = `Bearer ${token}`;
-
-    if (configuredRepo) {
-      const repo: GithubRepo = {
-        name: configuredRepo,
-        full_name: `${owner}/${configuredRepo}`,
-        html_url: `https://github.com/${owner}/${configuredRepo}`,
-      };
-      const releases = await fetchRepoReleases(repo, headers);
-      if (releases.length) {
-        const latest = pickLatestRelease(releases) ?? releases[0] ?? null;
-        return new Response(JSON.stringify({
-          release: latest,
-          releases: releases.filter((r) => !r.draft && !r.prerelease).slice(0, limit),
-          repository: latest?.repository ?? repo,
-          source: "configured-repo",
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
 
     const accountReleases = await findAccountReleases(owner, headers);
     if (accountReleases.length) {
@@ -158,6 +138,26 @@ Deno.serve(async (req) => {
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (configuredRepo) {
+      const repo: GithubRepo = {
+        name: configuredRepo,
+        full_name: `${owner}/${configuredRepo}`,
+        html_url: `https://github.com/${owner}/${configuredRepo}`,
+      };
+      const releases = await fetchRepoReleases(repo, headers);
+      if (releases.length) {
+        const latest = pickLatestRelease(releases) ?? releases[0] ?? null;
+        return new Response(JSON.stringify({
+          release: latest,
+          releases: releases.filter((r) => !r.draft && !r.prerelease).slice(0, limit),
+          repository: latest?.repository ?? repo,
+          source: "configured-repo",
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Fallback: parse the configured public atom feed if a fixed repo exists.
