@@ -3,10 +3,7 @@
 // mobile users sharing carrier NAT IPs) and avoids browser CORS issues
 // from github.com's HTML/atom endpoints.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const DEFAULT_OWNER = "zmenterprise13-ux";
 
