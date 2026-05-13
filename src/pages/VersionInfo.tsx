@@ -37,6 +37,21 @@ export default function VersionInfo() {
   const [latestTag, setLatestTag] = useState<string | null>(null);
   const [latestUrl, setLatestUrl] = useState<string | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(true);
+  const [nativeVersionName, setNativeVersionName] = useState<string | null>(null);
+  const [nativeVersionCode, setNativeVersionCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        setNativeVersionName(info.version ?? null);
+        setNativeVersionCode(String(info.build ?? ""));
+      } catch {
+        // web / not native — leave as null
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -118,6 +133,18 @@ export default function VersionInfo() {
             icon={<Hash className="h-4 w-4" />}
             label={lang === "bn" ? "বিল্ড নম্বর" : "Build number"}
             value={buildNumber}
+            mono
+          />
+          <Row
+            icon={<Tag className="h-4 w-4" />}
+            label={lang === "bn" ? "ভার্সন নাম" : "versionName"}
+            value={nativeVersionName || "—"}
+            mono
+          />
+          <Row
+            icon={<Hash className="h-4 w-4" />}
+            label={lang === "bn" ? "ভার্সন কোড" : "versionCode"}
+            value={nativeVersionCode || "—"}
             mono
           />
           <Row
