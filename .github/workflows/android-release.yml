@@ -60,15 +60,19 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
 
-      - name: Configure signing
+      - name: Configure app version and signing
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          cat >> android/app/build.gradle << EOF
+          cat >> android/app/build.gradle << 'EOF'
 
           android {
+              defaultConfig {
+                  versionCode ((System.getenv("GITHUB_RUN_NUMBER") ?: "1") as Integer) + 1
+                  versionName "1.${System.getenv("GITHUB_RUN_NUMBER") ?: "1"}"
+              }
               signingConfigs {
                   release {
                       storeFile file('release.keystore')
