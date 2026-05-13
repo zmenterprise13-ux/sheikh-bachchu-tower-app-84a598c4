@@ -204,10 +204,26 @@ export default function UpdateStatus() {
               </div>
             )}
 
+            {!apk && (
+              <div className="rounded-2xl bg-amber-500/10 border border-amber-500/40 p-4 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+                  <p className="font-semibold mb-1">
+                    {lang === "bn" ? "APK ফাইল পাওয়া যায়নি" : "No APK file found"}
+                  </p>
+                  <p>
+                    {lang === "bn"
+                      ? "এই রিলিজে কোনো .apk asset attach করা নেই। GitHub রিলিজ পেজে গিয়ে .apk ফাইল আপলোড করুন, অথবা নিচের বাটন দিয়ে GitHub-এ গিয়ে ম্যানুয়ালি ডাউনলোড করুন।"
+                      : "This release has no .apk asset attached. Upload the file on the GitHub release page, or open it on GitHub to download manually."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleDownload}
-                disabled={downloading || !apk}
+                disabled={downloading}
                 className="gradient-primary text-primary-foreground gap-2 shadow-elegant flex-1"
                 size="lg"
               >
@@ -221,8 +237,8 @@ export default function UpdateStatus() {
                     ? "APK ডাউনলোড করুন"
                     : "Download APK"
                   : lang === "bn"
-                  ? "APK পাওয়া যায়নি"
-                  : "APK not available"}
+                  ? "GitHub-এ রিলিজ দেখুন"
+                  : "Open release on GitHub"}
               </Button>
               <Button variant="outline" asChild className="gap-2" size="lg">
                 <a href={release.html_url} target="_blank" rel="noopener noreferrer">
