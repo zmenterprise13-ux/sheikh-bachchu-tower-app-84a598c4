@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "962121637432",
+    "project_id": "bacchu-tower-app",
+    "storage_bucket": "bacchu-tower-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962121637432:android:f61c0a4a01df9b8ac610cd",
+        "android_client_info": {
+          "package_name": "app.lovable.ea3165e700ed4b8bad1273e329bcd2dd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBwLYlK1rIpNC19y7bazFxNnrN-JFyUyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
