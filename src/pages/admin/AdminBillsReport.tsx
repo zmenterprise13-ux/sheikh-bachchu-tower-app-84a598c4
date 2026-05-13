@@ -59,36 +59,76 @@ export default function AdminBillsReport() {
       const [y, m] = month.split("-").map(Number);
       const monthEnd = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
 
-      const [billsRes, expRes, flatsRes] = await Promise.all([
+      const [billsRes, expRes, flatsRes, summaryRes, loansInRes, loansOutRes, otherIncRes] = await Promise.all([
         supabase.from("bills")
           .select("flat_id, service_charge, gas_bill, parking, eid_bonus, other_charge, total, paid_amount, status")
           .eq("month", month),
         supabase.from("expenses")
-          .select("date, category, description, amount")
+          .select("date, category, description, amount, approval_status")
           .gte("date", monthStart).lt("date", monthEnd)
           .order("date", { ascending: true }),
         supabase.from("flats")
           .select("id, flat_no, owner_name, owner_name_bn, occupant_type, occupant_name, occupant_name_bn")
           .order("flat_no", { ascending: true }),
+        supabase.rpc("monthly_finance_summary", { _month: month }),
+        supabase.from("loans")
+          .select("loan_date, lender_name, lender_name_bn, principal, purpose, approval_status")
+          .gte("loan_date", monthStart).lt("loan_date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("loan_date", { ascending: true }),
+        supabase.from("loan_repayments")
+          .select("paid_date, amount, note, approval_status, loan_id, loans(lender_name, lender_name_bn)")
+          .gte("paid_date", monthStart).lt("paid_date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("paid_date", { ascending: true }),
+        supabase.from("other_incomes")
+          .select("date, category, source_name, description, amount, approval_status")
+          .gte("date", monthStart).lt("date", monthEnd)
+          .eq("approval_status", "approved")
+          .order("date", { ascending: true }),
       ]);
       if (billsRes.error) throw billsRes.error;
       if (expRes.error) throw expRes.error;
       if (flatsRes.error) throw flatsRes.error;
+      if (summaryRes.error) throw summaryRes.error;
+      if (loansInRes.error) throw loansInRes.error;
+      if (loansOutRes.error) throw loansOutRes.error;
+      if (otherIncRes.error) throw otherIncRes.error;
 
       const bs = billsRes.data ?? [];
-      const exp = expRes.data ?? [];
+      const exp = (expRes.data ?? []).filter((e: any) => (e.approval_status ?? "approved") === "approved");
       const fl = flatsRes.data ?? [];
       const flatMap = new Map(fl.map((f: any) => [f.id, f]));
+      const summary: any = summaryRes.data ?? {};
+      const loansIn = loansInRes.data ?? [];
+      const loansOut = loansOutRes.data ?? [];
+      const otherInc = otherIncRes.data ?? [];
 
       const totalBilled = bs.reduce((s: number, b: any) => s + Number(b.total), 0);
       const totalCollected = bs.reduce((s: number, b: any) => s + Number(b.paid_amount), 0);
       const totalDue = totalBilled - totalCollected;
       const totalExpense = exp.reduce((s: number, e: any) => s + Number(e.amount), 0);
+      const totalLoanIn = loansIn.reduce((s: number, l: any) => s + Number(l.principal), 0);
+      const totalLoanOut = loansOut.reduce((s: number, l: any) => s + Number(l.amount), 0);
+      const totalOtherInc = otherInc.reduce((s: number, x: any) => s + Number(x.amount), 0);
+      const openingCash = Number(summary.opening_cash ?? 0);
+
+      const totalIncome = openingCash + totalCollected + totalLoanIn + totalOtherInc;
+      const totalOutflow = totalExpense + totalLoanOut;
+      const currentBalance = totalIncome - totalOutflow;
+
+      const expenseByCat = new Map<string, number>();
+      exp.forEach((e: any) => {
+        const k = e.category || (lang === "bn" ? "অন্যান্য" : "Other");
+        expenseByCat.set(k, (expenseByCat.get(k) ?? 0) + Number(e.amount));
+      });
+
       const net = totalCollected - totalExpense;
       const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
       const fmtMoney = (n: number) =>
         new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: 0 }).format(n) + " ৳";
+
       const esc = (s: string) =>
         String(s ?? "").replace(/[&<>"]/g, (c) =>
           ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" } as any)[c]);
