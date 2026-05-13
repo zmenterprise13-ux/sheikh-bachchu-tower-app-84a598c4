@@ -295,7 +295,7 @@ export default function AdminBillsReport() {
     </tr></tfoot>
   </table>
 
-  <h2>${lang === "bn" ? "মাসিক আয়-ব্যয় সারসংক্ষেপ" : "Monthly Cashflow Summary"}</h2>
+  <h2>${lang === "bn" ? "মাসিক আয়" : "Monthly Income"}</h2>
   <table>
     <thead><tr><th colspan="2" style="background:#dcfce7;color:#14532d">${lang === "bn" ? "আয়" : "Income"}</th></tr></thead>
     <tbody>
@@ -307,16 +307,24 @@ export default function AdminBillsReport() {
     <tfoot><tr><td><b>${lang === "bn" ? "মোট আয়" : "Total Income"}</b></td><td class="r"><b>${fmtMoney(totalIncome)}</b></td></tr></tfoot>
   </table>
 
-  <table style="margin-top:12px">
+  <h2>${lang === "bn" ? "মাসিক ব্যয়" : "Monthly Expense"}</h2>
+  <table>
     <thead><tr><th colspan="2" style="background:#fee2e2;color:#7f1d1d">${lang === "bn" ? "ব্যয়" : "Expense"}</th></tr></thead>
     <tbody>
       <tr><td>${lang === "bn" ? "মাসিক খরচ" : "Monthly Expenses"}</td><td class="r">${fmtMoney(totalExpense)}</td></tr>
       <tr><td>${lang === "bn" ? "লোন পরিশোধ" : "Loan Repayment"}</td><td class="r">${fmtMoney(totalLoanOut)}</td></tr>
     </tbody>
-    <tfoot>
-      <tr><td><b>${lang === "bn" ? "মোট ব্যয়" : "Total Expense"}</b></td><td class="r"><b>${fmtMoney(totalOutflow)}</b></td></tr>
-      <tr><td><b>${lang === "bn" ? "বর্তমান ব্যালেন্স (মোট আয় − মোট ব্যয়)" : "Current Balance (Income − Expense)"}</b></td><td class="r" style="color:${currentBalance >= 0 ? "#15803d" : "#b91c1c"}"><b>${fmtMoney(currentBalance)}</b></td></tr>
-    </tfoot>
+    <tfoot><tr><td><b>${lang === "bn" ? "মোট ব্যয়" : "Total Expense"}</b></td><td class="r"><b>${fmtMoney(totalOutflow)}</b></td></tr></tfoot>
+  </table>
+
+  <h2>${lang === "bn" ? "বর্তমান ব্যালেন্স" : "Current Balance"}</h2>
+  <table>
+    <thead><tr><th colspan="2" style="background:#e0e7ff;color:#1e3a8a">${lang === "bn" ? "ব্যালেন্স হিসাব" : "Balance Calculation"}</th></tr></thead>
+    <tbody>
+      <tr><td>${lang === "bn" ? "মোট আয়" : "Total Income"}</td><td class="r">${fmtMoney(totalIncome)}</td></tr>
+      <tr><td>${lang === "bn" ? "মোট ব্যয়" : "Total Expense"}</td><td class="r">− ${fmtMoney(totalOutflow)}</td></tr>
+    </tbody>
+    <tfoot><tr><td><b>${lang === "bn" ? "বর্তমান ব্যালেন্স" : "Current Balance"}</b></td><td class="r" style="color:${currentBalance >= 0 ? "#15803d" : "#b91c1c"}"><b>${fmtMoney(currentBalance)}</b></td></tr></tfoot>
   </table>
 
   <div class="footer">${lang === "bn" ? "শেখ বাচ্চু টাওয়ার — অটোমেটেড রিপোর্ট" : "Sheikh Bachchu Tower — Automated report"}</div>
