@@ -14,7 +14,7 @@ import {
   AlertCircle,
   MessageCircle,
 } from "lucide-react";
-import { fetchAppReleases, INSTALLED_KEY, LEGACY_SEEN_KEY } from "@/lib/appRelease";
+import { fetchAppReleases, getInstalledReleaseId, getReleaseId, INSTALLED_KEY, LEGACY_SEEN_KEY } from "@/lib/appRelease";
 
 /** Extract numeric build number from a tag like "build-31" or "v1.2.3" → "31" / "1.2.3" */
 function extractBuildNumber(tag: string | null): string {
@@ -31,6 +31,7 @@ export default function VersionInfo() {
   const buildNumber = extractBuildNumber(installed);
 
   const [latestTag, setLatestTag] = useState<string | null>(null);
+  const [latestReleaseId, setLatestReleaseId] = useState<string | null>(null);
   const [latestUrl, setLatestUrl] = useState<string | null>(null);
   const [latestRepo, setLatestRepo] = useState<string | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(true);
@@ -56,6 +57,7 @@ export default function VersionInfo() {
         const { release: latest } = await fetchAppReleases(1);
         if (latest) {
           setLatestTag(latest.tag_name);
+          setLatestReleaseId(getReleaseId(latest));
           setLatestUrl(latest.html_url);
           setLatestRepo(latest.repository?.full_name ?? null);
         }
@@ -67,7 +69,12 @@ export default function VersionInfo() {
     })();
   }, []);
 
-  const isUpToDate = installed && latestTag && installed === latestTag;
+  const installedReleaseId = getInstalledReleaseId();
+  const isUpToDate =
+    installed &&
+    latestTag &&
+    installed === latestTag &&
+    (!installedReleaseId || !latestReleaseId || installedReleaseId === latestReleaseId);
   const platform =
     typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent)
       ? "Android"
