@@ -37,6 +37,21 @@ export default function VersionInfo() {
   const [latestTag, setLatestTag] = useState<string | null>(null);
   const [latestUrl, setLatestUrl] = useState<string | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(true);
+  const [nativeVersionName, setNativeVersionName] = useState<string | null>(null);
+  const [nativeVersionCode, setNativeVersionCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        setNativeVersionName(info.version ?? null);
+        setNativeVersionCode(String(info.build ?? ""));
+      } catch {
+        // web / not native — leave as null
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
