@@ -136,6 +136,18 @@ export default function VersionInfo() {
             mono
           />
           <Row
+            icon={<Tag className="h-4 w-4" />}
+            label={lang === "bn" ? "ভার্সন নাম" : "versionName"}
+            value={nativeVersionName || "—"}
+            mono
+          />
+          <Row
+            icon={<Hash className="h-4 w-4" />}
+            label={lang === "bn" ? "ভার্সন কোড" : "versionCode"}
+            value={nativeVersionCode || "—"}
+            mono
+          />
+          <Row
             icon={<Smartphone className="h-4 w-4" />}
             label={lang === "bn" ? "প্ল্যাটফর্ম" : "Platform"}
             value={platform}
