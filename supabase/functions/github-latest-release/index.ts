@@ -46,13 +46,63 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-function pickLatestRelease<T extends { tag_name: string; published_at?: string; prerelease?: boolean; draft?: boolean }>(releases: T[]): T | null {
+function hasApkAsset(release: GithubRelease): boolean {
+  return (release.assets ?? []).some((asset) => asset.name.toLowerCase().endsWith(".apk"));
+}
+
+function releaseScore(release: GithubRelease): number {
+  const body = `${release.name ?? ""} ${release.body ?? ""} ${(release.assets ?? []).map((a) => a.name).join(" ")}`.toLowerCase();
+  let score = hasApkAsset(release) ? 100 : 0;
+  if (body.includes("sheikh")) score += 20;
+  if (body.includes("bachchu") || body.includes("bacchu")) score += 20;
+  if (body.includes("tower")) score += 15;
+  if (body.includes("app-release.apk")) score += 10;
+  return score;
+}
+
+function withRepository(release: GithubRelease, repo: GithubRepo): GithubRelease {
+  return { ...release, repository: { name: repo.name, full_name: repo.full_name, html_url: repo.html_url } };
+}
+
+function pickLatestRelease<T extends GithubRelease>(releases: T[]): T | null {
   const stable = releases.filter((release) => !release.draft && !release.prerelease);
   return stable.sort((a, b) => {
+    const scoreCompare = releaseScore(b) - releaseScore(a);
+    if (scoreCompare !== 0) return scoreCompare;
     const versionCompare = compareVersions(b.tag_name, a.tag_name);
     if (versionCompare !== 0) return versionCompare;
     return Date.parse(b.published_at ?? "") - Date.parse(a.published_at ?? "");
   })[0] ?? null;
+}
+
+async function fetchJson<T>(url: string, headers: Record<string, string>): Promise<T | null> {
+  const res = await fetch(url, { headers });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+async function fetchRepoReleases(repo: GithubRepo, headers: Record<string, string>, limit = 100): Promise<GithubRelease[]> {
+  const data = await fetchJson<GithubRelease[]>(
+    `https://api.github.com/repos/${repo.full_name}/releases?per_page=${limit}`,
+    headers
+  );
+  return (data ?? []).map((release) => withRepository(release, repo));
+}
+
+async function findAccountReleases(owner: string, headers: Record<string, string>): Promise<GithubRelease[]> {
+  const repos = await fetchJson<GithubRepo[]>(
+    `https://api.github.com/users/${owner}/repos?per_page=100&sort=updated&type=owner`,
+    headers
+  );
+  if (!repos?.length) return [];
+
+  const batches = await Promise.all(
+    repos.slice(0, 30).map((repo) => fetchRepoReleases(repo, headers, 10).catch(() => []))
+  );
+
+  return batches
+    .flat()
+    .filter((release) => !release.draft && !release.prerelease && hasApkAsset(release));
 }
 
 Deno.serve(async (req) => {
