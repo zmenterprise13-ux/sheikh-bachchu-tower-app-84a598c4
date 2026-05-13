@@ -80,6 +80,7 @@ export function ForceUpdateGate({ children }: { children: ReactNode }) {
     !!latestTag &&
     (!installed ||
       (installedId && latestId && installedId !== latestId) ||
+      (!installedId && !!latestId) ||
       compareVersions(latestTag, installed) > 0);
 
   if (!needsUpdate) return <>{children}</>;
