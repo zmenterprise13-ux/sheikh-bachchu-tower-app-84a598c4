@@ -14,11 +14,7 @@ import {
   AlertCircle,
   MessageCircle,
 } from "lucide-react";
-
-const GITHUB_OWNER = "zmenterprise13-ux";
-const GITHUB_REPO = "sheikh-bachchu-tower-app-4d8f59dd";
-const INSTALLED_KEY = "sbt:installedReleaseTag";
-const LEGACY_SEEN_KEY = "sbt:lastSeenReleaseTag";
+import { fetchAppReleases, INSTALLED_KEY, LEGACY_SEEN_KEY } from "@/lib/appRelease";
 
 /** Extract numeric build number from a tag like "build-31" or "v1.2.3" → "31" / "1.2.3" */
 function extractBuildNumber(tag: string | null): string {
@@ -36,6 +32,7 @@ export default function VersionInfo() {
 
   const [latestTag, setLatestTag] = useState<string | null>(null);
   const [latestUrl, setLatestUrl] = useState<string | null>(null);
+  const [latestRepo, setLatestRepo] = useState<string | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [nativeVersionName, setNativeVersionName] = useState<string | null>(null);
   const [nativeVersionCode, setNativeVersionCode] = useState<string | null>(null);
@@ -56,17 +53,11 @@ export default function VersionInfo() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=5`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) throw new Error();
-        const data: Array<{ tag_name: string; prerelease: boolean; html_url: string }> =
-          await res.json();
-        const latest = data.find((r) => !r.prerelease) ?? data[0];
+        const { release: latest } = await fetchAppReleases(1);
         if (latest) {
           setLatestTag(latest.tag_name);
           setLatestUrl(latest.html_url);
+          setLatestRepo(latest.repository?.full_name ?? null);
         }
       } catch {
         // silent
