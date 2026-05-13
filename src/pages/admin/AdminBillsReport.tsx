@@ -117,13 +117,8 @@ export default function AdminBillsReport() {
       const totalOutflow = totalExpense + totalLoanOut;
       const currentBalance = totalIncome - totalOutflow;
 
-      const expenseByCat = new Map<string, number>();
-      exp.forEach((e: any) => {
-        const k = e.category || (lang === "bn" ? "অন্যান্য" : "Other");
-        expenseByCat.set(k, (expenseByCat.get(k) ?? 0) + Number(e.amount));
-      });
-
-      const net = totalCollected - totalExpense;
+      const totalExpenseAll = totalExpense + totalLoanOut;
+      const net = totalCollected - totalExpenseAll;
       const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
       const fmtMoney = (n: number) =>
