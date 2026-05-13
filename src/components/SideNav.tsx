@@ -80,6 +80,7 @@ const adminGroups: NavGroup[] = [
     label: "groupReports" as TKey,
     items: [
       { to: "/admin/reports", key: "reports", icon: FileBarChart },
+      { to: "/admin/bills-report", key: "billsReport" as TKey, icon: FileBarChart },
       { to: "/admin/notices", key: "notices", icon: Megaphone },
     ],
   },
