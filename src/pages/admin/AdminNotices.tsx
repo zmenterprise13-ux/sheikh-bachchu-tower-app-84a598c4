@@ -275,6 +275,10 @@ export default function AdminNotices() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <div className="pt-6 border-t border-border">
+          <PersonalNoticeManager />
+        </div>
       </div>
     </AppShell>
   );
