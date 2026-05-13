@@ -111,35 +111,71 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+    const owner = Deno.env.get("GITHUB_OWNER") ?? body.owner ?? DEFAULT_OWNER;
+    const configuredRepo = Deno.env.get("GITHUB_REPO") ?? body.repo ?? "";
+    const limit = Math.min(Math.max(Number(body.limit ?? 5), 1), 20);
     const headers: Record<string, string> = {
-      "User-Agent": "sheikh-bachchu-tower-app",
+      "User-Agent": "sheikh-bachchu-tower-app-updater",
       Accept: "application/vnd.github+json",
     };
     // Optional: if a GITHUB_TOKEN secret is set, use it for higher rate limits.
     const token = Deno.env.get("GITHUB_TOKEN");
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const apiRes = await fetch(
-      `https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=100`,
-      { headers }
-    );
+    if (configuredRepo) {
+      const repo: GithubRepo = {
+        name: configuredRepo,
+        full_name: `${owner}/${configuredRepo}`,
+        html_url: `https://github.com/${owner}/${configuredRepo}`,
+      };
+      const releases = await fetchRepoReleases(repo, headers);
+      if (releases.length) {
+        const latest = pickLatestRelease(releases) ?? releases[0] ?? null;
+        return new Response(JSON.stringify({
+          release: latest,
+          releases: releases.filter((r) => !r.draft && !r.prerelease).slice(0, limit),
+          repository: latest?.repository ?? repo,
+          source: "configured-repo",
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
-    if (apiRes.ok) {
-      const data = await apiRes.json();
-      const latest = pickLatestRelease(data) ?? data[0] ?? null;
-      return new Response(JSON.stringify({ release: latest }), {
+    const accountReleases = await findAccountReleases(owner, headers);
+    if (accountReleases.length) {
+      const sorted = [...accountReleases].sort((a, b) => {
+        const scoreCompare = releaseScore(b) - releaseScore(a);
+        if (scoreCompare !== 0) return scoreCompare;
+        const versionCompare = compareVersions(b.tag_name, a.tag_name);
+        if (versionCompare !== 0) return versionCompare;
+        return Date.parse(b.published_at ?? "") - Date.parse(a.published_at ?? "");
+      });
+      const latest = sorted[0] ?? null;
+      return new Response(JSON.stringify({
+        release: latest,
+        releases: sorted.slice(0, limit),
+        repository: latest?.repository ?? null,
+        source: "account-scan",
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fallback: parse the public atom feed (no rate limit, no auth).
+    // Fallback: parse the configured public atom feed if a fixed repo exists.
+    if (!configuredRepo) {
+      return new Response(JSON.stringify({ release: null, releases: [], repository: null, source: null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const atomRes = await fetch(
-      `https://github.com/${OWNER}/${REPO}/releases.atom`,
-      { headers: { "User-Agent": "sheikh-bachchu-tower-app" } }
+      `https://github.com/${owner}/${configuredRepo}/releases.atom`,
+      { headers: { "User-Agent": "sheikh-bachchu-tower-app-updater" } }
     );
     if (!atomRes.ok) {
       return new Response(
-        JSON.stringify({ error: `GitHub ${apiRes.status}/${atomRes.status}` }),
+        JSON.stringify({ error: `GitHub release not found` }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -155,7 +191,12 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const apkUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${tag}/app-release.apk`;
+    const apkUrl = `https://github.com/${owner}/${configuredRepo}/releases/download/${tag}/app-release.apk`;
+    const repository = {
+      name: configuredRepo,
+      full_name: `${owner}/${configuredRepo}`,
+      html_url: `https://github.com/${owner}/${configuredRepo}`,
+    };
     const release = {
       tag_name: tag,
       name: titleMatch?.[1] ?? tag,
@@ -164,8 +205,9 @@ Deno.serve(async (req) => {
       published_at: updatedMatch?.[1] ?? "",
       body: (contentMatch?.[1] ?? "").replace(/<[^>]+>/g, "").trim(),
       assets: [{ name: "app-release.apk", browser_download_url: apkUrl, size: 0 }],
+      repository,
     };
-    return new Response(JSON.stringify({ release }), {
+    return new Response(JSON.stringify({ release, releases: [release], repository, source: "atom-fallback" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
