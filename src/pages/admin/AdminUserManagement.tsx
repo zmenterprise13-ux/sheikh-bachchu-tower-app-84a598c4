@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Users, Search, Trash2, Ban, ShieldCheck, Wallet, Briefcase, User as UserIcon,
   Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X, LogIn, UserPlus,
@@ -352,70 +353,80 @@ export default function AdminUserManagement() {
                 </div>
 
                 {/* Actions */}
-                {!isSelf && (
-                  <div className="flex items-center gap-2 flex-wrap pt-1">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-1.5">
-                          <Ban className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "h-8 text-[11px] gap-1.5",
+                          isBanned ? "text-success hover:text-success" : "text-warning hover:text-warning"
+                        )}
+                        disabled={busy || isSelf}
+                      >
+                        <Ban className="h-3.5 w-3.5" />
+                        {isBanned
+                          ? (lang === "bn" ? "আনব্লক" : "Unblock")
+                          : (lang === "bn" ? "ব্লক করুন" : "Block")}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
                           {isBanned
-                            ? (lang === "bn" ? "আনব্লক" : "Unblock")
-                            : (lang === "bn" ? "ব্লক" : "Block")}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {isBanned
-                              ? (lang === "bn" ? "ব্যবহারকারী আনব্লক করবেন?" : "Unblock user?")
-                              : (lang === "bn" ? "ব্যবহারকারী ব্লক করবেন?" : "Block user?")}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {isBanned
-                              ? (lang === "bn" ? `${name} আবার লগইন করতে পারবেন।` : `${name} will be able to sign in again.`)
-                              : (lang === "bn" ? `${name} লগইন করতে পারবেন না।` : `${name} will not be able to sign in.`)}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{lang === "bn" ? "বাতিল" : "Cancel"}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => toggleBan(r.user_id, !isBanned)}>
-                            {lang === "bn" ? "নিশ্চিত" : "Confirm"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            ? (lang === "bn" ? "আনব্লক করতে চান?" : "Are you sure to unblock?")
+                            : (lang === "bn" ? "ব্লক করতে চান?" : "Are you sure to block?")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {isBanned
+                            ? (lang === "bn"
+                              ? "এটি ব্যবহারকারীকে আবার লগইন করার অনুমতি দেবে।"
+                              : "This will allow the user to log in again.")
+                            : (lang === "bn"
+                              ? "ব্লক করলে এই ব্যবহারকারী আর লগইন করতে পারবেন না।"
+                              : "Blocking will prevent this user from logging in.")}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{lang === "bn" ? "না" : "No"}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => toggleBan(r.user_id, !isBanned)}>
+                          {lang === "bn" ? "হ্যাঁ" : "Yes"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                          {lang === "bn" ? "ডিলিট" : "Delete"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {lang === "bn" ? "ব্যবহারকারী মুছে ফেলবেন?" : "Delete user?"}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {lang === "bn"
-                              ? `${name}-কে চিরতরে মুছে ফেলা হবে। এটি ফেরানো যাবে না।`
-                              : `${name} will be permanently deleted. This cannot be undone.`}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{lang === "bn" ? "বাতিল" : "Cancel"}</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteUser(r.user_id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {lang === "bn" ? "ডিলিট নিশ্চিত" : "Delete"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-[11px] gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/5"
+                        disabled={busy || isSelf}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {lang === "bn" ? "ডিলিট" : "Delete"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{lang === "bn" ? "ডিলিট করতে চান?" : "Are you sure to delete?"}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {lang === "bn"
+                            ? "এটি ব্যবহারকারীর অ্যাকাউন্ট এবং সকল তথ্য স্থায়ীভাবে মুছে ফেলবে। এটি আর ফিরে পাওয়া সম্ভব নয়।"
+                            : "This will permanently delete the user account and all data. This action cannot be undone."}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{lang === "bn" ? "না" : "No"}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteUser(r.user_id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {lang === "bn" ? "মুছে ফেলুন" : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             );
           })}
