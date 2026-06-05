@@ -121,7 +121,7 @@ const App = () => (
               <Route path="/admin/notices" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminNotices /></ProtectedRoute>} />
               <Route path="/admin/committee" element={<ProtectedRoute allowRoles={["admin"]}><AdminCommittee /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute allowRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
-              <Route path="/admin/user-management" element={<ProtectedRoute allowRoles={["admin"]}><AdminUserManagement /></ProtectedRoute>} />
+              <Route path="/admin/user-management" element={<ProtectedRoute allowRoles={["admin", "manager"]}><AdminUserManagement /></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute allowRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
               <Route path="/admin/settings/history" element={<ProtectedRoute allowRoles={["admin"]}><AdminSettingsHistory /></ProtectedRoute>} />
               <Route path="/admin/settings/payment-gateway" element={<ProtectedRoute allowRoles={["admin"]}><AdminPaymentGateway /></ProtectedRoute>} />
