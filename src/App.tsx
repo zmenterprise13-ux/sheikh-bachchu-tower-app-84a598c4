@@ -98,7 +98,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
 
               {/* Admin & staff (manager / accountant) */}
-              <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/accountant" element={<ProtectedRoute allowRoles={["admin","accountant"]}><AccountantDashboard /></ProtectedRoute>} />
               <Route path="/manager" element={<ProtectedRoute allowRoles={["admin","manager"]}><ManagerDashboard /></ProtectedRoute>} />
               <Route path="/admin/flats" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminFlats /></ProtectedRoute>} />
@@ -119,14 +119,14 @@ const App = () => (
               <Route path="/admin/reports" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminReports /></ProtectedRoute>} />
               <Route path="/admin/bills-report" element={<ProtectedRoute allowRoles={["admin","manager","accountant"]}><AdminBillsReport /></ProtectedRoute>} />
               <Route path="/admin/notices" element={<ProtectedRoute allowRoles={["admin","manager"]}><AdminNotices /></ProtectedRoute>} />
-              <Route path="/admin/committee" element={<ProtectedRoute requireRole="admin"><AdminCommittee /></ProtectedRoute>} />
-              <Route path="/admin/users" element={<ProtectedRoute requireRole="admin"><AdminUsers /></ProtectedRoute>} />
-              <Route path="/admin/user-management" element={<ProtectedRoute requireRole="admin"><AdminUserManagement /></ProtectedRoute>} />
-              <Route path="/admin/settings" element={<ProtectedRoute requireRole="admin"><AdminSettings /></ProtectedRoute>} />
-              <Route path="/admin/settings/history" element={<ProtectedRoute requireRole="admin"><AdminSettingsHistory /></ProtectedRoute>} />
-              <Route path="/admin/settings/payment-gateway" element={<ProtectedRoute requireRole="admin"><AdminPaymentGateway /></ProtectedRoute>} />
-              <Route path="/admin/change-history" element={<ProtectedRoute requireRole="admin"><AdminChangeHistory /></ProtectedRoute>} />
-              <Route path="/admin/user-activity" element={<ProtectedRoute requireRole="admin"><AdminUserActivity /></ProtectedRoute>} />
+              <Route path="/admin/committee" element={<ProtectedRoute allowRoles={["admin"]}><AdminCommittee /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute allowRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/user-management" element={<ProtectedRoute allowRoles={["admin"]}><AdminUserManagement /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute allowRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
+              <Route path="/admin/settings/history" element={<ProtectedRoute allowRoles={["admin"]}><AdminSettingsHistory /></ProtectedRoute>} />
+              <Route path="/admin/settings/payment-gateway" element={<ProtectedRoute allowRoles={["admin"]}><AdminPaymentGateway /></ProtectedRoute>} />
+              <Route path="/admin/change-history" element={<ProtectedRoute allowRoles={["admin"]}><AdminChangeHistory /></ProtectedRoute>} />
+              <Route path="/admin/user-activity" element={<ProtectedRoute allowRoles={["admin"]}><AdminUserActivity /></ProtectedRoute>} />
 
               {/* Owner */}
               <Route path="/owner" element={<ProtectedRoute allowRoles={["owner","tenant"]}><OwnerDashboard /></ProtectedRoute>} />
