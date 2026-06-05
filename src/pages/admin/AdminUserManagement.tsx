@@ -322,6 +322,7 @@ export default function AdminUserManagement() {
                   )}
                   {r.roles.map((role) => {
                     const s = roleStyle[role];
+                    if (!s) return null;
                     return (
                       <span key={role} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${s.cls}`}>
                         {s.icon}{s.label[lang]}
