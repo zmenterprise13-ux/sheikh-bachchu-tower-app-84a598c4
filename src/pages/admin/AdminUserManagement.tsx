@@ -280,7 +280,7 @@ export default function AdminUserManagement() {
             const name = lang === "bn"
               ? (r.display_name_bn || r.display_name || flatOwnerNameBn || flatOwnerName || r.email || r.user_id.slice(0, 8))
               : (r.display_name || flatOwnerName || r.email || r.user_id.slice(0, 8));
-            const availableRoles: Role[] = (["owner", "accountant", "manager", "admin"] as Role[])
+            const availableRoles: Role[] = (["owner", "tenant", "accountant", "manager", "admin"] as Role[])
               .filter((x) => !r.roles.includes(x));
 
             return (
