@@ -146,15 +146,19 @@ export default function AdminUserManagement() {
 
   const resetPassword = async (uid: string, newPassword: string) => {
     setBusy(true);
+    console.log("[resetPassword] invoking for", uid, "len=", newPassword.length);
     const { data, error } = await supabase.functions.invoke("manage-staff-roles", {
       body: { action: "reset_password", user_id: uid, new_password: newPassword },
     });
     setBusy(false);
+    console.log("[resetPassword] response", { data, error });
     if (error || data?.error) {
-      toast.error(error?.message || data?.error);
+      const msg = error?.message || data?.error || "Unknown error";
+      toast.error(`${lang === "bn" ? "ব্যর্থ" : "Failed"}: ${msg}`);
       return false;
     }
     toast.success(lang === "bn" ? "পাসওয়ার্ড পরিবর্তন হয়েছে" : "Password reset successfully");
+    refresh();
     return true;
   };
 
