@@ -10,8 +10,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   Users, Search, Trash2, Ban, ShieldCheck, Wallet, Briefcase, User as UserIcon,
-  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X, LogIn, UserPlus,
+  Mail, Phone, Calendar, CheckCircle2, XCircle, Plus, X, LogIn, UserPlus, KeyRound,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -138,6 +142,20 @@ export default function AdminUserManagement() {
       ? (lang === "bn" ? "ব্যবহারকারী ব্লক করা হয়েছে" : "User blocked")
       : (lang === "bn" ? "ব্যবহারকারী আনব্লক করা হয়েছে" : "User unblocked"));
     refresh();
+  };
+
+  const resetPassword = async (uid: string, newPassword: string) => {
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("manage-staff-roles", {
+      body: { action: "reset_password", user_id: uid, new_password: newPassword },
+    });
+    setBusy(false);
+    if (error || data?.error) {
+      toast.error(error?.message || data?.error);
+      return false;
+    }
+    toast.success(lang === "bn" ? "পাসওয়ার্ড পরিবর্তন হয়েছে" : "Password reset successfully");
+    return true;
   };
 
   const deleteUser = async (uid: string) => {

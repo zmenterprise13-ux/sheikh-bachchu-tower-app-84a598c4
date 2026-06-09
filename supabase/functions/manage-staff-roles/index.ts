@@ -121,6 +121,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    if ((body as any).action === "reset_password") {
+      const uid = (body as any).user_id as string;
+      const newPassword = (body as any).new_password as string;
+      if (!uid) throw new Error("user_id required");
+      if (!newPassword || newPassword.length < 6) throw new Error("Password must be at least 6 characters");
+      const { error } = await admin.auth.admin.updateUserById(uid, { password: newPassword });
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if ((body as any).action === "set_ban") {
       const uid = (body as any).user_id as string;
       const banned = !!(body as any).banned;
