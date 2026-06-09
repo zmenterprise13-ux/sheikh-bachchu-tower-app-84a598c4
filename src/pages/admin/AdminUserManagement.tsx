@@ -461,3 +461,98 @@ export default function AdminUserManagement() {
     </AppShell>
   );
 }
+
+function ResetPasswordDialog({
+  lang, busy, onSubmit, userName,
+}: {
+  lang: "bn" | "en";
+  busy: boolean;
+  onSubmit: (pw: string) => Promise<boolean>;
+  userName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pw, setPw] = useState("");
+  const [confirm, setConfirm] = useState("");
+
+  const submit = async () => {
+    if (pw.length < 6) {
+      toast.error(lang === "bn" ? "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে" : "Password must be at least 6 characters");
+      return;
+    }
+    if (pw !== confirm) {
+      toast.error(lang === "bn" ? "পাসওয়ার্ড মেলেনি" : "Passwords do not match");
+      return;
+    }
+    const ok = await onSubmit(pw);
+    if (ok) {
+      setOpen(false);
+      setPw("");
+      setConfirm("");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setPw(""); setConfirm(""); } }}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-[11px] gap-1.5 text-primary hover:text-primary hover:bg-primary/5"
+          disabled={busy}
+        >
+          <KeyRound className="h-3.5 w-3.5" />
+          {lang === "bn" ? "পাসওয়ার্ড রিসেট" : "Reset Password"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {lang === "bn" ? "পাসওয়ার্ড রিসেট করুন" : "Reset Password"}
+          </DialogTitle>
+          <DialogDescription>
+            {lang === "bn"
+              ? `${userName}-এর জন্য নতুন পাসওয়ার্ড সেট করুন।`
+              : `Set a new password for ${userName}.`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">
+              {lang === "bn" ? "নতুন পাসওয়ার্ড (৬+ অক্ষর)" : "New password (6+ chars)"}
+            </Label>
+            <Input
+              type="password"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              minLength={6}
+              maxLength={72}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">
+              {lang === "bn" ? "পাসওয়ার্ড নিশ্চিত করুন" : "Confirm password"}
+            </Label>
+            <Input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              minLength={6}
+              maxLength={72}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+            {lang === "bn" ? "বাতিল" : "Cancel"}
+          </Button>
+          <Button onClick={submit} disabled={busy}>
+            {lang === "bn" ? "রিসেট করুন" : "Reset"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
