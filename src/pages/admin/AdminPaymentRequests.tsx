@@ -95,6 +95,7 @@ export default function AdminPaymentRequests() {
       }
     }
     setLoading(false);
+    refreshCounts();
   };
 
   useEffect(() => { refresh(); }, [filter]);
