@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +9,12 @@ const corsHeaders = {
 type Action =
   | { action: "list" }
   | { action: "assign"; email: string; role: "accountant" | "manager" | "admin" }
-  | { action: "revoke"; user_id: string; role: "accountant" | "manager" | "admin" };
+  | { action: "revoke"; user_id: string; role: "accountant" | "manager" | "admin" }
+  | { action: "list_all" }
+  | { action: "delete_user"; user_id: string }
+  | { action: "reset_password"; user_id: string; new_password: string }
+  | { action: "set_ban"; user_id: string; banned: boolean }
+  | { action: "assign_by_id"; user_id: string; role: "owner" | "accountant" | "manager" | "admin" };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -20,18 +25,20 @@ Deno.serve(async (req) => {
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No auth" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Verify caller is admin
+    // Verify caller token without relying on a session lookup that can fail for freshly rotated sessions.
+    const token = authHeader.replace("Bearer ", "");
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userRes, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userRes.user) {
+    const { data: claimsRes, error: claimsErr } = await userClient.auth.getClaims(token);
+    const callerId = claimsRes?.claims?.sub;
+    if (claimsErr || !callerId) {
       return new Response(JSON.stringify({ error: "Invalid session" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -42,7 +49,7 @@ Deno.serve(async (req) => {
     const { data: roleRows } = await admin
       .from("user_roles")
       .select("role")
-      .eq("user_id", userRes.user.id);
+      .eq("user_id", callerId);
     const isAdmin = (roleRows ?? []).some((r: any) => r.role === "admin");
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
@@ -112,7 +119,7 @@ Deno.serve(async (req) => {
     if ((body as any).action === "delete_user") {
       const uid = (body as any).user_id as string;
       if (!uid) throw new Error("user_id required");
-      if (uid === userRes.user.id) throw new Error("Cannot delete yourself");
+      if (uid === callerId) throw new Error("Cannot delete yourself");
       await admin.from("user_roles").delete().eq("user_id", uid);
       const { error } = await admin.auth.admin.deleteUser(uid);
       if (error) throw error;
@@ -137,7 +144,7 @@ Deno.serve(async (req) => {
       const uid = (body as any).user_id as string;
       const banned = !!(body as any).banned;
       if (!uid) throw new Error("user_id required");
-      if (uid === userRes.user.id) throw new Error("Cannot ban yourself");
+      if (uid === callerId) throw new Error("Cannot ban yourself");
       const { error } = await admin.auth.admin.updateUserById(uid, {
         ban_duration: banned ? "100000h" : "none",
       } as any);
