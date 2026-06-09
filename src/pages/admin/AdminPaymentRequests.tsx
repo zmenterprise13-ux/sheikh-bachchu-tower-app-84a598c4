@@ -218,13 +218,30 @@ export default function AdminPaymentRequests() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("paymentRequests")}</h1>
           <div className="flex gap-2 flex-wrap">
-            {(["pending","reviewed","approved","rejected","all"] as const).map(f => (
-              <Button key={f} size="sm" variant={filter===f?"default":"outline"} onClick={()=>setFilter(f)}>
-                {f === "reviewed" ? (lang === "bn" ? "অ্যাডমিন অপেক্ষায়" : "Awaiting admin") : (t(f as any) || f)}
-              </Button>
-            ))}
+            <TooltipProvider delayDuration={150}>
+              {(["pending","reviewed","approved","rejected","all"] as const).map(f => {
+                const label = f === "reviewed" ? (lang === "bn" ? "অ্যাডমিন অপেক্ষায়" : "Awaiting admin") : (t(f as any) || f);
+                const n = counts[f] ?? 0;
+                const nStr = lang === "bn" ? String(n).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[+d]) : String(n);
+                const tip = `${label}: ${nStr}`;
+                return (
+                  <Tooltip key={f}>
+                    <TooltipTrigger asChild>
+                      <Button size="sm" variant={filter===f?"default":"outline"} onClick={()=>setFilter(f)}>
+                        {label}
+                        <span className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-muted px-1.5 text-[10px] font-semibold text-foreground">
+                          {nStr}
+                        </span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{tip}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
           </div>
         </div>
+
 
         <div className="rounded-2xl bg-card border border-border shadow-soft divide-y divide-border">
           {loading && <div className="p-5 space-y-3">{Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-16"/>)}</div>}
