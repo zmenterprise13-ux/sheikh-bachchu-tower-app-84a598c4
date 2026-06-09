@@ -24,7 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-type Role = "owner" | "accountant" | "manager" | "admin";
+type Role = "owner" | "tenant" | "accountant" | "manager" | "admin";
 
 type UserRow = {
   user_id: string;
@@ -47,6 +47,7 @@ const roleStyle: Record<Role, { label: { bn: string; en: string }; cls: string; 
   manager:    { label: { bn: "ম্যানেজার", en: "Manager" },       cls: "bg-accent/10 text-accent border-accent/30",            icon: <Briefcase className="h-3 w-3" /> },
   accountant: { label: { bn: "অ্যাকাউন্ট্যান্ট", en: "Accountant" }, cls: "bg-success/10 text-success border-success/30",       icon: <Wallet className="h-3 w-3" /> },
   owner:      { label: { bn: "ফ্ল্যাট ওনার", en: "Owner" },        cls: "bg-muted text-muted-foreground border-border",         icon: <UserIcon className="h-3 w-3" /> },
+  tenant:     { label: { bn: "ভাড়াটিয়া", en: "Tenant" },          cls: "bg-warning/10 text-warning border-warning/30",         icon: <UserIcon className="h-3 w-3" /> },
 };
 
 export default function AdminUserManagement() {
