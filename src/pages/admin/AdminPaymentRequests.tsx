@@ -43,6 +43,20 @@ export default function AdminPaymentRequests() {
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [userRoles, setUserRoles] = useState<Record<string, string[]>>({});
+  const [counts, setCounts] = useState<Record<string, number>>({ pending: 0, reviewed: 0, approved: 0, rejected: 0, all: 0 });
+
+  const refreshCounts = async () => {
+    const statuses = ["pending", "reviewed", "approved", "rejected"] as const;
+    const results = await Promise.all([
+      ...statuses.map(s => supabase.from("payment_requests").select("id", { count: "exact", head: true }).eq("status", s)),
+      supabase.from("payment_requests").select("id", { count: "exact", head: true }),
+    ]);
+    const next: Record<string, number> = { pending: 0, reviewed: 0, approved: 0, rejected: 0, all: 0 };
+    statuses.forEach((s, i) => { next[s] = results[i].count ?? 0; });
+    next.all = results[statuses.length].count ?? 0;
+    setCounts(next);
+  };
+
 
   const refresh = async () => {
     setLoading(true);
