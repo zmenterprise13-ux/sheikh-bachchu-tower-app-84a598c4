@@ -90,6 +90,7 @@ export default function AdminUserManagement() {
   }, [rows, q, roleFilter, statusFilter]);
 
   const counts = useMemo(() => {
+    const now = Date.now();
     return {
       total: rows.length,
       admin: rows.filter((r) => r.roles.includes("admin")).length,
@@ -97,7 +98,7 @@ export default function AdminUserManagement() {
       accountant: rows.filter((r) => r.roles.includes("accountant")).length,
       owner: rows.filter((r) => r.roles.includes("owner")).length,
       noRole: rows.filter((r) => r.roles.length === 0).length,
-      banned: rows.filter((r) => r.banned_until).length,
+      banned: rows.filter((r) => r.banned_until && new Date(r.banned_until).getTime() > now).length,
     };
   }, [rows]);
 
