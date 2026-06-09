@@ -416,6 +416,13 @@ export default function AdminUserManagement() {
                     </AlertDialogContent>
                   </AlertDialog>
 
+                  <ResetPasswordDialog
+                    lang={lang}
+                    busy={busy}
+                    onSubmit={(pw) => resetPassword(r.user_id, pw)}
+                    userName={name}
+                  />
+
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
