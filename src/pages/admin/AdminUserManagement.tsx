@@ -24,7 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-type Role = "owner" | "accountant" | "manager" | "admin";
+type Role = "owner" | "tenant" | "accountant" | "manager" | "admin";
 
 type UserRow = {
   user_id: string;
@@ -47,6 +47,7 @@ const roleStyle: Record<Role, { label: { bn: string; en: string }; cls: string; 
   manager:    { label: { bn: "ম্যানেজার", en: "Manager" },       cls: "bg-accent/10 text-accent border-accent/30",            icon: <Briefcase className="h-3 w-3" /> },
   accountant: { label: { bn: "অ্যাকাউন্ট্যান্ট", en: "Accountant" }, cls: "bg-success/10 text-success border-success/30",       icon: <Wallet className="h-3 w-3" /> },
   owner:      { label: { bn: "ফ্ল্যাট ওনার", en: "Owner" },        cls: "bg-muted text-muted-foreground border-border",         icon: <UserIcon className="h-3 w-3" /> },
+  tenant:     { label: { bn: "ভাড়াটিয়া", en: "Tenant" },          cls: "bg-warning/10 text-warning border-warning/30",         icon: <UserIcon className="h-3 w-3" /> },
 };
 
 export default function AdminUserManagement() {
@@ -89,6 +90,7 @@ export default function AdminUserManagement() {
   }, [rows, q, roleFilter, statusFilter]);
 
   const counts = useMemo(() => {
+    const now = Date.now();
     return {
       total: rows.length,
       admin: rows.filter((r) => r.roles.includes("admin")).length,
@@ -96,7 +98,7 @@ export default function AdminUserManagement() {
       accountant: rows.filter((r) => r.roles.includes("accountant")).length,
       owner: rows.filter((r) => r.roles.includes("owner")).length,
       noRole: rows.filter((r) => r.roles.length === 0).length,
-      banned: rows.filter((r) => r.banned_until).length,
+      banned: rows.filter((r) => r.banned_until && new Date(r.banned_until).getTime() > now).length,
     };
   }, [rows]);
 
@@ -278,7 +280,7 @@ export default function AdminUserManagement() {
             const name = lang === "bn"
               ? (r.display_name_bn || r.display_name || flatOwnerNameBn || flatOwnerName || r.email || r.user_id.slice(0, 8))
               : (r.display_name || flatOwnerName || r.email || r.user_id.slice(0, 8));
-            const availableRoles: Role[] = (["owner", "accountant", "manager", "admin"] as Role[])
+            const availableRoles: Role[] = (["owner", "tenant", "accountant", "manager", "admin"] as Role[])
               .filter((x) => !r.roles.includes(x));
 
             return (
